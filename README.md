@@ -37,7 +37,7 @@ Otwórz `index.html` w przeglądarce lub wrzuć na Vercel/Netlify.
 
 ## Live Demo
 
-[https://focus-flow.vercel.app/](https://focus-flow.vercel.app/)
+[https://focus-flow-self-ten.vercel.app/](https://focus-flow-self-ten.vercel.app/)
 
 ## Autor
 
