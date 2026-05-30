@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Focus Flow — minimalistyczny minutnik Pomodoro z trybem focus, statystykami i poradami do efektywnej nauki.">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Focus Flow — Pomodoro & Wskazówki">
+  <meta property="og:description" content="Minimalistyczny minutnik Pomodoro z trybem focus, statystykami i poradami.">
+  <meta property="og:image" content="og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <title>Focus Flow — Pomodoro</title>
+</head>
+<body>
+<a class="skip-link" href="#view-timer" data-i18n="skip">Przejdź do timera</a>
+
+<button class="hamburger" id="hamburger" aria-label="Menu">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+  </svg>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay">
+  <aside class="sidebar" role="navigation" aria-label="Nawigacja">
+    <button class="sidebar-close" id="sidebarClose" aria-label="Zamknij menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/>
+      </svg>
+    </button>
+    <nav class="sidebar-nav">
+      <a class="nav-link active" data-view="timer" data-i18n="nav-timer" tabindex="0">Timer</a>
+      <a class="nav-link" data-view="tips" data-i18n="nav-tips" tabindex="0">Wskazówki</a>
+      <a href="https://github.com/w3ziqv" target="_blank" rel="noopener noreferrer" data-i18n="nav-github" data-i18n-aria="nav-github-aria">GitHub</a>
+    </nav>
+    <div class="sidebar-section-label" data-i18n="sidebar-settings">Ustawienia</div>
+    <div class="sidebar-controls">
+      <div class="sidebar-row">
+        <span data-i18n="sidebar-theme">Motyw</span>
+        <button class="theme-btn" id="themeBtn" data-i18n="theme-light" aria-label="Przełącz motyw">Jasny</button>
+      </div>
+      <div class="sidebar-row">
+        <span data-i18n="sidebar-lang">Język</span>
+        <button class="lang-btn" id="sidebarLang" data-i18n="lang-btn">EN</button>
+      </div>
+    </div>
+    <div class="sidebar-footer"><span class="label">Focus Flow</span></div>
+  </aside>
+</div>
+
+<main>
+<section id="view-timer" class="view view-timer active">
+  <div class="container">
+    <span class="label" data-i18n="app-name">Focus Flow</span>
+
+    <div class="task-input-wrap" id="taskWrap">
+      <input class="task-input" id="taskInput" type="text" data-i18n-placeholder="task-placeholder" placeholder="Co robisz w tej sesji?" autocomplete="off">
+      <div class="task-done" id="taskDone" style="display:none;"><span class="check">✓</span> <span id="taskDoneText"></span></div>
+    </div>
+
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" data-mode="focus" role="tab" aria-selected="true" data-i18n="mode-focus">Focus</button>
+      <button class="mode-tab" data-mode="short" role="tab" aria-selected="false" data-i18n="mode-short">Short Break</button>
+      <button class="mode-tab" data-mode="long" role="tab" aria-selected="false" data-i18n="mode-long">Long Break</button>
+    </div>
+
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div class="timer-round" id="timerRound" data-i18n="round-count">Runda 0 / 4</div>
+
+    <div class="timer-controls">
+      <button class="timer-btn primary" id="timerStart" data-i18n="timer-start">Start</button>
+      <button class="timer-btn" id="timerReset" data-i18n="timer-reset">Reset</button>
+      <button class="timer-btn" id="timerSettings" data-i18n="timer-settings">Ustawienia</button>
+    </div>
+
+    <div class="sound-controls">
+      <button class="sound-btn active" data-sound="none" data-i18n="sound-none">Wyłącz</button>
+      <button class="sound-btn" data-sound="rain" data-i18n="sound-rain">Deszcz</button>
+      <button class="sound-btn" data-sound="noise" data-i18n="sound-noise">Szum</button>
+    </div>
+
+    <div class="timer-tip" id="timerTip">
+      <div class="timer-tip-inner">
+        <span class="timer-tip-icon" id="timerTipIcon"></span>
+        <div>
+          <div class="timer-tip-text" id="timerTipText"></div>
+          <div class="timer-tip-source" id="timerTipSource"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="focus-btn" id="focusBtn"><span data-i18n="focus-enter">Wejdź w tryb Focus</span> <span>→</span></button>
+
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-value" id="statToday">0</div><div class="stat-label" data-i18n="stat-today">dzisiaj</div></div>
+      <div class="stat-item"><div class="stat-value" id="statWeek">0</div><div class="stat-label" data-i18n="stat-week">w tym tygodniu</div></div>
+      <div class="stat-item"><div class="stat-value" id="statStreak">0</div><div class="stat-label" data-i18n="stat-streak">dni z rzędu</div></div>
+      <div class="stat-item"><div class="stat-value" id="statMinutes">0</div><div class="stat-label" data-i18n="stat-minutes">minut focusu</div></div>
+    </div>
+
+    <div class="chart-wrap" id="chartWrap">
+      <div class="stat-label" data-i18n="chart-label">Minuty focusu</div>
+      <div class="chart" id="chart"></div>
+      <div class="chart-labels" id="chartLabels"></div>
+    </div>
+  </div>
+</section>
+
+<section id="view-tips" class="view view-tips">
+  <div class="container">
+    <span class="label" data-i18n="tips-label">Wskazówki</span>
+    <p class="tips-desc" data-i18n="tips-desc">Praktyczne porady podzielone na kategorie.</p>
+    <div id="tipsContainer"></div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer"><div class="container"><span class="label">© 2026 Focus Flow</span></div></footer>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <button class="modal-close" id="settingsClose" aria-label="Zamknij">✕</button>
+    <h2 data-i18n="settings-title">Ustawienia timera</h2>
+    <div class="modal-field">
+      <label data-i18n="settings-focus">Czas Focus (min)</label>
+      <input type="number" id="settingsFocus" min="1" max="120" value="25">
+    </div>
+    <div class="modal-field">
+      <label data-i18n="settings-short">Short Break (min)</label>
+      <input type="number" id="settingsShort" min="1" max="60" value="5">
+    </div>
+    <div class="modal-field">
+      <label data-i18n="settings-long">Long Break (min)</label>
+      <input type="number" id="settingsLong" min="1" max="120" value="15">
+    </div>
+    <div class="modal-field">
+      <label data-i18n="settings-rounds">Rund do Long Break</label>
+      <input type="number" id="settingsRounds" min="1" max="20" value="4">
+    </div>
+    <div class="modal-field">
+      <label class="checkbox-label"><input type="checkbox" id="settingsAutoStart"> <span data-i18n="settings-autostart">Auto-start kolejnej rundy</span></label>
+    </div>
+    <button class="modal-save" id="settingsSave" data-i18n="settings-save">Zapisz</button>
+  </div>
+</div>
+
+<div class="focus-overlay" id="focusOverlay">
+  <button class="focus-exit" id="focusExit" data-i18n="focus-exit">Wyjście</button>
+  <div class="timer-display" id="focusTimerDisplay">25:00</div>
+  <div class="timer-round" id="focusTimerRound" data-i18n="round-count">Runda 0 / 4</div>
+  <div class="timer-controls">
+    <button class="timer-btn primary" id="focusStart" data-i18n="timer-start">Start</button>
+    <button class="timer-btn" id="focusReset" data-i18n="timer-reset">Reset</button>
+  </div>
+  <div class="timer-tip" id="focusTip">
+    <div class="timer-tip-inner">
+      <span class="timer-tip-icon" id="focusTipIcon"></span>
+      <div>
+        <div class="timer-tip-text" id="focusTipText"></div>
+        <div class="timer-tip-source" id="focusTipSource"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const lang = { current: localStorage.getItem('ff_lang') || 'pl' }
+
+const dict = {
+  pl: {
+    skip:'Przejdź do timera','nav-timer':'Timer','nav-tips':'Wskazówki','nav-github':'GitHub','nav-github-aria':'GitHub (nowa karta)',
+    'sidebar-settings':'Ustawienia','sidebar-theme':'Motyw','sidebar-lang':'Język',
+    'theme-light':'Jasny','theme-dark':'Ciemny',
+    'lang-btn':'EN',
+    'app-name':'Focus Flow',
+    'task-placeholder':'Co robisz w tej sesji?',
+    'mode-focus':'Focus','mode-short':'Short Break','mode-long':'Long Break',
+    'round-count':'Runda 0 / 4',
+    'timer-start':'Start','timer-reset':'Reset','timer-settings':'Ustawienia',
+    'sound-none':'Wyłącz','sound-rain':'Deszcz','sound-noise':'Szum',
+    'focus-enter':'Wejdź w tryb Focus','focus-exit':'Wyjście',
+    'stat-today':'dzisiaj','stat-week':'w tym tygodniu','stat-streak':'dni z rzędu','stat-minutes':'minut focusu',
+    'chart-label':'Minuty focusu',
+    'tips-label':'Wskazówki','tips-desc':'Praktyczne porady podzielone na kategorie. Kliknij kategorię, aby rozwinąć.',
+    'tip-category-nauka':'🧠 Nauka','tip-category-przerwa':'☕ Przerwa','tip-category-sen':'😴 Sen','tip-category-jedzenie':'🥗 Jedzenie','tip-category-produktywnosc':'⚡ Produktywność',
+    'settings-title':'Ustawienia timera','settings-focus':'Czas Focus (min)','settings-short':'Short Break (min)','settings-long':'Long Break (min)','settings-rounds':'Rund do Long Break','settings-autostart':'Auto-start kolejnej rundy','settings-save':'Zapisz',
+    'stat-streak-none':'—','timer-running':'Pauza','session-complete':'Runda zakończona!','break-tip':'Wskazówka',
+  },
+  en: {
+    skip:'Skip to timer','nav-timer':'Timer','nav-tips':'Tips','nav-github':'GitHub','nav-github-aria':'GitHub (opens in new tab)',
+    'sidebar-settings':'Settings','sidebar-theme':'Theme','sidebar-lang':'Language',
+    'theme-light':'Light','theme-dark':'Dark',
+    'lang-btn':'PL',
+    'app-name':'Focus Flow',
+    'task-placeholder':'What are you working on?',
+    'mode-focus':'Focus','mode-short':'Short Break','mode-long':'Long Break',
+    'round-count':'Round 0 / 4',
+    'timer-start':'Start','timer-reset':'Reset','timer-settings':'Settings',
+    'sound-none':'Off','sound-rain':'Rain','sound-noise':'Noise',
+    'focus-enter':'Enter Focus Mode','focus-exit':'Exit',
+    'stat-today':'today','stat-week':'this week','stat-streak':'day streak','stat-minutes':'focus minutes',
+    'chart-label':'Focus minutes',
+    'tips-label':'Tips','tips-desc':'Practical advice organised by category. Click a category to expand.',
+    'tip-category-nauka':'🧠 Learning','tip-category-przerwa':'☕ Break','tip-category-sen':'😴 Sleep','tip-category-jedzenie':'🥗 Food','tip-category-produktywnosc':'⚡ Productivity',
+    'settings-title':'Timer Settings','settings-focus':'Focus Time (min)','settings-short':'Short Break (min)','settings-long':'Long Break (min)','settings-rounds':'Rounds until Long Break','settings-autostart':'Auto-start next round','settings-save':'Save',
+    'stat-streak-none':'—','timer-running':'Pause','session-complete':'Session complete!','break-tip':'Tip',
+  }
+}
+
+const defaults = { focus: 25, short: 5, long: 15, rounds: 4, autoStart: false }
+
+const defaultTips = {
+  nauka: [
+    { pl:{title:'Rób notatki ręcznie',desc:'Pisanie odręczne angażuje obszary mózgu odpowiedzialne za przetwarzanie i zapamiętywanie. Badania pokazują, że studenci notujący ręcznie lepiej rozumieją materiał niż ci, którzy piszą na laptopie.'}, en:{title:'Write notes by hand',desc:'Handwriting engages brain areas responsible for processing and memory. Studies show students who write by hand understand material better than those who type.'} },
+    { pl:{title:'Ucz się aktywnym przypominaniem',desc:'Zamiast czytać notatki wielokrotnie, zamknij książkę i spróbuj odtworzyć z pamięci to, czego się nauczyłeś. Active Recall to jedna z najskuteczniejszych technik zapamiętywania.'}, en:{title:'Use active recall',desc:'Instead of re-reading notes, close the book and try to recall from memory. Active recall is one of the most effective learning techniques.'} },
+    { pl:{title:'Wyłącz telefon podczas nauki',desc:'Rozpraszacze kosztują Cię średnio 23 minuty na odzyskanie pełnej koncentracji po każdym spojrzeniu w ekran.'}, en:{title:'Turn off your phone while studying',desc:'Distractions cost you an average of 23 minutes to regain full focus after each glance.'} },
+    { pl:{title:'Dziel materiał na małe partie',desc:'Próba nauczenia się 50 stron na raz jest nieskuteczna. Podziel materiał na 5-10 stron na sesję i powtarzaj każdą partię przed przejściem dalej.'}, en:{title:'Break material into small chunks',desc:'Trying to learn 50 pages at once is ineffective. Split material into 5-10 page sessions.'} },
+    { pl:{title:'Ucz się w ciszy albo przy muzyce bez słów',desc:'Muzyka z tekstem angażuje korę słuchową i konkuruje z materiałem, który próbujesz zapamiętać.'}, en:{title:'Study in silence or with instrumental music',desc:'Music with lyrics engages the auditory cortex and competes with what you\'re trying to learn.'} },
+    { pl:{title:'Powtarzaj materiał następnego dnia',desc:'Jeśli nie powtórzysz następnego dnia, zapomnisz nawet 50-70% tego, czego się nauczyłeś. Powtórka po 24h to klucz do długotrwałej pamięci.'}, en:{title:'Review material the next day',desc:'If you don\'t review the next day, you\'ll forget up to 50-70% of what you learned.'} },
+  ],
+  przerwa: [
+    { pl:{title:'Napij się wody',desc:'Nawet lekkie odwodnienie (1-2%) obniża koncentrację i sprawność umysłową. Miej szklankę wody na biurku.'}, en:{title:'Drink water',desc:'Even mild dehydration (1-2%) reduces concentration and mental performance.'} },
+    { pl:{title:'Zjedz orzechy lub owoc',desc:'Migdały, orzechy włoskie, jabłko lub banan dostarczają glukozy i zdrowych tłuszczów stabilizujących poziom cukru we krwi.'}, en:{title:'Eat nuts or fruit',desc:'Almonds, walnuts, apples, or bananas provide glucose and healthy fats that stabilise blood sugar.'} },
+    { pl:{title:'Przewietrz pokój',desc:'W zamkniętym pomieszczeniu poziom CO₂ szybko rośnie, powodując zmęczenie. Otwórz okno na 2 minuty.'}, en:{title:'Air out the room',desc:'CO₂ levels rise quickly in a closed room, causing fatigue. Open the window for 2 minutes.'} },
+    { pl:{title:'Zrób 10 przysiadów',desc:'Aktywność fizyczna zwiększa przepływ krwi do mózgu i poprawia nastrój. 10 przysiadów zajmuje 30 sekund.'}, en:{title:'Do 10 squats',desc:'Physical activity boosts blood flow to the brain and improves mood. 10 squats take 30 seconds.'} },
+    { pl:{title:'Odsuń wzrok od ekranu',desc:'Patrzenie w dal rozluźnia mięśnie rzęskowe oka. Zasada 20-20-20: co 20 minut patrz w dal na 20 sekund.'}, en:{title:'Look away from the screen',desc:'Looking at a distance relaxes the eye\'s ciliary muscles. The 20-20-20 rule.'} },
+    { pl:{title:'Przejdź się po pokoju',desc:'Zmiana pozycji i krótki spacer poprawiają krążenie i resetują mózg na kolejne zadanie.'}, en:{title:'Walk around the room',desc:'Changing position and a short walk improve circulation and reset your brain.'} },
+    { pl:{title:'Rozciągnij ramiona i szyję',desc:'Wielogodzinne siedzenie powoduje napięcie w barkach i karku. 30-sekundowe rozciągnięcie zapobiega bólom.'}, en:{title:'Stretch your shoulders and neck',desc:'Hours of sitting cause tension in shoulders and neck. A 30-second stretch prevents pain.'} },
+  ],
+  sen: [
+    { pl:{title:'Kładź się spać o stałej porze',desc:'Regularny rytm dobowy synchronizuje cykle snu z zegarem biologicznym. Nieregularne pory obniżają jakość snu.'}, en:{title:'Go to bed at a consistent time',desc:'A regular circadian rhythm syncs your sleep cycles. Irregular bedtimes lower sleep quality.'} },
+    { pl:{title:'Nie używaj telefonu przed snem',desc:'Niebieskie światło hamuje wydzielanie melatoniny. Odłóż telefon na 30-60 minut przed snem.'}, en:{title:'Don\'t use your phone before bed',desc:'Blue light inhibits melatonin production. Put your phone away 30-60 minutes before bed.'} },
+    { pl:{title:'Śpij 7-9 godzin na dobę',desc:'W czasie snu mózg konsoliduje wspomnienia i regeneruje się. Mniej niż 7 godzin obniża zdolność uczenia się.'}, en:{title:'Sleep 7-9 hours per night',desc:'During sleep your brain consolidates memories and regenerates. Less than 7 hours impairs learning.'} },
+    { pl:{title:'Wywietrz sypialnię przed snem',desc:'Optymalna temperatura do snu to 16-19°C. Chłodne pomieszczenie pomaga szybciej zasnąć.'}, en:{title:'Air out your bedroom before sleeping',desc:'The optimal sleep temperature is 16-19°C. A cool room helps you fall asleep faster.'} },
+    { pl:{title:'Nie jedz ciężkich posiłków przed snem',desc:'Trawienie obciąża organizm i utrudnia zasypianie. Ostatni posiłek zjedz 2-3 godziny przed snem.'}, en:{title:'Don\'t eat heavy meals before bed',desc:'Digestion burdens your body and makes it harder to fall asleep. Eat 2-3 hours before bed.'} },
+    { pl:{title:'Czytaj książkę zamiast scrollować',desc:'Czytanie wycisza układ nerwowy. 15 minut książki przed snem działa lepiej niż melatonina.'}, en:{title:'Read a book instead of scrolling',desc:'Reading calms the nervous system. 15 minutes of reading before bed works better than melatonin.'} },
+  ],
+  jedzenie: [
+    { pl:{title:'Pij dużo wody w ciągu dnia',desc:'Mózg składa się w 75% z wody. Nawet niewielkie odwodnienie powoduje bóle głowy i spadek koncentracji.'}, en:{title:'Drink plenty of water',desc:'Your brain is 75% water. Even mild dehydration causes headaches and reduced focus.'} },
+    { pl:{title:'Unikaj cukru przed nauką',desc:'Cukier daje szybki zastrzyk energii, po którym następuje gwałtowny spadek. Jesteś bardziej zmęczony niż przed.'}, en:{title:'Avoid sugar before studying',desc:'Sugar gives a quick energy spike followed by a crash. You end up more tired than before.'} },
+    { pl:{title:'Zjedz lekkie śniadanie',desc:'Owsianka, jajecznica, pełnoziarniste pieczywo — unikaj cukru i wysoko przetworzonych płatków.'}, en:{title:'Eat a light breakfast',desc:'Oatmeal, eggs, wholegrain bread — avoid sugar and highly processed cereals.'} },
+    { pl:{title:'Orzechy i owoce to idealna przekąska',desc:'Orzechy dostarczają zdrowych tłuszczów, a owoce naturalnej glukozy. Dają stabilną energię.'}, en:{title:'Nuts and fruit are the ideal snack',desc:'Nuts provide healthy fats, fruit provides natural glucose. They give stable energy.'} },
+    { pl:{title:'Nie ucz się na głodniaka',desc:'Brak glukozy obniża koncentrację. Lekki posiłek 30-60 minut przed nauką zapewnia mózgowi paliwo.'}, en:{title:'Don\'t study hungry',desc:'Lack of glucose impairs concentration. A light meal 30-60 min before studying fuels your brain.'} },
+    { pl:{title:'Kawa? Max 2 dziennie',desc:'Kofeina blokuje receptor zmęczenia, ale jej nadmiar prowadzi do niepokoju. Do 2 kawy dziennie.'}, en:{title:'Coffee? Max 2 per day',desc:'Caffeine blocks the fatigue receptor, but too much causes anxiety. Up to 2 coffees per day.'} },
+  ],
+  produktywnosc: [
+    { pl:{title:'Rób jedną rzecz na raz',desc:'Multitasking to mit — mózg szybko przełącza się między zadaniami, a każde przełączenie kosztuje czas i energię.'}, en:{title:'Do one thing at a time',desc:'Multitasking is a myth — your brain quickly switches between tasks, and each switch costs time and energy.'} },
+    { pl:{title:'Ustal cel przed startem timera',desc:'Zapisz konkretne zadanie na tę sesję. Zamiast "uczyć się" napisz "zrobić 15 ćwiczeń".'}, en:{title:'Set a goal before starting',desc:'Write a specific task for this session. Instead of "study", write "do 15 exercises".'} },
+    { pl:{title:'Zacznij od najtrudniejszego zadania',desc:'Zasada "Eat the frog" — jeśli zrobisz najtrudniejszą rzecz rano, reszta pójdzie lekko.'}, en:{title:'Start with the hardest task',desc:'The "Eat the frog" rule — if you do the hardest thing first thing, the rest feels easy.'} },
+    { pl:{title:'Sprzątanie biurka = sprzątanie myśli',desc:'Bałagan na biurku to bodźce odciągające uwagę. Poświęć 60 sekund na uporządkowanie przestrzeni.'}, en:{title:'Clean desk = clean mind',desc:'Clutter is visual distraction. Spend 60 seconds tidying up before starting.'} },
+    { pl:{title:'Planuj dzień wieczorem',desc:'Wieczorne zaplanowanie 3 najważniejszych zadań sprawia, że rano nie tracisz energii na decyzję "co robić".'}, en:{title:'Plan your day the evening before',desc:'Planning the 3 most important tasks the night before saves decision-making energy in the morning.'} },
+    { pl:{title:'Co 4 pomodoro zrób dłuższą przerwę',desc:'Po 4 cyklach (ok. 2h) mózg potrzebuje dłuższej regeneracji. 15-30 minut przerwy od ekranu.'}, en:{title:'Longer break every 4 pomodoros',desc:'After 4 cycles (~2h) your brain needs longer recovery. 15-30 min break away from screens.'} },
+  ]
+}
+
+let state = {
+  mode: 'focus', running: false, timeLeft: defaults.focus * 60, total: defaults.focus * 60,
+  round: 0, settings: { ...defaults }, tips: loadTips(), stats: loadStats(),
+  timer: null, focusOpen: false, task: '', sound: 'none', soundCtx: null, soundNode: null,
+}
+
+function loadTips() {
+  try { const s = localStorage.getItem('ff_tips'); if (s) return JSON.parse(s) } catch {}
+  return JSON.parse(JSON.stringify(defaultTips))
+}
+function saveTips() { localStorage.setItem('ff_tips', JSON.stringify(state.tips)) }
+
+function loadStats() {
+  try {
+    const s = localStorage.getItem('ff_stats')
+    if (s) {
+      const d = JSON.parse(s); const today = new Date().toDateString()
+      if (d.date !== today) {
+        d.today = 0; d.date = today
+        const ws = getWeekStart()
+        if (d.weekStart !== ws) { d.week = 0; d.weekStart = ws }
+      }
+      return d
+    }
+  } catch {}
+  return { today:0, week:0, streak:0, minutes:0, date:new Date().toDateString(), weekStart:getWeekStart(), lastDate:null, history:{} }
+}
+function getWeekStart() {
+  const d = new Date(); const day = d.getDay()
+  const diff = d.getDate() - day + (day===0?-6:1)
+  return new Date(d.setDate(diff)).toDateString()
+}
+function saveStats() { localStorage.setItem('ff_stats', JSON.stringify(state.stats)) }
+
+function loadSettings() {
+  try {
+    const s = localStorage.getItem('ff_settings')
+    if (s) { state.settings = { ...defaults, ...JSON.parse(s) }; return }
+  } catch {}
+  state.settings = { ...defaults }
+}
+function saveSettings() { localStorage.setItem('ff_settings', JSON.stringify(state.settings)) }
+
+function loadTheme() {
+  const t = localStorage.getItem('ff_theme')
+  if (t === 'dark' || t === 'light') { document.documentElement.setAttribute('data-theme', t); return t }
+  // Respect system pref
+  const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  document.documentElement.setAttribute('data-theme', sys)
+  return sys
+}
+
+const $ = id => document.getElementById(id)
+const timerDisplay = $('timerDisplay'), timerRound = $('timerRound')
+const timerStart = $('timerStart'), timerResetBtn = $('timerReset')
+const timerTip = $('timerTip'), timerTipIcon = $('timerTipIcon'), timerTipText = $('timerTipText'), timerTipSource = $('timerTipSource')
+const focusBtn = $('focusBtn'), focusOverlay = $('focusOverlay')
+const focusTimerDisplay = $('focusTimerDisplay'), focusTimerRound = $('focusTimerRound')
+const focusStart = $('focusStart'), focusResetBtn = $('focusReset')
+const focusTip = $('focusTip'), focusTipIcon = $('focusTipIcon'), focusTipText = $('focusTipText'), focusTipSource = $('focusTipSource'), focusExit = $('focusExit')
+const settingsModal = $('settingsModal'), settingsClose = $('settingsClose')
+const settingsFocus = $('settingsFocus'), settingsShort = $('settingsShort'), settingsLong = $('settingsLong'), settingsRounds = $('settingsRounds'), settingsAutoStart = $('settingsAutoStart'), settingsSave = $('settingsSave')
+const statToday = $('statToday'), statWeek = $('statWeek'), statStreak = $('statStreak'), statMinutes = $('statMinutes')
+const tipsContainer = $('tipsContainer')
+const sidebarOverlay = $('sidebarOverlay'), hamburger = $('hamburger'), sidebarClose = $('sidebarClose'), themeBtn = $('themeBtn'), sidebarLang = $('sidebarLang')
+const taskInput = $('taskInput'), taskWrap = $('taskWrap'), taskDone = $('taskDone'), taskDoneText = $('taskDoneText')
+const chart = $('chart'), chartLabels = $('chartLabels')
+
+function formatTime(sec) { return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}` }
+function updateDisplay(display, roundEl) {
+  display.textContent = formatTime(state.timeLeft)
+  roundEl.textContent = dict[lang.current]['round-count'].replace('0',state.round).replace('4',state.settings.rounds)
+}
+function getTipText(tip) { return (tip && tip[lang.current]) ? tip[lang.current].title : tip }
+
+function startTimer() {
+  if (state.running) return
+  // Save task
+  const val = taskInput.value.trim()
+  if (val) { state.task = val; taskInput.value = val; taskInput.style.display = 'none'; taskDone.style.display = 'none' }
+  state.running = true
+  timerStart.textContent = dict[lang.current]['timer-running']
+  focusStart.textContent = dict[lang.current]['timer-running']
+  state.timer = setInterval(() => {
+    state.timeLeft--
+    if (state.timeLeft <= 0) { clearInterval(state.timer); state.running = false; onSessionComplete(); return }
+    updateDisplay(timerDisplay, timerRound)
+    if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
+  }, 1000)
+}
+
+function pauseTimer() {
+  if (!state.running) return
+  clearInterval(state.timer); state.timer = null; state.running = false
+  timerStart.textContent = dict[lang.current]['timer-start']
+  focusStart.textContent = dict[lang.current]['timer-start']
+}
+
+function resetTimer() {
+  clearInterval(state.timer); state.timer = null; state.running = false
+  timerStart.textContent = dict[lang.current]['timer-start']
+  focusStart.textContent = dict[lang.current]['timer-start']
+  const mins = state.settings[state.mode]
+  state.timeLeft = mins * 60; state.total = mins * 60
+  updateDisplay(timerDisplay, timerRound)
+  if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
+  // Show task input again
+  taskInput.style.display = ''
+  if (state.task) { taskInput.value = state.task; taskDone.style.display = ''; taskDoneText.textContent = state.task }
+  else taskDone.style.display = 'none'
+}
+
+function onSessionComplete() {
+  beep()
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try { new Notification(dict[lang.current]['session-complete']) } catch {}
+  }
+  state.stats.today++; state.stats.week++; state.stats.minutes += state.settings.focus
+  const today = new Date().toDateString()
+  if (state.stats.lastDate) {
+    const diff = (new Date(today) - new Date(state.stats.lastDate)) / 86400000
+    if (diff === 1) state.stats.streak++
+    else if (diff > 1) state.stats.streak = 1
+  } else state.stats.streak = 1
+  state.stats.lastDate = today; state.stats.date = today; state.stats.weekStart = getWeekStart()
+  // Save history for chart
+  if (!state.stats.history) state.stats.history = {}
+  state.stats.history[today] = (state.stats.history[today] || 0) + state.settings.focus
+  saveStats(); updateStats(); renderChart()
+
+  // Mark task done
+  if (state.task) {
+    taskDone.style.display = ''; taskDoneText.textContent = state.task
+    taskInput.style.display = 'none'
+  }
+
+  state.round++
+  const auto = state.settings.autoStart
+  if (state.mode === 'focus') {
+    if (state.round >= state.settings.rounds) { state.round = 0; switchMode('long', auto) }
+    else switchMode('short', auto)
+  } else switchMode('focus', auto)
+  if (state.mode !== 'focus') showBreakTip()
+}
+
+function showBreakTip() {
+  const allTips = [...state.tips.przerwa, ...state.tips.jedzenie]
+  const tip = allTips[Math.floor(Math.random() * allTips.length)]
+  timerTip.classList.add('visible')
+  timerTipIcon.textContent = state.mode === 'short' ? '☕' : '🌿'
+  timerTipText.textContent = getTipText(tip)
+  timerTipSource.textContent = `— ${dict[lang.current][state.mode === 'short' ? 'mode-short' : 'mode-long']}`
+  setTimeout(() => timerTip.classList.remove('visible'), 8000)
+}
+
+function switchMode(mode, autoStart) {
+  state.mode = mode
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode)
+    t.setAttribute('aria-selected', t.dataset.mode === mode)
+  })
+  const mins = state.settings[mode === 'focus' ? 'focus' : mode === 'short' ? 'short' : 'long']
+  state.timeLeft = mins * 60; state.total = mins * 60
+  state.running = false; clearInterval(state.timer); state.timer = null
+  timerStart.textContent = dict[lang.current]['timer-start']
+  focusStart.textContent = dict[lang.current]['timer-start']
+  updateDisplay(timerDisplay, timerRound)
+  if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
+  if (mode === 'focus') { timerTip.classList.remove('visible'); focusTip.classList.remove('visible') }
+  if (autoStart && mode !== 'focus') startTimer()
+}
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = ctx.createOscillator(); const gain = ctx.createGain()
+    osc.connect(gain); gain.connect(ctx.destination)
+    osc.frequency.value = 880; osc.type = 'sine'; gain.gain.value = 0.3
+    osc.start(); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
+    osc.stop(ctx.currentTime + 0.4)
+  } catch {}
+}
+
+// Ambient sound
+function stopSound() {
+  if (state.soundNodes) { state.soundNodes.forEach(n => { try { n.stop() } catch {} }); state.soundNodes = null }
+  if (state.soundCtx) { try { state.soundCtx.close() } catch {}; state.soundCtx = null }
+}
+function createNoiseBuffer(ctx) {
+  const len = ctx.sampleRate * 2
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate)
+  const d = buf.getChannelData(0)
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1
+  return buf
+}
+function makeSource(ctx, buf) {
+  const s = ctx.createBufferSource()
+  s.buffer = buf; s.loop = true; s.start()
+  return s
+}
+function playRain(ctx) {
+  const buf = createNoiseBuffer(ctx)
+  const nodes = []
+
+  // Layer 1: low rumble (distant rain body)
+  const s1 = makeSource(ctx, buf)
+  const lp1 = ctx.createBiquadFilter(); lp1.type = 'lowpass'; lp1.frequency.value = 600
+  const g1 = ctx.createGain(); g1.gain.value = 0.08
+  s1.connect(lp1); lp1.connect(g1); g1.connect(ctx.destination)
+  nodes.push(s1)
+
+  // Layer 2: mid hiss (close rain)
+  const buf2 = createNoiseBuffer(ctx)
+  const s2 = makeSource(ctx, buf2)
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 0.8
+  const g2 = ctx.createGain(); g2.gain.value = 0.06
+  s2.connect(bp); bp.connect(g2); g2.connect(ctx.destination)
+  nodes.push(s2)
+
+  // Layer 3: high shimmer (droplets)
+  const buf3 = createNoiseBuffer(ctx)
+  const s3 = makeSource(ctx, buf3)
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 5000
+  const g3 = ctx.createGain(); g3.gain.value = 0.03
+  s3.connect(hp); hp.connect(g3); g3.connect(ctx.destination)
+  nodes.push(s3)
+
+  // Slow LFO for natural modulation
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 0.15; lfo.type = 'sine'
+  const lfoGain = ctx.createGain(); lfoGain.gain.value = 0.015
+  lfo.connect(lfoGain); lfoGain.connect(g2.gain)
+  // Also slightly modulate the high layer
+  const lfoG2 = ctx.createGain(); lfoG2.gain.value = 0.01
+  lfo.connect(lfoG2); lfoG2.connect(g3.gain)
+  lfo.start()
+  nodes.push(lfo)
+
+  return nodes
+}
+function playNoise(ctx) {
+  const buf = createNoiseBuffer(ctx)
+  const nodes = []
+
+  // Pink-ish noise: white noise rolled off at highs for a warm ambient sound
+  const s = makeSource(ctx, buf)
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000
+  const g = ctx.createGain(); g.gain.value = 0.035
+  s.connect(lp); lp.connect(g); g.connect(ctx.destination)
+  nodes.push(s)
+
+  return nodes
+}
+function setSound(s) {
+  stopSound()
+  state.sound = s
+  document.querySelectorAll('.sound-btn').forEach(b => b.classList.toggle('active', b.dataset.sound === s))
+  if (s === 'none') return
+  try {
+    state.soundCtx = new (window.AudioContext || window.webkitAudioContext)()
+    state.soundNodes = []
+    if (s === 'rain') state.soundNodes = playRain(state.soundCtx)
+    else if (s === 'noise') state.soundNodes = playNoise(state.soundCtx)
+  } catch {}
+}
+
+function updateStats() {
+  statToday.textContent = state.stats.today
+  statWeek.textContent = state.stats.week
+  statStreak.textContent = state.stats.streak || dict[lang.current]['stat-streak-none']
+  statMinutes.textContent = state.stats.minutes
+}
+
+function renderChart() {
+  const days = []
+  const today = new Date()
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const key = d.toDateString()
+    const min = (state.stats.history && state.stats.history[key]) || 0
+    days.push({ label: d.toLocaleDateString(lang.current === 'pl' ? 'pl' : 'en', { weekday:'short' }), val: min })
+  }
+  const max = Math.max(...days.map(d => d.val), 1)
+  chart.innerHTML = days.map(d => `<div class="chart-bar ${d.val > 0 ? 'fill' : ''}" style="height:${Math.max(2, (d.val/max)*56)}px"></div>`).join('')
+  chartLabels.innerHTML = days.map(d => `<span>${d.label}</span>`).join('')
+}
+
+function renderTips() {
+  tipsContainer.innerHTML = ''
+  const cats = ['nauka','przerwa','sen','jedzenie','produktywnosc']
+  cats.forEach(cat => {
+    const sec = document.createElement('div'); sec.className = 'tips-category'
+    const hdr = document.createElement('button'); hdr.className = 'tips-category-header'; hdr.setAttribute('aria-expanded','false')
+    hdr.innerHTML = `<h2>${dict[lang.current]['tip-category-'+cat]}</h2><span class="toggle-icon">+</span>`
+    sec.appendChild(hdr)
+    const body = document.createElement('div'); body.className = 'tips-category-body'; body.style.display = 'none'
+    state.tips[cat].forEach(tip => {
+      const t = tip[lang.current]
+      const item = document.createElement('div'); item.className = 'tip-item'
+      item.innerHTML = `<div class="tip-item-body"><strong>${t.title}</strong><span>${t.desc}</span></div>`
+      body.appendChild(item)
+    })
+    sec.appendChild(body); tipsContainer.appendChild(sec)
+    hdr.addEventListener('click', () => {
+      const exp = hdr.getAttribute('aria-expanded') === 'true'
+      hdr.setAttribute('aria-expanded', !exp); body.style.display = exp ? 'none' : 'block'
+      hdr.querySelector('.toggle-icon').textContent = exp ? '+' : '−'
+    })
+  })
+}
+
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+  const t = document.getElementById('view-'+view); if (t) t.classList.add('active')
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.view === view))
+  closeSidebar()
+}
+function openSidebar() { sidebarOverlay.classList.add('open') }
+function closeSidebar() { sidebarOverlay.classList.remove('open') }
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t)
+  localStorage.setItem('ff_theme', t)
+  themeBtn.textContent = dict[lang.current][t === 'dark' ? 'theme-dark' : 'theme-light']
+  // Update meta theme-color
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', t === 'dark' ? '#0a0a0a' : '#ffffff')
+}
+
+function apply(l) {
+  lang.current = l; document.documentElement.lang = l; localStorage.setItem('ff_lang', l)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n; if (dict[l][k]) el.textContent = dict[l][k]
+  })
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const k = el.dataset.i18nAria; if (dict[l][k]) el.setAttribute('aria-label', dict[l][k])
+  })
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.dataset.i18nPlaceholder; if (dict[l][k]) el.setAttribute('placeholder', dict[l][k])
+  })
+  updateDisplay(timerDisplay, timerRound)
+  if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
+  if (state.running) { timerStart.textContent = dict[l]['timer-running']; focusStart.textContent = dict[l]['timer-running'] }
+  const curTheme = document.documentElement.getAttribute('data-theme') || 'light'
+  themeBtn.textContent = dict[l][curTheme === 'dark' ? 'theme-dark' : 'theme-light']
+  renderTips(); updateStats(); renderChart()
+}
+
+// Init
+const savedTheme = loadTheme()
+loadSettings()
+state.mode = 'focus'
+state.timeLeft = state.settings.focus * 60
+state.total = state.settings.focus * 60
+updateDisplay(timerDisplay, timerRound)
+updateStats()
+renderTips()
+renderChart()
+apply(lang.current)
+setTheme(savedTheme)
+
+if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission()
+
+// Event listeners
+hamburger.addEventListener('click', openSidebar)
+sidebarClose.addEventListener('click', closeSidebar)
+sidebarOverlay.addEventListener('click', e => { if (e.target === sidebarOverlay) closeSidebar() })
+
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => switchView(link.dataset.view))
+  link.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchView(link.dataset.view) } })
+})
+
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => { if (state.running) pauseTimer(); switchMode(tab.dataset.mode) })
+})
+
+timerStart.addEventListener('click', () => state.running ? pauseTimer() : startTimer())
+timerResetBtn.addEventListener('click', resetTimer)
+
+// Task input: show done state when blurred with value
+taskInput.addEventListener('change', () => {
+  if (taskInput.value.trim()) { state.task = taskInput.value.trim() }
+})
+
+$('timerSettings').addEventListener('click', () => {
+  settingsFocus.value = state.settings.focus
+  settingsShort.value = state.settings.short
+  settingsLong.value = state.settings.long
+  settingsRounds.value = state.settings.rounds
+  settingsAutoStart.checked = state.settings.autoStart
+  settingsModal.classList.add('open')
+})
+settingsClose.addEventListener('click', () => settingsModal.classList.remove('open'))
+settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsModal.classList.remove('open') })
+settingsSave.addEventListener('click', () => {
+  state.settings.focus = parseInt(settingsFocus.value) || defaults.focus
+  state.settings.short = parseInt(settingsShort.value) || defaults.short
+  state.settings.long = parseInt(settingsLong.value) || defaults.long
+  state.settings.rounds = parseInt(settingsRounds.value) || defaults.rounds
+  state.settings.autoStart = settingsAutoStart.checked
+  saveSettings()
+  settingsModal.classList.remove('open')
+  resetTimer()
+  updateDisplay(timerDisplay, timerRound)
+  if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
+})
+
+// Sound buttons
+document.querySelectorAll('.sound-btn').forEach(b => {
+  b.addEventListener('click', () => setSound(b.dataset.sound))
+})
+
+focusBtn.addEventListener('click', () => {
+  state.focusOpen = true; focusOverlay.classList.add('open')
+  updateDisplay(focusTimerDisplay, focusTimerRound)
+  if (state.running) focusStart.textContent = dict[lang.current]['timer-running']
+  if (timerTip.classList.contains('visible')) {
+    focusTip.classList.add('visible'); focusTipIcon.textContent = timerTipIcon.textContent
+    focusTipText.textContent = timerTipText.textContent; focusTipSource.textContent = timerTipSource.textContent
+  }
+})
+focusExit.addEventListener('click', () => { state.focusOpen = false; focusOverlay.classList.remove('open') })
+focusStart.addEventListener('click', () => state.running ? pauseTimer() : startTimer())
+focusResetBtn.addEventListener('click', resetTimer)
+
+// Theme toggle
+themeBtn.addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme')
+  setTheme(cur === 'dark' ? 'light' : 'dark')
+})
+
+// Sidebar lang
+sidebarLang.addEventListener('click', () => apply(lang.current === 'pl' ? 'en' : 'pl'))
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return
+  if (e.key === ' ') { e.preventDefault(); state.running ? pauseTimer() : startTimer() }
+  if (e.key === 'r' || e.key === 'R') resetTimer()
+  if ((e.key === 'f' || e.key === 'F') && !state.focusOpen) focusBtn.click()
+  if (e.key === 'Escape') {
+    if (state.focusOpen) focusExit.click()
+    else if (settingsModal.classList.contains('open')) settingsModal.classList.remove('open')
+    else if (sidebarOverlay.classList.contains('open')) closeSidebar()
+  }
+})
+</script>
+</body>
+</html>
