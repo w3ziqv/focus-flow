@@ -1,5 +1,5 @@
 import { dict, lang } from './i18n.js'
-import { state, defaults, saveStats, getWeekStart } from './state.js'
+import { state, saveStats, getWeekStart } from './state.js'
 import { timerDisplay, timerRound, focusTimerDisplay, focusTimerRound, timerStart, focusStart, taskInput, taskDone, taskDoneText, timerTip, timerTipIcon, timerTipText, timerTipSource, focusTip } from './dom.js'
 import { beep } from './audio.js'
 import { updateStats, renderChart } from './stats.js'

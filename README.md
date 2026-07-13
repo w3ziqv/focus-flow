@@ -52,7 +52,8 @@ focus-flow/
 │   ├── audio.js
 │   ├── stats.js
 │   ├── tips.js
-│   └── ui.js
+│   ├── ui.js
+│   └── sw-register.js
 ├── README.md
 └── LICENSE
 ```

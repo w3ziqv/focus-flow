@@ -1,3 +1,4 @@
+/* === Variables === */
 :root {
   --bg: #fff;
   --text: #0a0a0a;
@@ -18,8 +19,10 @@
   --border: #222;
 }
 
+/* === Reset === */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* === Base === */
 body {
   font: 400 1rem/1.6 var(--font);
   color: var(--text);
@@ -43,6 +46,7 @@ ul { list-style: none; }
 
 a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 
+/* === Layout === */
 .container {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -50,7 +54,10 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
   padding-right: max(28px, env(safe-area-inset-right));
 }
 
-/* Hamburger */
+.view { display: none; }
+.view.active { display: block; }
+
+/* === Header & Nav === */
 .hamburger {
   position: fixed; top: 20px; right: 20px; z-index: 250;
   width: 44px; height: 44px;
@@ -62,7 +69,7 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 .hamburger:hover { border-color: var(--text); }
 .hamburger svg { display: block; }
 
-/* Sidebar */
+/* === Sidebar === */
 .sidebar-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.4);
   z-index: 400; opacity: 0; pointer-events: none; transition: opacity var(--transition);
@@ -113,11 +120,7 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 
 .sidebar-footer { margin-top: auto; padding-top: 16px; }
 
-/* Views */
-.view { display: none; }
-.view.active { display: block; }
-
-/* Timer view */
+/* === Timer === */
 .view-timer {
   padding-top: 20px; min-height: 100vh;
   display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -125,20 +128,6 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 .view-timer.active { display: flex; }
 .view-timer .container { text-align: center; }
 .view-timer .label { display: block; margin-bottom: 24px; }
-
-/* Task input */
-.task-input-wrap { margin-bottom: 24px; }
-.task-input {
-  width: 100%; max-width: 360px; padding: 10px 14px;
-  border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--bg); color: var(--text);
-  font: inherit; font-size: .875rem; text-align: center;
-  transition: border-color var(--transition);
-}
-.task-input:focus { outline: 1px solid var(--text); }
-.task-input::placeholder { color: var(--muted); }
-.task-done { font-size: .875rem; color: var(--muted); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.task-done .check { color: #2ecc71; font-weight: 700; }
 
 .mode-tabs { display: flex; justify-content: center; gap: 4px; margin-bottom: 32px; }
 .mode-tab {
@@ -166,17 +155,6 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 .timer-btn.primary { background: var(--text); color: var(--bg); }
 .timer-btn.primary:hover { opacity: .8; }
 
-/* Sound controls */
-.sound-controls { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
-.sound-btn {
-  padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px;
-  background: none; color: var(--muted); font: inherit; font-size: .75rem;
-  cursor: pointer; transition: all var(--transition);
-}
-.sound-btn:hover { border-color: var(--text); color: var(--text); }
-.sound-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-
-/* Break tip */
 .timer-tip {
   margin: 0 auto 16px; max-width: 440px;
   opacity: 0; transform: translateY(-8px); transition: all .3s ease;
@@ -194,6 +172,7 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 .timer-tip-text { font-size: .875rem; font-weight: 500; }
 .timer-tip-source { font-size: .6875rem; color: var(--muted); margin-top: 2px; }
 
+/* === Focus Mode === */
 .focus-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 24px; border: 1px solid var(--border); border-radius: 100px;
@@ -202,7 +181,25 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 }
 .focus-btn:hover { border-color: var(--text); color: var(--text); }
 
-/* Stats + chart */
+.focus-overlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 600;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity var(--transition);
+}
+.focus-overlay.open { opacity: 1; pointer-events: auto; }
+.focus-overlay .timer-display { font-size: clamp(6rem, 25vw, 12rem); }
+.focus-overlay .timer-round { font-size: 1rem; }
+.focus-overlay .timer-btn { font-size: 1rem; padding: 16px 48px; }
+.focus-overlay .timer-tip { max-width: 500px; }
+.focus-exit {
+  position: absolute; top: 24px; right: 24px;
+  background: none; border: 1px solid var(--border); border-radius: 100px;
+  color: var(--muted); font: inherit; font-size: .75rem; padding: 8px 16px;
+  cursor: pointer; text-transform: uppercase; letter-spacing: .05em;
+}
+.focus-exit:hover { border-color: var(--text); color: var(--text); }
+
+/* === Stats === */
 .stats-bar {
   display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
   margin-top: 28px; padding: 20px 0 16px; border-top: 1px solid var(--border);
@@ -225,7 +222,7 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
   text-transform: uppercase; text-align: center; letter-spacing: .02em;
 }
 
-/* Tips view */
+/* === Tips === */
 .view-tips { padding: 48px 0 80px; display: none; min-height: 100vh; }
 .view-tips.active { display: block; }
 .view-tips > .container > .label { display: block; margin-bottom: 8px; }
@@ -263,7 +260,31 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
   display: block; font-size: .875rem; color: var(--muted); line-height: 1.6;
 }
 
-/* Settings modal */
+/* === Sound Controls === */
+.sound-controls { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
+.sound-btn {
+  padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px;
+  background: none; color: var(--muted); font: inherit; font-size: .75rem;
+  cursor: pointer; transition: all var(--transition);
+}
+.sound-btn:hover { border-color: var(--text); color: var(--text); }
+.sound-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* === Task Input === */
+.task-input-wrap { margin-bottom: 24px; }
+.task-input {
+  width: 100%; max-width: 360px; padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--text);
+  font: inherit; font-size: .875rem; text-align: center;
+  transition: border-color var(--transition);
+}
+.task-input:focus { outline: 1px solid var(--text); }
+.task-input::placeholder { color: var(--muted); }
+.task-done { font-size: .875rem; color: var(--muted); margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.task-done .check { color: #2ecc71; font-weight: 700; }
+
+/* === Settings Modal === */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.5);
   display: flex; align-items: center; justify-content: center;
@@ -300,27 +321,10 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 }
 .modal-save:hover { opacity: .8; }
 
-/* Focus overlay */
-.focus-overlay {
-  position: fixed; inset: 0; background: var(--bg); z-index: 600;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity var(--transition);
-}
-.focus-overlay.open { opacity: 1; pointer-events: auto; }
-.focus-overlay .timer-display { font-size: clamp(6rem, 25vw, 12rem); }
-.focus-overlay .timer-round { font-size: 1rem; }
-.focus-overlay .timer-btn { font-size: 1rem; padding: 16px 48px; }
-.focus-overlay .timer-tip { max-width: 500px; }
-.focus-exit {
-  position: absolute; top: 24px; right: 24px;
-  background: none; border: 1px solid var(--border); border-radius: 100px;
-  color: var(--muted); font: inherit; font-size: .75rem; padding: 8px 16px;
-  cursor: pointer; text-transform: uppercase; letter-spacing: .05em;
-}
-.focus-exit:hover { border-color: var(--text); color: var(--text); }
-
+/* === Footer === */
 .site-footer { padding: 40px 0 max(40px, env(safe-area-inset-bottom)); text-align: center; }
 
+/* === Responsive === */
 @media (max-width: 640px) {
   .view-timer { padding-top: 0; }
   .mode-tabs { gap: 2px; }
