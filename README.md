@@ -31,6 +31,28 @@
 - localStorage API
 - Notification API
 
+## Project Structure
+
+```
+focus-flow/
+├── index.html
+├── styles.css
+├── src/
+│   ├── main.js
+│   ├── i18n.js
+│   ├── state.js
+│   ├── dom.js
+│   ├── timer.js
+│   ├── audio.js
+│   ├── stats.js
+│   ├── tips.js
+│   └── ui.js
+├── README.md
+└── LICENSE
+```
+
+The JavaScript is organized into ES modules under `src/` for maintainability.
+
 ## Uruchomienie
 
 Otwórz `index.html` w przeglądarce lub wrzuć na Vercel/Netlify.
