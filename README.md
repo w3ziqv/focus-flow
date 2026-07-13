@@ -4,6 +4,12 @@
 
 ![Focus Flow screenshot](focus-flow.png)
 
+### Mobile
+
+<p align="center">
+  <img src="mobile.png" alt="Focus Flow on mobile" width="280">
+</p>
+
 ## Funkcje
 
 - **Timer Pomodoro** – 3 tryby: Focus, Short Break, Long Break
