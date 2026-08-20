@@ -1,73 +1,59 @@
 # Focus Flow
 
-> Minimalistyczny minutnik Pomodoro z trybem focus, statystykami, ambientowymi dźwiękami i poradami do efektywnej nauki.
+Minimalistyczny minutnik Pomodoro z trybem Focus, dźwiękami otoczenia, statystykami i poradami do efektywnej nauki. Interfejs w języku polskim i angielskim.
 
-![Focus Flow screenshot](focus-flow.png)
+## Zrzuty ekranu
 
-### Mobile
-
-<p align="center">
-  <img src="mobile.png" alt="Focus Flow on mobile" width="280">
-</p>
+| Desktop | Mobile |
+| --- | --- |
+| ![Desktop](focus-flow.png) | ![Mobile](mobile.png) |
 
 ## Funkcje
 
-- **Timer Pomodoro** – 3 tryby: Focus, Short Break, Long Break
-- **Customizable** – ustawiasz czasy i liczbę rund do long break
-- **Tryb Focus** – pełny ekran z samym timerem, bez rozpraszaczy
-- **Dźwięki otoczenia** – deszcz (3 warstwy + LFO) i szum (pink noise) przez Web Audio API
-- **Lista zadań** – wpisz co robisz w tej sesji, odhacz po zakończeniu
-- **Statystyki** – dzisiaj, tydzień, streak, minuty focusu
-- **Wykres tygodnia** – słupki minut focusu z ostatnich 7 dni
-- **Wskazówki** – 5 kategorii (Nauka, Przerwa, Sen, Jedzenie, Produktywność), rozwijane sekcje, PL/EN
-- **Auto-start** – opcjonalne automatyczne rozpoczynanie kolejnej rundy
-- **Motyw jasny/ciemny** – przełącznik w sidebarze, zapis preferencji
-- **i18n PL/EN** – cały interfejs w dwóch językach
-- **Notification API** – powiadomienia po zakończeniu rundy
-- **Skróty klawiszowe** – spacja (start/stop), `r` (reset), `f` (tryb focus)
-- **Dark/light mode** – ręczny przełącznik i system auto-detect
-- Wszystko zapisane w localStorage
+- Timer Pomodoro z trzema trybami: Focus, Short Break, Long Break
+- Konfigurowalne czasy, liczba rund i auto-start kolejnej rundy
+- Tryb Focus — pełny ekran z samym timerem, bez rozpraszaczy
+- Dźwięki otoczenia: deszcz i szum (Web Audio API) oraz upload własnych plików audio
+- Lista zadań na bieżącą sesję
+- Statystyki: dziś, w tym tygodniu, streak, łączne minuty focusu, wykres z 7 dni
+- Porady do nauki w pięciu kategoriach
+- Motyw jasny/ciemny, powiadomienia, skróty klawiszowe
+- Interfejs PL/EN, stan zapisywany w localStorage
+- PWA: instalowalna, działa offline
 
 ## Tech Stack
 
-- HTML5
-- CSS3 (zmienne, prefers-color-scheme, clamp, flexbox, grid)
-- Vanilla JavaScript (ES6+)
-- Web Audio API
-- localStorage API
-- Notification API
-
-## Project Structure
-
-```
-focus-flow/
-├── index.html
-├── styles.css
-├── src/
-│   ├── main.js
-│   ├── i18n.js
-│   ├── state.js
-│   ├── dom.js
-│   ├── timer.js
-│   ├── audio.js
-│   ├── stats.js
-│   ├── tips.js
-│   ├── ui.js
-│   └── sw-register.js
-├── README.md
-└── LICENSE
-```
-
-The JavaScript is organized into ES modules under `src/` for maintainability.
+- HTML, CSS (zmienne, grid, flexbox)
+- Vanilla JavaScript (ES modules)
+- Web Audio API, Notification API, localStorage
+- Service Worker
 
 ## Uruchomienie
 
-Otwórz `index.html` w przeglądarce lub wrzuć na Vercel/Netlify.
+Projekt jest statyczny — otwórz `index.html` w przeglądarce albo wdróż na dowolny host (Vercel, Netlify). Nie wymaga builda ani zależności.
 
-## Live Demo
+Demo: <https://focus-flow-self-ten.vercel.app/>
 
-[https://focus-flow-self-ten.vercel.app/](https://focus-flow-self-ten.vercel.app/)
+## Projekt
+
+```
+src/
+  main.js      Wejście i obsługa zdarzeń
+  timer.js     Logika timera i trybów
+  audio.js     Dźwięki otoczenia i odtwarzanie
+  stats.js     Statystyki i wykres
+  tips.js      Porady do nauki
+  i18n.js      Tłumaczenia (PL/EN)
+  state.js     Stan i localStorage
+  ui.js        Przełączanie widoków i motywu
+  dom.js       Referencje do elementów DOM
+  sw-register.js Rejestracja service workera
+```
 
 ## Autor
 
-Mateusz Szostak – [w3ziqv](https://github.com/w3ziqv)
+Mateusz Szostak — [w3ziqv](https://github.com/w3ziqv)
+
+## Licencja
+
+MIT
