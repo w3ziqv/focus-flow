@@ -83,7 +83,11 @@
       <button class="sound-btn active" data-sound="none" data-i18n="sound-none">Wyłącz</button>
       <button class="sound-btn" data-sound="rain" data-i18n="sound-rain">Deszcz</button>
       <button class="sound-btn" data-sound="noise" data-i18n="sound-noise">Szum</button>
+      <div class="sound-customs" id="customSounds"></div>
+      <button class="sound-btn" id="soundUpload" type="button" data-i18n="sound-upload">Dodaj dźwięk</button>
+      <input type="file" id="soundFile" accept="audio/*" data-i18n-aria="sound-choose" hidden>
     </div>
+    <div class="sound-msg" id="soundMsg" role="status"></div>
 
     <div class="timer-tip" id="timerTip">
       <div class="timer-tip-inner">

@@ -14,6 +14,7 @@ export function beep() {
 export function stopSound() {
   if (state.soundNodes) { state.soundNodes.forEach(n => { try { n.stop() } catch {} }); state.soundNodes = null }
   if (state.soundCtx) { try { state.soundCtx.close() } catch {}; state.soundCtx = null }
+  if (state.customAudio) { try { state.customAudio.pause() } catch {}; state.customAudio = null }
 }
 export function createNoiseBuffer(ctx) {
   const len = ctx.sampleRate * 2
@@ -77,7 +78,18 @@ export function setSound(s) {
   stopSound()
   state.sound = s
   document.querySelectorAll('.sound-btn').forEach(b => b.classList.toggle('active', b.dataset.sound === s))
-  if (s === 'none') return
+  document.querySelectorAll('.sound-custom').forEach(w => w.classList.toggle('active', w.dataset.sound === s))
+  if (s === 'none' || !s) return
+  if (s.startsWith('custom:')) {
+    const id = s.slice(7)
+    const rec = state.customSounds.find(r => r.id === id)
+    if (!rec) return
+    const audio = new Audio(rec.dataUrl)
+    audio.loop = true
+    audio.play().catch(() => {})
+    state.customAudio = audio
+    return
+  }
   try {
     state.soundCtx = new (window.AudioContext || window.webkitAudioContext)()
     state.soundNodes = []

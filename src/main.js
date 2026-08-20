@@ -1,6 +1,6 @@
 import { lang, dict, apply } from './i18n.js'
-import { state, defaults, loadSettings, saveSettings, loadTheme } from './state.js'
-import { timerDisplay, timerRound, focusTimerDisplay, focusTimerRound, timerStart, focusStart, themeBtn, hamburger, sidebarClose, sidebarOverlay, sidebarLang, taskInput, taskDone, taskDoneText, settingsModal, settingsClose, settingsFocus, settingsShort, settingsLong, settingsRounds, settingsAutoStart, settingsSave, focusBtn, focusOverlay, focusResetBtn, focusExit, timerSettings, timerResetBtn, timerTip, timerTipIcon, timerTipText, timerTipSource, focusTip, focusTipIcon, focusTipText, focusTipSource } from './dom.js'
+import { state, defaults, loadSettings, saveSettings, loadTheme, saveCustomSounds, MAX_SOUND_SIZE } from './state.js'
+import { timerDisplay, timerRound, focusTimerDisplay, focusTimerRound, timerStart, focusStart, themeBtn, hamburger, sidebarClose, sidebarOverlay, sidebarLang, taskInput, taskDone, taskDoneText, settingsModal, settingsClose, settingsFocus, settingsShort, settingsLong, settingsRounds, settingsAutoStart, settingsSave, focusBtn, focusOverlay, focusResetBtn, focusExit, timerSettings, timerResetBtn, timerTip, timerTipIcon, timerTipText, timerTipSource, focusTip, focusTipIcon, focusTipText, focusTipSource, soundUpload, soundFile, customSoundsWrap, soundMsg } from './dom.js'
 import { updateDisplay, startTimer, pauseTimer, resetTimer, switchMode } from './timer.js'
 import { setSound } from './audio.js'
 import { updateStats, renderChart } from './stats.js'
@@ -12,7 +12,49 @@ function applyFull(l) {
   updateDisplay(timerDisplay, timerRound)
   if (state.focusOpen) updateDisplay(focusTimerDisplay, focusTimerRound)
   if (state.running) { timerStart.textContent = dict[l]['timer-running']; focusStart.textContent = dict[l]['timer-running'] }
-  renderTips(); updateStats(); renderChart()
+  renderTips(); updateStats(); renderChart(); renderCustomSounds()
+}
+
+function showMsg(key, name) {
+  let t = dict[lang.current][key] || ''
+  if (name) t = t.replace('{name}', name)
+  soundMsg.textContent = t
+  soundMsg.classList.add('visible')
+  clearTimeout(showMsg._t)
+  showMsg._t = setTimeout(() => { soundMsg.classList.remove('visible'); soundMsg.textContent = '' }, 4000)
+}
+
+function renderCustomSounds() {
+  customSoundsWrap.innerHTML = ''
+  state.customSounds.forEach(rec => {
+    const wrap = document.createElement('div')
+    wrap.className = 'sound-custom'
+    wrap.dataset.sound = 'custom:' + rec.id
+    const btn = document.createElement('button')
+    btn.className = 'sound-btn' + (state.sound === 'custom:' + rec.id ? ' active' : '')
+    btn.dataset.sound = 'custom:' + rec.id
+    btn.type = 'button'
+    btn.textContent = rec.name
+    btn.addEventListener('click', () => setSound(btn.dataset.sound))
+    const rm = document.createElement('button')
+    rm.className = 'sound-remove'
+    rm.type = 'button'
+    rm.setAttribute('aria-label', (dict[lang.current]['sound-remove'] || '').replace('{name}', rec.name))
+    rm.textContent = '×'
+    rm.addEventListener('click', () => removeCustomSound(rec.id))
+    wrap.append(btn, rm)
+    customSoundsWrap.appendChild(wrap)
+  })
+}
+
+function removeCustomSound(id) {
+  const i = state.customSounds.findIndex(r => r.id === id)
+  if (i === -1) return
+  const wasActive = state.sound === 'custom:' + id
+  state.customSounds.splice(i, 1)
+  try { saveCustomSounds() } catch {}
+  if (wasActive) setSound('none')
+  renderCustomSounds()
 }
 
 const savedTheme = loadTheme()
@@ -73,7 +115,26 @@ settingsSave.addEventListener('click', () => {
 })
 
 document.querySelectorAll('.sound-btn').forEach(b => {
-  b.addEventListener('click', () => setSound(b.dataset.sound))
+  if (b.dataset.sound) b.addEventListener('click', () => setSound(b.dataset.sound))
+})
+
+soundUpload.addEventListener('click', () => soundFile.click())
+soundFile.addEventListener('change', () => {
+  const file = soundFile.files && soundFile.files[0]
+  soundFile.value = ''
+  if (!file) return
+  if (file.size > MAX_SOUND_SIZE) { showMsg('sound-too-large'); return }
+  const reader = new FileReader()
+  reader.onload = () => {
+    const name = (file.name.replace(/\.[^.]+$/, '').trim() || dict[lang.current]['sound-unnamed']).slice(0, 40) || dict[lang.current]['sound-unnamed']
+    const rec = { id: 'cs' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name, dataUrl: reader.result }
+    state.customSounds.push(rec)
+    try { saveCustomSounds() } catch { state.customSounds.pop(); showMsg('sound-too-large'); return }
+    renderCustomSounds()
+    setSound('custom:' + rec.id)
+    showMsg('sound-loaded', name)
+  }
+  reader.readAsDataURL(file)
 })
 
 focusBtn.addEventListener('click', () => {

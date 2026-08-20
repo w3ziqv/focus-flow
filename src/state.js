@@ -39,6 +39,20 @@ export function loadSettings() {
 }
 export function saveSettings() { localStorage.setItem('ff_settings', JSON.stringify(state.settings)) }
 
+export const MAX_SOUND_SIZE = 4 * 1024 * 1024
+
+export function loadCustomSounds() {
+  try {
+    const s = localStorage.getItem('ff_custom_sounds')
+    if (s) {
+      const d = JSON.parse(s)
+      if (Array.isArray(d)) return d.filter(x => x && typeof x.id === 'string' && typeof x.name === 'string' && typeof x.dataUrl === 'string')
+    }
+  } catch {}
+  return []
+}
+export function saveCustomSounds() { localStorage.setItem('ff_custom_sounds', JSON.stringify(state.customSounds)) }
+
 export function loadTheme() {
   const t = localStorage.getItem('ff_theme')
   if (t === 'dark' || t === 'light') { document.documentElement.setAttribute('data-theme', t); return t }
@@ -51,4 +65,5 @@ export let state = {
   mode: 'focus', running: false, timeLeft: defaults.focus * 60, total: defaults.focus * 60,
   round: 0, settings: { ...defaults }, tips: loadTips(), stats: loadStats(),
   timer: null, focusOpen: false, task: '', sound: 'none', soundCtx: null, soundNode: null,
+  customSounds: loadCustomSounds(), customAudio: null,
 }
