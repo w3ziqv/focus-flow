@@ -261,7 +261,7 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 }
 
 /* === Sound Controls === */
-.sound-controls { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
+.sound-controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .sound-btn {
   padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px;
   background: none; color: var(--muted); font: inherit; font-size: .75rem;
@@ -269,6 +269,28 @@ a:focus { outline: 1px solid var(--text); outline-offset: 2px; }
 }
 .sound-btn:hover { border-color: var(--text); color: var(--text); }
 .sound-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+.sound-customs { display: contents; }
+.sound-custom {
+  display: inline-flex; align-items: stretch;
+  border: 1px solid var(--border); border-radius: 100px; overflow: hidden;
+}
+.sound-custom .sound-btn { border: none; padding: 6px 4px 6px 14px; }
+.sound-custom .sound-btn:hover { border-color: transparent; }
+.sound-custom.active { border-color: var(--text); }
+.sound-remove {
+  background: none; border: none; color: var(--muted);
+  font: inherit; font-size: .875rem; line-height: 1; cursor: pointer;
+  padding: 0 12px 0 6px;
+}
+.sound-remove:hover { color: var(--text); }
+.sound-remove:focus-visible, .sound-custom .sound-btn:focus-visible { outline: 1px solid var(--text); outline-offset: 1px; }
+
+.sound-msg {
+  text-align: center; font-size: .75rem; color: var(--muted);
+  height: 0; overflow: hidden; opacity: 0; transition: opacity var(--transition);
+}
+.sound-msg.visible { opacity: 1; height: auto; padding: 2px 0 14px; }
 
 /* === Task Input === */
 .task-input-wrap { margin-bottom: 24px; }
