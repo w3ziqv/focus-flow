@@ -14,6 +14,15 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
 }
 
+/** Space natively activates focused buttons and links — let the browser do it. */
+function isActivatable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  if (tag === 'BUTTON' || tag === 'A' || tag === 'SUMMARY') return true
+  const role = target.getAttribute('role')
+  return role === 'button' || role === 'switch' || role === 'tab'
+}
+
 export function useShortcuts(handlers: ShortcutHandlers): void {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -24,6 +33,7 @@ export function useShortcuts(handlers: ShortcutHandlers): void {
         }
         return
       }
+      if (event.key === ' ' && isActivatable(event.target)) return
       switch (event.key) {
         case ' ':
           event.preventDefault()

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Stats } from '../types'
-import { loadCustomSounds, loadSettings, loadStats, weekStartOf } from './storage'
+import { loadCustomSounds, loadSettings, loadStats, saveCustomSounds, weekStartOf } from './storage'
 
 beforeEach(() => {
   localStorage.clear()
@@ -45,10 +45,14 @@ describe('legacy migration', () => {
     localStorage.setItem('ff2_settings', JSON.stringify({ focus: 10, short: 5, long: 15, rounds: 4, autoStart: false }))
     expect(loadSettings().focus).toBe(10)
   })
+
+  it('reports success when custom sounds persist', () => {
+    expect(saveCustomSounds([{ id: 'cs1', name: 'waves', dataUrl: 'data:audio/x' }])).toBe(true)
+    expect(loadCustomSounds()).toHaveLength(1)
+  })
 })
 
-describe('loadStats', () => {
-  it('rolls today and week counters on a new day', () => {
+describe('loadStats', () => {  it('rolls today and week counters on a new day', () => {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const stale: Stats = {

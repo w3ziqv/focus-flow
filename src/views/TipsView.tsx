@@ -2,7 +2,7 @@ import { TIP_CATEGORIES } from '../lib/tips'
 import { useI18n } from '../lib/i18n'
 import { TipsAccordion } from '../components/TipsAccordion'
 
-export function TipsView() {
+export default function TipsView() {
   const { t } = useI18n()
 
   return (

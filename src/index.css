@@ -15,15 +15,18 @@
   --color-sunken: #edebe2;
   --color-ink: #141413;
   --color-ink-2: #5e5d59;
-  --color-ink-3: #87867f;
+  --color-ink-3: #716f66;
   --color-line: #e8e6dc;
   --color-line-subtle: #f0eee6;
   --color-accent: #c96442;
   --color-accent-strong: #a84e2f;
   --color-accent-soft: rgba(201, 100, 66, 0.12);
+  --color-accent-fill: #b4552f;
+  --color-on-accent: #ffffff;
   --color-break: #6e7f5c;
   --color-break-strong: #57664a;
   --color-break-soft: rgba(110, 127, 92, 0.14);
+  --color-break-fill: #5d6b4d;
   --color-success: #5a7248;
   --color-danger: #b53333;
   --color-ring: #3898ec;
@@ -60,9 +63,12 @@
   --color-accent: #d97757;
   --color-accent-strong: #e08a6d;
   --color-accent-soft: rgba(217, 119, 87, 0.16);
+  --color-accent-fill: #d97757;
+  --color-on-accent: #141413;
   --color-break: #8fa07a;
   --color-break-strong: #9fb28a;
   --color-break-soft: rgba(143, 160, 122, 0.18);
+  --color-break-fill: #8fa07a;
   --color-success: #7e9668;
   --color-danger: #c95050;
   --color-ring: #58a8f0;
@@ -232,4 +238,10 @@ body {
 
 .dial-complete {
   animation: dial-pulse 500ms var(--ease-emphasis);
+}
+
+/* Sound volume slider — accent follows the active mode color */
+.sound-volume {
+  accent-color: var(--ac);
+  height: 20px;
 }

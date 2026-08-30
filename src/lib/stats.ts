@@ -8,9 +8,19 @@ function dayKey(date = new Date()): string {
 /** Adds one completed focus session to the stats and persists them. */
 export function recordFocusSession(stats: Stats, minutes: number): Stats {
   const today = dayKey()
+  const currentWeekStart = weekStartOf()
   const next: Stats = {
     ...stats,
     history: { ...stats.history },
+  }
+
+  if (next.date !== today) {
+    next.today = 0
+    next.date = today
+  }
+  if (next.weekStart !== currentWeekStart) {
+    next.week = 0
+    next.weekStart = currentWeekStart
   }
 
   next.today += 1

@@ -61,6 +61,24 @@ describe('recordFocusSession', () => {
     const next = recordFocusSession(stats, 25)
     expect(next.streak).toBe(1)
   })
+
+  it('rolls a stale today counter when the app stayed open past midnight', () => {
+    const stats = baseStats()
+    stats.today = 5
+    stats.date = 'Fri Jan 05 2001'
+    const next = recordFocusSession(stats, 25)
+    expect(next.today).toBe(1)
+    expect(next.date).toBe(new Date().toDateString())
+  })
+
+  it('rolls a stale week counter when the week boundary was crossed mid-session', () => {
+    const stats = baseStats()
+    stats.week = 40
+    stats.weekStart = 'Mon Jan 01 2001'
+    const next = recordFocusSession(stats, 25)
+    expect(next.week).toBe(1)
+    expect(next.weekStart).toBe(weekStartOf())
+  })
 })
 
 describe('last7Days', () => {

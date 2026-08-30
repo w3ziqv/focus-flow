@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { AmbientSound, CustomSound, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
@@ -8,9 +8,11 @@ import { accentStyle } from './lib/accent'
 import {
   loadCustomSounds,
   loadTheme,
+  loadVolume,
   MAX_SOUND_SIZE,
   saveCustomSounds,
   saveTheme,
+  saveVolume,
   systemTheme,
 } from './lib/storage'
 import { NavPill } from './components/NavPill'
@@ -19,7 +21,8 @@ import { FocusOverlay } from './components/FocusOverlay'
 import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
 import { TimerView } from './views/TimerView'
-import { TipsView } from './views/TipsView'
+
+const TipsView = lazy(() => import('./views/TipsView'))
 
 type View = 'timer' | 'tips'
 
@@ -32,6 +35,7 @@ function Shell() {
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
   const [ambient, setAmbient] = useState<AmbientSound>('none')
+  const [volume, setVolume] = useState<number>(loadVolume)
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
   const messageTimer = useRef<number | undefined>(undefined)
 
@@ -44,6 +48,10 @@ function Shell() {
   useEffect(() => {
     audio.setAmbient(ambient, sounds)
   }, [ambient, sounds])
+
+  useEffect(() => {
+    audio.setVolume(volume)
+  }, [volume])
 
   useEffect(() => {
     document.body.style.overflow = focusOpen ? 'hidden' : ''
@@ -96,30 +104,35 @@ function Shell() {
           name,
           dataUrl: reader.result,
         }
-        setSounds((prev) => {
-          const next = [...prev, record]
-          saveCustomSounds(next)
-          return next
-        })
+        const next = [...sounds, record]
+        const persisted = saveCustomSounds(next)
+        setSounds(next)
         setAmbient(`custom:${record.id}`)
-        flashMessage('sound.added', name)
+        if (persisted) {
+          flashMessage('sound.added', name)
+        } else {
+          flashMessage('sound.storageFull')
+        }
       }
       reader.readAsDataURL(file)
     },
-    [flashMessage, t],
+    [flashMessage, t, sounds],
   )
 
   const removeSound = useCallback(
     (id: string) => {
-      setSounds((prev) => {
-        const next = prev.filter((sound) => sound.id !== id)
-        saveCustomSounds(next)
-        return next
-      })
+      const next = sounds.filter((sound) => sound.id !== id)
+      saveCustomSounds(next)
+      setSounds(next)
       setAmbient((current) => (current === `custom:${id}` ? 'none' : current))
     },
-    [],
+    [sounds],
   )
+
+  const changeVolume = useCallback((next: number) => {
+    setVolume(next)
+    saveVolume(next)
+  }, [])
 
   const notify = useCallback(
     (kind: 'focus' | 'break') => {
@@ -179,14 +192,18 @@ function Shell() {
             ambient={ambient}
             sounds={sounds}
             soundMessage={soundMessage}
+            volume={volume}
             onAmbientChange={setAmbient}
             onAddSoundFile={addSoundFile}
             onRemoveSound={removeSound}
+            onVolumeChange={changeVolume}
             onOpenSettings={() => setSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
           />
         ) : (
-          <TipsView />
+          <Suspense fallback={<div className="min-h-[60vh]" />}>
+            <TipsView />
+          </Suspense>
         )}
       </main>
 

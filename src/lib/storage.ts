@@ -11,6 +11,7 @@ const KEYS = {
   lang: `${PREFIX}lang`,
   theme: `${PREFIX}theme`,
   sounds: `${PREFIX}sounds`,
+  volume: `${PREFIX}volume`,
   migrated: `${PREFIX}migrated`,
 } as const
 
@@ -24,11 +25,13 @@ function read<T>(key: string, validate: (value: unknown) => T | null): T | null 
   }
 }
 
-function write(key: string, value: unknown): void {
+function write(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
-    // Storage full or unavailable — the app keeps working, changes just won't persist.
+    // Quota exceeded or storage unavailable — the caller decides what to tell the user.
+    return false
   }
 }
 
@@ -156,8 +159,8 @@ export function loadCustomSounds(): CustomSound[] {
   return read<CustomSound[]>(KEYS.sounds, isCustomSounds) ?? []
 }
 
-export function saveCustomSounds(sounds: CustomSound[]): void {
-  write(KEYS.sounds, sounds)
+export function saveCustomSounds(sounds: CustomSound[]): boolean {
+  return write(KEYS.sounds, sounds)
 }
 
 export function loadLang(): Lang | null {
@@ -179,6 +182,17 @@ export function loadTheme(): Theme | null {
 
 export function saveTheme(theme: Theme): void {
   write(KEYS.theme, theme)
+}
+
+export const DEFAULT_VOLUME = 0.7
+
+export function loadVolume(): number {
+  const stored = read<number>(KEYS.volume, (v) => (typeof v === 'number' && v >= 0 && v <= 1 ? v : null))
+  return stored ?? DEFAULT_VOLUME
+}
+
+export function saveVolume(volume: number): void {
+  write(KEYS.volume, volume)
 }
 
 export function systemTheme(): Theme {

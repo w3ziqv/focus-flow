@@ -18,9 +18,11 @@ interface TimerViewProps {
   ambient: AmbientSound
   sounds: CustomSound[]
   soundMessage: string | null
+  volume: number
   onAmbientChange: (sound: AmbientSound) => void
   onAddSoundFile: (file: File) => void
   onRemoveSound: (id: string) => void
+  onVolumeChange: (volume: number) => void
   onOpenSettings: () => void
   onEnterFocus: () => void
 }
@@ -30,9 +32,11 @@ export function TimerView({
   ambient,
   sounds,
   soundMessage,
+  volume,
   onAmbientChange,
   onAddSoundFile,
   onRemoveSound,
+  onVolumeChange,
   onOpenSettings,
   onEnterFocus,
 }: TimerViewProps) {
@@ -103,9 +107,11 @@ export function TimerView({
           current={ambient}
           sounds={sounds}
           message={soundMessage}
+          volume={volume}
           onChange={onAmbientChange}
           onAddFile={onAddSoundFile}
           onRemove={onRemoveSound}
+          onVolumeChange={onVolumeChange}
         />
       </div>
 

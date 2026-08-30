@@ -25,19 +25,19 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 | Surface/sunken | --surface-sunken | #EDEBE2 | #1A1A18 | Inputs, chart track, sunken wells |
 | Text/primary | --text-primary | #141413 | #FAF9F5 | Headlines, body |
 | Text/secondary | --text-secondary | #5E5D59 | #B0AEA5 | Captions, secondary |
-| Text/tertiary | --text-tertiary | #87867F | #87867F | Metadata, disabled |
+| Text/tertiary | --text-tertiary | #716F66 | #87867F | Metadata, disabled (light #716F66 = 4.57:1 on parchment, AA) |
 | Border/default | --border-default | #E8E6DC | #30302E | Dividers, card outlines |
 | Border/subtle | --border-subtle | #F0EEE6 | #262624 | Soft separations |
-| Accent/focus | --accent-focus | #C96442 | #D97757 | Focus mode: primary CTA, dial arc, active tab |
+| Accent/focus | --accent-focus | #C96442 | #D97757 | Focus mode: dial arc, active tab, links |
 | Accent/focus-strong | --accent-focus-strong | #A84E2F | #E08A6D | Accent text ≥14px on parchment, hover |
-| Accent/break | --accent-break | #6E7F5C | #8FA07A | Break modes: CTA, dial arc, active tab |
+| Accent/focus-fill | --accent-focus-fill | #B4552F | #D97757 | Primary button fill (AA with on-accent text) |
+| Accent/break | --accent-break | #6E7F5C | #8FA07A | Break modes: dial arc, active tab |
 | Accent/break-strong | --accent-break-strong | #57664A | #9FB28A | Break accent text ≥14px, hover |
+| Accent/break-fill | --accent-break-fill | #5D6B4D | #8FA07A | Primary button fill in break modes |
 | Status/success | --status-success | #5A7248 | #7E9668 | Confirmations |
 | Status/error | --status-error | #B53333 | #C95050 | Errors, destructive |
 | Focus-ring | --focus-ring | #3898EC | #58A8F0 | Keyboard focus outline (the one cool color, a11y only) |
-| On-accent | --on-accent | #FAF9F5 | #141413* | Text on accent fills |
-
-\* dark theme uses #FAF9F5 text on accents in both themes; *on-accent in dark theme stays #FAF9F5.
+| On-accent | --on-accent | #FFFFFF | #FAF9F5 | Text on accent fills |
 
 ### Rules
 - Accent is used ONLY where it carries state: active mode, primary CTA, dial progress, focus-mode glow. Never decorative.
@@ -129,8 +129,8 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 - **Accessibility**: real `<label>` visually hidden; `aria-describedby` hint.
 
 ### SoundChipRow
-- **Structure**: horizontal wrap of pill chips (Off / Rain / Noise / custom…) + quiet "Add sound" chip + hidden file input. Active chip: accent-tint fill + -strong label. Custom chips carry a small × remove button (separate stop, 24px hit area).
-- **States**: default, hover (sunken), active (accent), focus-visible; status line below (`aria-live="polite"`) for load/remove feedback, auto-clears 4s.
+- **Structure**: horizontal wrap of pill chips (Off / Rain / Waves / Stream / Campfire / Noise / custom…) + quiet "Add sound" chip + hidden file input. Active chip: accent-tint fill + -strong label. Custom chips carry a small × remove button (separate stop, 24px hit area). When a soundscape is active, a compact volume slider (native range, `accent-color: var(--ac)`) appears below the chips.
+- **States**: default, hover (sunken), active (accent), focus-visible; status line below (`aria-live="polite"`) for load/remove/quota feedback, auto-clears 4s.
 - **Motion**: none beyond color — sound selection should feel instant.
 
 ### StatCard
@@ -215,3 +215,4 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 | Item | Location | Why accepted | Owner / Exit |
 |------|----------|--------------|--------------|
 | Legacy `ff_*` localStorage stats migrate best-effort; malformed legacy data silently resets to defaults | `src/lib/storage.ts` | One-shot migration for a personal project's old data; new schema is authoritative | Next breaking change of storage schema |
+| Lighthouse performance 98/100 (mobile, throttled): LCP ≈ 2.1–2.3 s is gated by the Fraunces webfont that renders the Dial digits | `vite.config.ts` font-preload plugin | Reaching 100 would require inlining the font as base64 (+~90 KB HTML) or replacing the serif LCP element — both harm the design that is the point of the product | Revisit if a static host serves fonts with HTTP/2 priority hints |

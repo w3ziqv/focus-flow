@@ -12,7 +12,15 @@ class AudioEngine {
   private ctx: AudioContext | null = null
   private ambientNodes: AudioScheduledSourceNode[] = []
   private ambientGain: GainNode | null = null
+  private brownBaseGain = 0.06
   private loopEl: HTMLAudioElement | null = null
+  private volume = 0.7
+
+  setVolume(level: number): void {
+    this.volume = Math.max(0, Math.min(1, level))
+    if (this.loopEl) this.loopEl.volume = this.volume
+    if (this.ambientGain) this.ambientGain.gain.value = this.brownBaseGain * this.volume
+  }
 
   private ensureContext(): AudioContext | null {
     try {
@@ -88,7 +96,7 @@ class AudioEngine {
         el.src = src
       }
       el.loop = true
-      el.volume = 0.7
+      el.volume = this.volume
       void el.play().catch(() => {})
     } catch {
       // Unplayable source — stay silent.
@@ -109,7 +117,7 @@ class AudioEngine {
     if (!ctx) return
 
     const master = ctx.createGain()
-    master.gain.value = 0.045
+    master.gain.value = this.brownBaseGain * this.volume
     master.connect(ctx.destination)
     this.ambientGain = master
 

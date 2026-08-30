@@ -7,15 +7,17 @@ interface SoundChipRowProps {
   current: AmbientSound
   sounds: CustomSound[]
   message: string | null
+  volume: number
   onChange: (sound: AmbientSound) => void
   onAddFile: (file: File) => void
   onRemove: (id: string) => void
+  onVolumeChange: (volume: number) => void
 }
 
 const chipBase =
   'inline-flex items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken'
 
-export function SoundChipRow({ current, sounds, message, onChange, onAddFile, onRemove }: SoundChipRowProps) {
+export function SoundChipRow({ current, sounds, message, volume, onChange, onAddFile, onRemove, onVolumeChange }: SoundChipRowProps) {
   const { t } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -78,7 +80,8 @@ export function SoundChipRow({ current, sounds, message, onChange, onAddFile, on
           type="button"
           onClick={() => fileRef.current?.click()}
           className={`${chipBase} text-ink-2`}
-          aria-label={t('sound.choose')}
+          aria-label={t('sound.add')}
+          title={t('sound.choose')}
         >
           <Plus size={14} aria-hidden="true" />
           {t('sound.add')}
@@ -97,6 +100,20 @@ export function SoundChipRow({ current, sounds, message, onChange, onAddFile, on
           }}
         />
       </div>
+      {current !== 'none' && (
+        <label className="flex items-center gap-2 text-caption text-ink-2">
+          {t('sound.volume')}
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(volume * 100)}
+            aria-label={t('sound.volume')}
+            onChange={(event) => onVolumeChange(Number(event.target.value) / 100)}
+            className="sound-volume w-32"
+          />
+        </label>
+      )}
       <p aria-live="polite" className="min-h-5 text-caption text-ink-3">
         {message ?? ''}
       </p>

@@ -47,7 +47,7 @@ export function NavPill({ view, onView, theme, onTheme, lang, onLang }: NavPillP
         <button
           type="button"
           onClick={onLang}
-          aria-label={t('nav.lang')}
+          aria-label={`${t('nav.lang')} → ${lang === 'pl' ? 'EN' : 'PL'}`}
           className="flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-[12px] font-semibold tracking-[0.06em] text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
         >
           {lang === 'pl' ? 'EN' : 'PL'}
