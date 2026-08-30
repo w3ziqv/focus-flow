@@ -5,23 +5,16 @@ import { Dial } from '../components/Dial'
 import { SegmentedTabs } from '../components/SegmentedTabs'
 import { TaskField } from '../components/TaskField'
 import { PillButton } from '../components/PillButton'
-import { SoundChipRow } from '../components/SoundChipRow'
-import type { AmbientSound, CustomSound, Mode } from '../types'
+import type { AmbientSound, Mode } from '../types'
 import type { TimerEngine } from '../lib/timer'
 import { useMemo } from 'react'
-import { Maximize2, Pause, Play, RotateCcw, Settings2 } from 'lucide-react'
+import { Maximize2, Pause, Play, RotateCcw, Settings2, Volume2 } from 'lucide-react'
 
 interface TimerViewProps {
   engine: TimerEngine
   ambient: AmbientSound
-  sounds: CustomSound[]
-  soundMessage: string | null
-  volume: number
-  onAmbientChange: (sound: AmbientSound) => void
-  onAddSoundFile: (file: File) => void
-  onRemoveSound: (id: string) => void
-  onVolumeChange: (volume: number) => void
   onOpenSettings: () => void
+  onOpenSoundSettings: () => void
   onEnterFocus: () => void
   showGreeting: boolean
 }
@@ -29,14 +22,8 @@ interface TimerViewProps {
 export function TimerView({
   engine,
   ambient,
-  sounds,
-  soundMessage,
-  volume,
-  onAmbientChange,
-  onAddSoundFile,
-  onRemoveSound,
-  onVolumeChange,
   onOpenSettings,
+  onOpenSoundSettings,
   onEnterFocus,
   showGreeting,
 }: TimerViewProps) {
@@ -54,7 +41,7 @@ export function TimerView({
   const StartIcon = engine.running ? Pause : Play
 
   return (
-    <div className="mx-auto w-full max-w-[560px] px-4 pt-20 pb-16 max-md:pt-28">
+    <div className="mx-auto w-full max-w-[560px] px-4 pt-12 pb-16 md:pt-24">
       <p aria-hidden="true" className="mb-8 text-center text-overline text-ink-3 max-sm:block sm:hidden">
         FOCUS FLOW
       </p>
@@ -105,16 +92,17 @@ export function TimerView({
       </button>
 
       <div className="fade-up mt-10" style={{ animationDelay: '160ms' }}>
-        <SoundChipRow
-          current={ambient}
-          sounds={sounds}
-          message={soundMessage}
-          volume={volume}
-          onChange={onAmbientChange}
-          onAddFile={onAddSoundFile}
-          onRemove={onRemoveSound}
-          onVolumeChange={onVolumeChange}
-        />
+        <button
+          type="button"
+          onClick={onOpenSoundSettings}
+          className="mx-auto flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-5 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:bg-sunken"
+        >
+          <Volume2 size={15} aria-hidden="true" />
+          {t('sound.settings')}
+          {ambient !== 'none' && (
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--ac)]" />
+          )}
+        </button>
       </div>
 
       {breakTip !== null && (

@@ -22,6 +22,7 @@ import { last7Days, sumMinutes } from './lib/stats'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
+import { SoundSettingsDialog } from './components/SoundSettingsDialog'
 import { FocusOverlay } from './components/FocusOverlay'
 import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
@@ -46,6 +47,7 @@ function Shell() {
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [appSettingsOpen, setAppSettingsOpen] = useState(false)
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
+  const [soundSettingsOpen, setSoundSettingsOpen] = useState(false)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
   const [tipsStack, setTipsStack] = useState<TipsRoute[]>([])
   const [focusOpen, setFocusOpen] = useState(false)
@@ -175,6 +177,7 @@ function Shell() {
     focusMode: () => setFocusOpen(true),
     escape: () => {
       if (focusOpen) setFocusOpen(false)
+      else if (soundSettingsOpen) setSoundSettingsOpen(false)
       else if (tipsStack.length > 0) setTipsStack((s) => s.slice(0, -1))
       else if (timerSettingsOpen) setTimerSettingsOpen(false)
       else if (appSettingsOpen) setAppSettingsOpen(false)
@@ -202,14 +205,8 @@ function Shell() {
           <TimerView
             engine={engine}
             ambient={ambient}
-            sounds={sounds}
-            soundMessage={soundMessage}
-            volume={volume}
-            onAmbientChange={setAmbient}
-            onAddSoundFile={addSoundFile}
-            onRemoveSound={removeSound}
-            onVolumeChange={changeVolume}
             onOpenSettings={() => setTimerSettingsOpen(true)}
+            onOpenSoundSettings={() => setSoundSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
             showGreeting={interfacePrefs.showGreeting}
           />
@@ -273,6 +270,19 @@ function Shell() {
           engine.updateSettings(settings)
           setTimerSettingsOpen(false)
         }}
+      />
+
+      <SoundSettingsDialog
+        open={soundSettingsOpen}
+        current={ambient}
+        sounds={sounds}
+        message={soundMessage}
+        volume={volume}
+        onChange={setAmbient}
+        onAddFile={addSoundFile}
+        onRemove={removeSound}
+        onVolumeChange={changeVolume}
+        onClose={() => setSoundSettingsOpen(false)}
       />
 
       <FocusOverlay open={focusOpen} onClose={() => setFocusOpen(false)}>

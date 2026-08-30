@@ -18,7 +18,7 @@ export function NavPill({ view, onView, onOpenSettings }: NavPillProps) {
   return (
     <nav
       aria-label={t('app.name')}
-      className="nav-mobile-bottom fixed inset-x-0 top-3 z-40 flex justify-center max-md:top-auto"
+      className="nav-mobile-bottom fixed inset-x-0 top-3 z-40 flex justify-center"
     >
       <div className="flex items-center gap-1 rounded-full border border-line-subtle bg-card/85 px-2 py-1.5 shadow-halo backdrop-blur-md">
         <span className="flex items-center gap-2 px-3 max-sm:hidden">

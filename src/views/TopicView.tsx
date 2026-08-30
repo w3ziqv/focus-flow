@@ -20,14 +20,14 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps) {
 
   return (
     <div
-      className="fade-up relative mx-auto w-full max-w-[760px] px-4 pt-24 pb-16 max-md:pt-20"
+      className="fade-up relative mx-auto w-full max-w-[760px] px-4 pt-12 pb-16 md:pt-24"
       style={accentStyle(topic.accent)}
     >
       <button
         type="button"
         onClick={onBack}
         aria-label={t('topic.back')}
-        className="absolute top-24 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
+        className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink md:top-20"
       >
         <X size={20} aria-hidden="true" />
       </button>

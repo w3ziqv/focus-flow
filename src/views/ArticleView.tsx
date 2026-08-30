@@ -3,6 +3,40 @@ import { articleById } from '../lib/articles'
 import { topicById } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
+import type { ArticleSection } from '../lib/articles'
+
+/** Splits "1. … 2. … 3. …" paragraphs into numbered list items; prose stays a paragraph. */
+function isStepList(text: string): string[] | null {
+  if (!/^\d+\.\s/.test(text.trim())) return null
+  const items = text.trim().split(/(?=\d+\.\s)/).map((s) => s.replace(/^\d+\.\s*/, '').trim())
+  return items.every((s) => s.length > 0) && items.length > 1 ? items : null
+}
+
+function SectionBody({ text }: { text: string }) {
+  const items = isStepList(text)
+  if (items) {
+    return (
+      <ol className="mt-2 list-decimal space-y-2 pl-5 text-[15px] leading-relaxed text-ink-2 marker:font-medium marker:text-ink">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ol>
+    )
+  }
+  return <p className="mt-2 text-[15px] leading-relaxed text-ink-2">{text}</p>
+}
+
+function Section({ section }: { section: ArticleSection }) {
+  const { lang } = useI18n()
+  return (
+    <section className="mt-8">
+      <h2 className="font-serif text-[1.25rem] font-[500] text-ink">
+        {lang === 'pl' ? section.hPl : section.hEn}
+      </h2>
+      <SectionBody text={lang === 'pl' ? section.pPl : section.pEn} />
+    </section>
+  )
+}
 
 interface ArticleViewProps {
   topicId: string
@@ -27,12 +61,12 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps) {
   )
 
   return (
-    <div className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-24 pb-16 max-md:pt-20" style={accentStyle(topic.accent)}>
+    <div className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24" style={accentStyle(topic.accent)}>
       <button
         type="button"
         onClick={onBack}
         aria-label={t('topic.back')}
-        className="absolute top-24 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
+        className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink md:top-20"
       >
         <X size={20} aria-hidden="true" />
       </button>
@@ -44,14 +78,7 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps) {
       <p className="mt-6 text-[16px] leading-relaxed text-ink">{intro}</p>
 
       {article.sections.map((section, index) => (
-        <section key={index} className="mt-8">
-          <h2 className="font-serif text-[1.25rem] font-[500] text-ink">
-            {lang === 'pl' ? section.hPl : section.hEn}
-          </h2>
-          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
-            {lang === 'pl' ? section.pPl : section.pEn}
-          </p>
-        </section>
+        <Section key={index} section={section} />
       ))}
 
       <section className="mt-10 border-t border-line pt-5">

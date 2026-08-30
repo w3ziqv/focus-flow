@@ -18,7 +18,7 @@ export function StatsView({ stats, lang, chartDays, totalMinutes }: StatsViewPro
   const days = groupByDay(sessions, lang)
 
   return (
-    <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-24 pb-16 max-md:pt-20">
+    <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24">
       <p className="text-overline text-ink-3">{t('app.name')}</p>
       <h1 className="mt-2 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{t('stats.view')}</h1>
 

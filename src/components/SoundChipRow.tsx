@@ -7,17 +7,15 @@ interface SoundChipRowProps {
   current: AmbientSound
   sounds: CustomSound[]
   message: string | null
-  volume: number
   onChange: (sound: AmbientSound) => void
   onAddFile: (file: File) => void
   onRemove: (id: string) => void
-  onVolumeChange: (volume: number) => void
 }
 
 const chipBase =
   'inline-flex min-h-11 shrink-0 snap-start items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:bg-sunken'
 
-export function SoundChipRow({ current, sounds, message, volume, onChange, onAddFile, onRemove, onVolumeChange }: SoundChipRowProps) {
+export function SoundChipRow({ current, sounds, message, onChange, onAddFile, onRemove }: SoundChipRowProps) {
   const { t } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -32,7 +30,7 @@ export function SoundChipRow({ current, sounds, message, volume, onChange, onAdd
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="no-scrollbar flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible" role="group" aria-label={t('sound.group')}>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('sound.group')}>
         {builtIns.map((item) => {
           const active = current === item.id
           return (
@@ -100,20 +98,6 @@ export function SoundChipRow({ current, sounds, message, volume, onChange, onAdd
           }}
         />
       </div>
-      {current !== 'none' && (
-        <label className="flex items-center gap-2 text-caption text-ink-2">
-          {t('sound.volume')}
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={Math.round(volume * 100)}
-            aria-label={t('sound.volume')}
-            onChange={(event) => onVolumeChange(Number(event.target.value) / 100)}
-            className="sound-volume w-32"
-          />
-        </label>
-      )}
       <p aria-live="polite" className="min-h-5 text-caption text-ink-3">
         {message ?? ''}
       </p>

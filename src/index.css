@@ -102,9 +102,10 @@ a,
   touch-action: manipulation;
 }
 
-/* iPhone home indicator: keep the bottom nav above the gesture bar */
-@media (max-width: 639.98px) {
+/* Phones and tablets: the nav lives at the bottom, clear of the gesture bar */
+@media (max-width: 767.98px) {
   .nav-mobile-bottom {
+    top: auto;
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
   .footer-safe-bottom {
