@@ -143,7 +143,7 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 - **Accessibility**: `role="img"` + aria-label summary; `<title>` per bar with minutes.
 
 ### Modal (settings)
-- **Structure**: --surface-elevated, radius 20px, ring-halo + whisper shadow; backdrop = page color at 60% + 8px blur; numeric steppers (native number input styled) + a real switch for auto-start.
+- **Structure**: --surface-elevated, radius 20px, ring-halo + whisper shadow; backdrop = page color at 60% + 8px blur; numeric fields are steppers — a quiet round −/+ button flanking a center-aligned number input with native spinners hidden, clamped to their bounds (buttons disable at min/max); a real switch for auto-start.
 - **States**: closed/open (scale 0.97→1 + fade 200ms standard); Esc and backdrop-click close; focus trapped; return focus to opener.
 - **Accessibility**: `role="dialog"` `aria-modal`, labelled by title; labels on every field.
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Minus, Plus } from 'lucide-react'
 import type { Settings } from '../types'
 import { useI18n } from '../lib/i18n'
 import { PillButton } from './PillButton'
@@ -12,7 +13,10 @@ interface SettingsModalProps {
 }
 
 const fieldClass =
-  'w-full rounded-xl border border-line bg-card px-3 py-2 text-right text-[15px] text-ink tnum outline-none transition-colors duration-150 focus:border-[var(--ac)]'
+  'no-spin w-full rounded-xl border border-line bg-card px-3 py-2 text-center text-[15px] text-ink tnum outline-none transition-colors duration-150 focus:border-[var(--ac)]'
+
+const stepButtonClass =
+  'flex size-8 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
 
 export function SettingsModal({ open, settings, onSave, onClose }: SettingsModalProps) {
   const { t } = useI18n()
@@ -37,26 +41,51 @@ export function SettingsModal({ open, settings, onSave, onClose }: SettingsModal
 
   if (!open) return null
 
-  const numberField = (key: 'focus' | 'short' | 'long' | 'rounds', label: string, min: number, max: number) => (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={`settings-${key}`} className="text-caption text-ink-2">
-        {label}
-      </label>
-      <input
-        id={`settings-${key}`}
-        type="number"
-        inputMode="numeric"
-        min={min}
-        max={max}
-        value={draft[key]}
-        onChange={(event) => {
-          const parsed = Number.parseInt(event.target.value, 10)
-          setDraft((prev) => ({ ...prev, [key]: Number.isFinite(parsed) ? parsed : min }))
-        }}
-        className={fieldClass}
-      />
-    </div>
-  )
+  const numberField = (key: 'focus' | 'short' | 'long' | 'rounds', label: string, min: number, max: number) => {
+    const bump = (delta: number) => {
+      setDraft((prev) => ({ ...prev, [key]: Math.min(max, Math.max(min, prev[key] + delta)) }))
+    }
+    return (
+      <div className="flex flex-col gap-1">
+        <label htmlFor={`settings-${key}`} className="text-caption text-ink-2">
+          {label}
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label={`${t('settings.decrease')} — ${label}`}
+            onClick={() => bump(-1)}
+            disabled={draft[key] <= min}
+            className={stepButtonClass}
+          >
+            <Minus size={14} aria-hidden="true" />
+          </button>
+          <input
+            id={`settings-${key}`}
+            type="number"
+            inputMode="numeric"
+            min={min}
+            max={max}
+            value={draft[key]}
+            onChange={(event) => {
+              const parsed = Number.parseInt(event.target.value, 10)
+              setDraft((prev) => ({ ...prev, [key]: Number.isFinite(parsed) ? parsed : min }))
+            }}
+            className={fieldClass}
+          />
+          <button
+            type="button"
+            aria-label={`${t('settings.increase')} — ${label}`}
+            onClick={() => bump(1)}
+            disabled={draft[key] >= max}
+            className={stepButtonClass}
+          >
+            <Plus size={14} aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const clampDraft = (): Settings => ({
     focus: Math.min(120, Math.max(1, Math.round(draft.focus) || 1)),

@@ -245,3 +245,14 @@ body {
   accent-color: var(--ac);
   height: 20px;
 }
+
+/* Settings steppers: hide native number-input spinners, steppers are custom */
+.no-spin::-webkit-outer-spin-button,
+.no-spin::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spin {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
