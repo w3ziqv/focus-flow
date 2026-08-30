@@ -6,7 +6,7 @@ The interface is deliberately quiet: warm paper tones, a serif clock face, one a
 
 | Desktop | Mobile |
 | --- | --- |
-| ![Desktop](focus-flow.png?v=2) | ![Mobile](mobile.png?v=2) |
+| ![Desktop](focus-flow.png?v=3) | ![Mobile](mobile.png?v=3) |
 
 ## What it does
 
@@ -14,9 +14,10 @@ The interface is deliberately quiet: warm paper tones, a serif clock face, one a
 - Countdown survives a page reload — it is anchored to wall-clock time, so a throttled background tab does not drift
 - One-task session field: write what you are working on, the app holds you to it until the session ends
 - Ambient soundscapes from freely-licensed field recordings — rain, ocean waves, stream, campfire — plus synthesized brown noise, and your own audio files, all stored locally
-- Session statistics: today, this week, day streak, total focus minutes, and a 7-day bar chart
-- A tips library with 30 evidence-backed entries (each cites its research) on learning, breaks, sleep, food, and productivity, in Polish and English
-- Fullscreen focus mode, keyboard shortcuts (Space, R, F, Esc), light and dark theme
+- A dedicated statistics section: today, this week, day streak, total focus minutes, a 7-day chart and a session log that remembers what you worked on each day
+- A topic library — seven topics with 14 methodical, source-cited guides (each a 3–5 minute read) in Polish and English
+- Fullscreen focus mode, keyboard shortcuts (Space, R, F, Esc), light and dark theme, reduced-motion option
+- Data backup: export and import everything as a single JSON file
 - Installable PWA; works offline after the first visit
 - Polish and English interface, switchable at runtime
 
@@ -37,6 +38,12 @@ Commons, level-normalized and edited into seamless loops — author and license
 credits are in [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md). Brown noise
 is synthesized live with the Web Audio API instead of being shipped as a file.
 
+## Docs
+
+- [`DESIGN.md`](DESIGN.md) — the design system: tokens, components, motion, accessibility
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture decisions (ADRs), including the desktop-packaging analysis (PWA vs Tauri vs Electron)
+- [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md) — sound credits and licenses
+
 ## Development
 
 ```bash
@@ -56,12 +63,16 @@ src/
     timer.ts     timer engine (deadline-based, persisted session)
     audio.ts     chime + ambient sound engine
     storage.ts   typed localStorage wrapper, legacy data migration
+    dataPort.ts  backup export/import
+    sessions.ts  session log (per-day history)
+    platform.ts  runtime detection (browser / PWA / Tauri / Electron)
     stats.ts     streak / week math, 7-day series
     i18n.tsx     Polish and English dictionary
-    tips.ts      tips content
-  components/    dial, tabs, buttons, modal, accordion, nav
-  views/         timer and tips views
-DESIGN.md        design system: tokens, components, motion, accessibility
+    topics.ts, articles.ts   tips content
+  components/    dial, tabs, buttons, modals, topics, nav
+  views/         timer, stats, topics, topic, article views
+DESIGN.md         design system: tokens, components, motion, accessibility
+docs/ARCHITECTURE.md   architecture decisions (ADRs)
 ```
 
 ## Author
