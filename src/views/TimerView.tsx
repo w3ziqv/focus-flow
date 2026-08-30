@@ -4,6 +4,7 @@ import type { AmbientSound, CustomSound, Mode } from '../types'
 import type { TimerEngine } from '../lib/timer'
 import { last7Days, sumMinutes } from '../lib/stats'
 import { randomBreakTip } from '../lib/tips'
+import { taskPlaceholder } from '../lib/placeholders'
 import { useI18n } from '../lib/i18n'
 import { Dial } from '../components/Dial'
 import { SegmentedTabs } from '../components/SegmentedTabs'
@@ -45,6 +46,7 @@ export function TimerView({
     () => (engine.mode === 'focus' ? null : randomBreakTip(lang)),
     [engine.mode, lang],
   )
+  const placeholder = useMemo(() => taskPlaceholder(lang), [lang])
 
   const tabs: Array<{ id: Mode; label: string }> = [
     { id: 'focus', label: t('mode.focus') },
@@ -59,11 +61,11 @@ export function TimerView({
   return (
     <div className="mx-auto w-full max-w-[560px] px-4 pt-24 pb-16 max-md:pt-20">
       <div className="fade-up" style={{ animationDelay: '0ms' }}>
-        <TaskField phase={taskPhase} value={engine.task} onChange={engine.setTask} />
+        <TaskField phase={taskPhase} value={engine.task} placeholder={placeholder} onChange={engine.setTask} />
       </div>
 
       <div className="fade-up mt-8" style={{ animationDelay: '40ms' }}>
-        <SegmentedTabs tabs={tabs} value={engine.mode} onChange={engine.switchMode} />
+        <SegmentedTabs tabs={tabs} value={engine.mode} onChange={engine.switchMode} ariaLabel={t('timer.modes')} />
       </div>
 
       <div className="fade-up mt-8" style={{ animationDelay: '80ms' }}>

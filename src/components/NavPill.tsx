@@ -1,17 +1,13 @@
-import { Moon, Sun } from 'lucide-react'
-import type { Lang, Theme } from '../types'
+import { Settings2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
 interface NavPillProps {
   view: 'timer' | 'tips'
   onView: (view: 'timer' | 'tips') => void
-  theme: Theme
-  onTheme: () => void
-  lang: Lang
-  onLang: () => void
+  onOpenSettings: () => void
 }
 
-export function NavPill({ view, onView, theme, onTheme, lang, onLang }: NavPillProps) {
+export function NavPill({ view, onView, onOpenSettings }: NavPillProps) {
   const { t } = useI18n()
 
   const linkClass = (active: boolean) =>
@@ -38,19 +34,11 @@ export function NavPill({ view, onView, theme, onTheme, lang, onLang }: NavPillP
         <span aria-hidden="true" className="mx-1 h-5 w-px bg-line" />
         <button
           type="button"
-          onClick={onTheme}
-          aria-label={t('nav.theme')}
+          onClick={onOpenSettings}
+          aria-label={t('settings.app')}
           className="flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
         >
-          {theme === 'dark' ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
-        </button>
-        <button
-          type="button"
-          onClick={onLang}
-          aria-label={`${t('nav.lang')} → ${lang === 'pl' ? 'EN' : 'PL'}`}
-          className="flex h-11 min-w-11 items-center justify-center rounded-full px-2 text-[12px] font-semibold tracking-[0.06em] text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
-        >
-          {lang === 'pl' ? 'EN' : 'PL'}
+          <Settings2 size={18} aria-hidden="true" />
         </button>
       </div>
     </nav>

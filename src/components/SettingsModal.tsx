@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
-import type { Settings } from '../types'
+import type { Settings, Theme } from '../types'
 import { useI18n } from '../lib/i18n'
+import { SegmentedTabs } from './SegmentedTabs'
 import { PillButton } from './PillButton'
 import { Switch } from './Switch'
 
 interface SettingsModalProps {
   open: boolean
   settings: Settings
+  theme: Theme
+  onTheme: (theme: Theme) => void
   onSave: (settings: Settings) => void
   onClose: () => void
 }
@@ -18,8 +21,8 @@ const fieldClass =
 const stepButtonClass =
   'flex size-9 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
 
-export function SettingsModal({ open, settings, onSave, onClose }: SettingsModalProps) {
-  const { t } = useI18n()
+export function SettingsModal({ open, settings, theme, onTheme, onSave, onClose }: SettingsModalProps) {
+  const { t, lang, setLang } = useI18n()
   const [draft, setDraft] = useState<Settings>(settings)
   const panelRef = useRef<HTMLDivElement>(null)
   const [wasOpen, setWasOpen] = useState(false)
@@ -98,17 +101,18 @@ export function SettingsModal({ open, settings, onSave, onClose }: SettingsModal
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center p-4"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
     >
-      <div aria-hidden="true" className="absolute inset-0 bg-page/70 backdrop-blur-sm modal-backdrop" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-page/70 backdrop-blur-sm modal-backdrop"
+        onMouseDown={onClose}
+      />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative w-full max-w-sm rounded-[20px] border border-line bg-elevated p-6 shadow-whisper modal-in"
+        className="relative max-h-[85dvh] w-full max-w-sm overflow-y-auto rounded-[20px] border border-line bg-elevated p-6 shadow-whisper modal-in"
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.stopPropagation()
@@ -135,6 +139,40 @@ export function SettingsModal({ open, settings, onSave, onClose }: SettingsModal
         <h2 id="settings-title" className="mb-5 font-serif text-[1.5rem] font-[500] text-ink">
           {t('settings.title')}
         </h2>
+
+        <p className="text-overline text-ink-3">{t('settings.app')}</p>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <span className="text-[14px] text-ink">{t('settings.theme')}</span>
+          <div className="w-44">
+            <SegmentedTabs
+              tabs={[
+                { id: 'light' as Theme, label: t('theme.light') },
+                { id: 'dark' as Theme, label: t('theme.dark') },
+              ]}
+              value={theme}
+              onChange={onTheme}
+              ariaLabel={t('settings.theme')}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="text-[14px] text-ink">{t('settings.language')}</span>
+          <div className="w-44">
+            <SegmentedTabs
+              tabs={[
+                { id: 'pl' as const, label: t('lang.pl') },
+                { id: 'en' as const, label: t('lang.en') },
+              ]}
+              value={lang}
+              onChange={setLang}
+              ariaLabel={t('settings.language')}
+            />
+          </div>
+        </div>
+
+        <div className="my-5 h-px bg-line" />
+        <p className="mb-4 text-overline text-ink-3">{t('settings.timer')}</p>
+
         <div className="flex flex-col gap-4">
           {numberField('focus', t('settings.focus'), 1, 120)}
           {numberField('short', t('settings.short'), 1, 60)}

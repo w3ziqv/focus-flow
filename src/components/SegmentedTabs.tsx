@@ -1,5 +1,4 @@
 import { useRef } from 'react'
-import { useI18n } from '../lib/i18n'
 
 interface TabItem<T extends string> {
   id: T
@@ -10,10 +9,10 @@ interface SegmentedTabsProps<T extends string> {
   tabs: Array<TabItem<T>>
   value: T
   onChange: (id: T) => void
+  ariaLabel: string
 }
 
-export function SegmentedTabs<T extends string>({ tabs, value, onChange }: SegmentedTabsProps<T>) {
-  const { t } = useI18n()
+export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLabel }: SegmentedTabsProps<T>) {
   const refs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.id === value))
 
@@ -26,7 +25,7 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange }: Segme
   return (
     <div
       role="tablist"
-      aria-label={t('app.name')}
+      aria-label={ariaLabel}
       className="relative mx-auto flex w-full max-w-[380px] rounded-full bg-sunken p-1"
       onKeyDown={(event) => {
         if (event.key === 'ArrowRight') {

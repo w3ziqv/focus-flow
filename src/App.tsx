@@ -28,7 +28,7 @@ type View = 'timer' | 'tips'
 
 function Shell() {
   const engine = useTimerEngine()
-  const { t, lang, setLang } = useI18n()
+  const { t } = useI18n()
   const [view, setView] = useState<View>('timer')
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -73,17 +73,10 @@ function Shell() {
     [t],
   )
 
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next: Theme = prev === 'dark' ? 'light' : 'dark'
-      saveTheme(next)
-      return next
-    })
+  const setThemeAndPersist = useCallback((next: Theme) => {
+    setTheme(next)
+    saveTheme(next)
   }, [])
-
-  const toggleLang = useCallback(() => {
-    setLang(lang === 'pl' ? 'en' : 'pl')
-  }, [lang, setLang])
 
   const changeView = useCallback((next: View) => {
     setView(next)
@@ -176,14 +169,7 @@ function Shell() {
 
   return (
     <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="min-h-[100dvh]">
-      <NavPill
-        view={view}
-        onView={changeView}
-        theme={theme}
-        onTheme={toggleTheme}
-        lang={lang}
-        onLang={toggleLang}
-      />
+      <NavPill view={view} onView={changeView} onOpenSettings={() => setSettingsOpen(true)} />
 
       <main>
         {view === 'timer' ? (
@@ -214,6 +200,8 @@ function Shell() {
       <SettingsModal
         open={settingsOpen}
         settings={engine.settings}
+        theme={theme}
+        onTheme={setThemeAndPersist}
         onClose={() => setSettingsOpen(false)}
         onSave={(settings) => {
           engine.updateSettings(settings)

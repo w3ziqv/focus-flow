@@ -4,10 +4,11 @@ import { useI18n } from '../lib/i18n'
 interface TaskFieldProps {
   phase: 'draft' | 'running' | 'done'
   value: string
+  placeholder: string
   onChange: (value: string) => void
 }
 
-export function TaskField({ phase, value, onChange }: TaskFieldProps) {
+export function TaskField({ phase, value, placeholder, onChange }: TaskFieldProps) {
   const { t } = useI18n()
 
   if (phase === 'done' && value.trim() !== '') {
@@ -44,7 +45,7 @@ export function TaskField({ phase, value, onChange }: TaskFieldProps) {
         maxLength={200}
         autoComplete="off"
         onChange={(event) => onChange(event.target.value)}
-        placeholder={t('task.placeholder')}
+        placeholder={placeholder}
         className="w-full border-b border-line bg-transparent py-3 text-center text-[17px] text-ink outline-none transition-colors duration-150 [transition-timing-function:var(--ease-micro)] placeholder:text-ink-3 focus:border-[var(--ac)]"
       />
     </div>
