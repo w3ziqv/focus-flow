@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bucketOf, taskPlaceholder } from './placeholders'
+import { bucketOf, taskGreeting } from './placeholders'
 
 describe('bucketOf', () => {
   it('splits the day into four buckets', () => {
@@ -15,12 +15,11 @@ describe('bucketOf', () => {
   })
 })
 
-describe('taskPlaceholder', () => {
-  it('returns a non-empty variant in both languages', () => {
+describe('taskGreeting', () => {
+  it('returns a non-empty greeting in both languages', () => {
     for (const lang of ['pl', 'en'] as const) {
       for (const h of [6, 14, 20, 2]) {
-        const text = taskPlaceholder(lang, new Date(2026, 5, 15, h, 0))
-        expect(text.trim().length).toBeGreaterThan(0)
+        expect(taskGreeting(lang, new Date(2026, 5, 15, h, 0)).trim().length).toBeGreaterThan(0)
       }
     }
   })

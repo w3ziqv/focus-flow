@@ -10,26 +10,27 @@ export function bucketOf(date: Date): Bucket {
   return 'night'
 }
 
-const VARIANTS: Record<Bucket, Record<Lang, string[]>> = {
+const GREETINGS: Record<Bucket, Record<Lang, string[]>> = {
   morning: {
-    pl: ['Dzień dobry. Nad czym pracujesz?', 'Świeży poranek. Co dziś robimy?', 'Dzień dobry. Jaki jest cel tej sesji?'],
-    en: ['Good morning. What are you working on?', 'Fresh start. What are we tackling?', 'Good morning. What is this session for?'],
+    pl: ['Dzień dobry', 'Świeży poranek', 'Miłego poranka'],
+    en: ['Good morning', 'A fresh morning', 'Morning focus'],
   },
   afternoon: {
-    pl: ['Dobry dzień. Nad czym pracujesz?', 'Popołudniowy restart — co robimy?', 'Dobry dzień. Jaki jest cel tej sesji?'],
-    en: ['Good afternoon. What are you working on?', 'An afternoon restart — what are we tackling?', 'Good afternoon. What is this session for?'],
+    pl: ['Dobry dzień', 'Popołudniowy restart'],
+    en: ['Good afternoon', 'Back at it'],
   },
   evening: {
-    pl: ['Dobry wieczór. Nad czym pracujesz?', 'Cichy wieczór. Co dopracowujemy?', 'Dobry wieczór. Jaki jest cel tej sesji?'],
-    en: ['Good evening. What are you working on?', 'A quiet evening. What are we polishing?', 'Good evening. What is this session for?'],
+    pl: ['Dobry wieczór', 'Cichy wieczór'],
+    en: ['Good evening', 'A quiet evening'],
   },
   night: {
-    pl: ['Nocna sesja. Nad czym pracujesz?', 'Nocna zmiana. Jedna krótka, dobra sesja?', 'Za oknem ciemno. Co robimy?'],
-    en: ['A late-night session. What are you working on?', 'The night shift. One short, good session?', 'Dark outside. What are we doing?'],
+    pl: ['Nocna zmiana', 'Późna godzina'],
+    en: ['Night shift', 'Late hours'],
   },
 }
 
-export function taskPlaceholder(lang: Lang, date = new Date()): string {
-  const variants = VARIANTS[bucketOf(date)][lang]
+export function taskGreeting(lang: Lang, date = new Date()): string {
+  const bucket = bucketOf(date)
+  const variants = GREETINGS[bucket][lang]
   return variants[Math.floor(Math.random() * variants.length)]
 }

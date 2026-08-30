@@ -16,7 +16,8 @@ import {
   systemTheme,
 } from './lib/storage'
 import { NavPill } from './components/NavPill'
-import { SettingsModal } from './components/SettingsModal'
+import { AppSettingsModal } from './components/AppSettingsModal'
+import { TimerSettingsModal } from './components/TimerSettingsModal'
 import { FocusOverlay } from './components/FocusOverlay'
 import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
@@ -31,7 +32,8 @@ function Shell() {
   const { t } = useI18n()
   const [view, setView] = useState<View>('timer')
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [appSettingsOpen, setAppSettingsOpen] = useState(false)
+  const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
   const [ambient, setAmbient] = useState<AmbientSound>('none')
@@ -152,7 +154,8 @@ function Shell() {
     focusMode: () => setFocusOpen(true),
     escape: () => {
       if (focusOpen) setFocusOpen(false)
-      else if (settingsOpen) setSettingsOpen(false)
+      else if (timerSettingsOpen) setTimerSettingsOpen(false)
+      else if (appSettingsOpen) setAppSettingsOpen(false)
     },
   })
 
@@ -169,7 +172,7 @@ function Shell() {
 
   return (
     <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="min-h-[100dvh]">
-      <NavPill view={view} onView={changeView} onOpenSettings={() => setSettingsOpen(true)} />
+      <NavPill view={view} onView={changeView} onOpenSettings={() => setAppSettingsOpen(true)} />
 
       <main>
         {view === 'timer' ? (
@@ -183,7 +186,7 @@ function Shell() {
             onAddSoundFile={addSoundFile}
             onRemoveSound={removeSound}
             onVolumeChange={changeVolume}
-            onOpenSettings={() => setSettingsOpen(true)}
+            onOpenSettings={() => setTimerSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
           />
         ) : (
@@ -197,15 +200,20 @@ function Shell() {
         {t('footer', { year: 2026 })}
       </footer>
 
-      <SettingsModal
-        open={settingsOpen}
-        settings={engine.settings}
+      <AppSettingsModal
+        open={appSettingsOpen}
         theme={theme}
         onTheme={setThemeAndPersist}
-        onClose={() => setSettingsOpen(false)}
+        onClose={() => setAppSettingsOpen(false)}
+      />
+
+      <TimerSettingsModal
+        open={timerSettingsOpen}
+        settings={engine.settings}
+        onClose={() => setTimerSettingsOpen(false)}
         onSave={(settings) => {
           engine.updateSettings(settings)
-          setSettingsOpen(false)
+          setTimerSettingsOpen(false)
         }}
       />
 
