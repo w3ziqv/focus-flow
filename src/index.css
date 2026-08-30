@@ -81,6 +81,7 @@ html {
   font-family: var(--font-sans);
   color: var(--color-ink);
   background: var(--color-page);
+  color-scheme: light;
   /* No white flash or elastic glow when scrolling past the edges (PWA/standalone) */
   overscroll-behavior: none;
 }
@@ -89,8 +90,14 @@ body {
   margin: 0;
   min-height: 100dvh;
   background: var(--color-page);
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* UA-painted surfaces (overscroll canvas, form controls, scrollbars) follow the theme */
+.dark {
+  color-scheme: dark;
 }
 
 /* Touch polish for iOS Safari and Android Chrome */
