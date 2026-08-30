@@ -29,11 +29,19 @@ export interface CustomSound {
   dataUrl: string
 }
 
-export type AmbientSound = 'none' | 'rain' | 'noise' | `custom:${string}`
+export type AmbientSound =
+  | 'none'
+  | 'rain'
+  | 'waves'
+  | 'stream'
+  | 'campfire'
+  | 'noise'
+  | `custom:${string}`
 
 export interface Tip {
   title: string
   desc: string
+  source: string
 }
 
 export interface TipCategory {

@@ -22,6 +22,9 @@ export function SoundChipRow({ current, sounds, message, onChange, onAddFile, on
   const builtIns: Array<{ id: AmbientSound; label: string }> = [
     { id: 'none', label: t('sound.off') },
     { id: 'rain', label: t('sound.rain') },
+    { id: 'waves', label: t('sound.waves') },
+    { id: 'stream', label: t('sound.stream') },
+    { id: 'campfire', label: t('sound.campfire') },
     { id: 'noise', label: t('sound.noise') },
   ]
 

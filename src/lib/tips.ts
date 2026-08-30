@@ -1,10 +1,6 @@
 import { Brain, Coffee, MoonStar, Salad, Zap } from 'lucide-react'
 import type { TipCategory } from '../types'
 
-/**
- * Study and focus advice, ported from the original Focus Flow.
- * Polish-first copy, English translations kept in step.
- */
 export const TIP_CATEGORIES: TipCategory[] = [
   {
     id: 'learning',
@@ -13,28 +9,28 @@ export const TIP_CATEGORIES: TipCategory[] = [
     titleEn: 'Learning',
     tips: [
       {
-        pl: { title: 'Rób notatki ręcznie', desc: 'Pisanie odręczne angażuje obszary mózgu odpowiedzialne za przetwarzanie i zapamiętywanie. Badania pokazują, że studenci notujący ręcznie lepiej rozumieją materiał niż ci, którzy piszą na laptopie.' },
-        en: { title: 'Write notes by hand', desc: 'Handwriting engages brain areas responsible for processing and memory. Studies show students who write by hand understand material better than those who type.' },
+        pl: { title: 'Sprawdzaj się zamiast czytać', desc: 'Zamknij notatki i odtwórz materiał z pamięci. Samo sięganie do pamięci uczy skuteczniej niż kolejne czytanie.', source: 'Roediger i Karpicke, 2006' },
+        en: { title: 'Test yourself instead of re-reading', desc: 'Close the notes and rebuild the material from memory. Retrieving beats re-reading.', source: 'Roediger & Karpicke, 2006' },
       },
       {
-        pl: { title: 'Ucz się aktywnym przypominaniem', desc: 'Zamiast czytać notatki wielokrotnie, zamknij książkę i spróbuj odtworzyć z pamięci to, czego się nauczyłeś. Active Recall to jedna z najskuteczniejszych technik zapamiętywania.' },
-        en: { title: 'Use active recall', desc: 'Instead of re-reading notes, close the book and try to recall from memory. Active recall is one of the most effective learning techniques.' },
+        pl: { title: 'Rozłóż powtórki w czasie', desc: 'Trzy krótkie powtórki w odstępach dni wygrywają z jedną długą sesją tuż przed egzaminem.', source: 'Cepeda i in., 2006' },
+        en: { title: 'Space out your reviews', desc: 'Three short reviews spread over days beat one long cram session the night before.', source: 'Cepeda et al., 2006' },
       },
       {
-        pl: { title: 'Wyłącz telefon podczas nauki', desc: 'Rozpraszacze kosztują Cię średnio 23 minuty na odzyskanie pełnej koncentracji po każdym spojrzeniu w ekran.' },
-        en: { title: 'Turn off your phone while studying', desc: 'Distractions cost you an average of 23 minutes to regain full focus after each glance.' },
+        pl: { title: 'Rób notatki ręcznie', desc: 'Pisanie odręczne zmusza do przerabiania treści własnymi słowami zamiast przepisywania.', source: 'Mueller i Oppenheimer, 2014' },
+        en: { title: 'Take notes by hand', desc: 'Handwriting forces you to rephrase ideas instead of transcribing them.', source: 'Mueller & Oppenheimer, 2014' },
       },
       {
-        pl: { title: 'Dziel materiał na małe partie', desc: 'Próba nauczenia się 50 stron na raz jest nieskuteczna. Podziel materiał na 5–10 stron na sesję i powtarzaj każdą partię przed przejściem dalej.' },
-        en: { title: 'Break material into small chunks', desc: 'Trying to learn 50 pages at once is ineffective. Split material into 5–10 page sessions.' },
+        pl: { title: 'Schowaj telefon', desc: 'Po każdym spojrzeniu w ekran potrzeba średnio ok. 23 minut na pełny powrót koncentracji.', source: 'Gloria Mark, UC Irvine' },
+        en: { title: 'Silence your phone', desc: 'After each glance at a screen it takes about 23 minutes to fully refocus.', source: 'Gloria Mark, UC Irvine' },
       },
       {
-        pl: { title: 'Ucz się w ciszy albo przy muzyce bez słów', desc: 'Muzyka z tekstem angażuje korę słuchową i konkuruje z materiałem, który próbujesz zapamiętać.' },
-        en: { title: 'Study in silence or with instrumental music', desc: "Music with lyrics engages the auditory cortex and competes with what you're trying to learn." },
+        pl: { title: 'Mieszaj tematy', desc: 'Przeplatanie rodzajów zadań w jednej sesji uczy rozpoznawać, którą metodę wybrać — to sprawdzane na egzaminie.', source: 'Rohrer i Taylor, 2007' },
+        en: { title: 'Mix up the topics', desc: 'Interleaving task types teaches you to pick the right method — exactly what exams test.', source: 'Rohrer & Taylor, 2007' },
       },
       {
-        pl: { title: 'Powtarzaj materiał następnego dnia', desc: 'Jeśli nie powtórzysz następnego dnia, zapomnisz nawet 50–70% tego, czego się nauczyłeś. Powtórka po 24h to klucz do długotrwałej pamięci.' },
-        en: { title: 'Review material the next day', desc: "If you don't review the next day, you'll forget up to 50–70% of what you learned." },
+        pl: { title: 'Naucz kogoś innego', desc: 'Samo przygotowanie do tłumaczenia komuś porządkuje wiedzę mocniej niż nauka na siebie.', source: 'Nestojko i in., 2014' },
+        en: { title: 'Teach it to someone', desc: 'Merely expecting to explain something to others makes you organise the material better.', source: 'Nestojko et al., 2014' },
       },
     ],
   },
@@ -45,32 +41,28 @@ export const TIP_CATEGORIES: TipCategory[] = [
     titleEn: 'Break',
     tips: [
       {
-        pl: { title: 'Napij się wody', desc: 'Nawet lekkie odwodnienie (1–2%) obniża koncentrację i sprawność umysłową. Miej szklankę wody na biurku.' },
-        en: { title: 'Drink water', desc: 'Even mild dehydration (1–2%) reduces concentration and mental performance.' },
+        pl: { title: 'Napij się wody', desc: 'Odwodnienie na poziomie zaledwie 1–2% masy ciała mierzyle obniża uwagę i pamięć roboczą.', source: 'Ganio i in., 2011' },
+        en: { title: 'Drink water', desc: 'Dehydration of just 1–2% of body mass measurably lowers attention and working memory.', source: 'Ganio et al., 2011' },
       },
       {
-        pl: { title: 'Zjedz orzechy lub owoc', desc: 'Migdały, orzechy włoskie, jabłko lub banan dostarczają glukozy i zdrowych tłuszczów stabilizujących poziom cukru we krwi.' },
-        en: { title: 'Eat nuts or fruit', desc: 'Almonds, walnuts, apples, or bananas provide glucose and healthy fats that stabilise blood sugar.' },
+        pl: { title: 'Zasada 20-20-20', desc: 'Co 20 minut patrz przez 20 sekund na coś oddalonego o co najmniej 20 stóp — mięśnie oka się rozluźniają.', source: 'American Optometric Association' },
+        en: { title: 'The 20-20-20 rule', desc: 'Every 20 minutes, look 20 feet away for 20 seconds — the eye muscles relax.', source: 'American Optometric Association' },
       },
       {
-        pl: { title: 'Przewietrz pokój', desc: 'W zamkniętym pomieszczeniu poziom CO₂ szybko rośnie, powodując zmęczenie. Otwórz okno na 2 minuty.' },
-        en: { title: 'Air out the room', desc: 'CO₂ levels rise quickly in a closed room, causing fatigue. Open the window for 2 minutes.' },
+        pl: { title: 'Porusz się trochę', desc: 'Krótka dawka ruchu poprawia uwagę jeszcze przez 20–30 minut po powrocie do biurka.', source: 'Chang i in., 2012' },
+        en: { title: 'Move a little', desc: 'A short dose of exercise keeps attention higher for 20–30 minutes after you sit back down.', source: 'Chang et al., 2012' },
       },
       {
-        pl: { title: 'Zrób 10 przysiadów', desc: 'Aktywność fizyczna zwiększa przepływ krwi do mózgu i poprawia nastrój. 10 przysiadów zajmuje 30 sekund.' },
-        en: { title: 'Do 10 squats', desc: 'Physical activity boosts blood flow to the brain and improves mood. 10 squats take 30 seconds.' },
+        pl: { title: 'Przewietrz pokój', desc: 'Przy stężeniu CO₂ ok. 1000 ppm wyniki testów decyzyjnych spadają mierzalnie. Otwórz okno.', source: 'Satish i in., 2012' },
+        en: { title: 'Air out the room', desc: 'At CO₂ levels around 1000 ppm decision-making scores drop measurably. Open a window.', source: 'Satish et al., 2012' },
       },
       {
-        pl: { title: 'Odsuń wzrok od ekranu', desc: 'Patrzenie w dal rozluźnia mięśnie rzęskowe oka. Zasada 20-20-20: co 20 minut patrz w dal na 20 sekund.' },
-        en: { title: 'Look away from the screen', desc: "Looking at a distance relaxes the eye's ciliary muscles. The 20-20-20 rule." },
+        pl: { title: 'Drzemka 10–20 minut', desc: 'Krótka drzemka w badaniu NASA poprawiła czujność o 34%, a wydajność o 16%. Dłuższa działa odwrotnie.', source: 'NASA (Rosekind i in., 1995)' },
+        en: { title: 'A 10–20 minute nap', desc: 'A short nap in NASA research raised alertness by 34% and performance by 16%. Longer naps backfire.', source: 'NASA (Rosekind et al., 1995)' },
       },
       {
-        pl: { title: 'Przejdź się po pokoju', desc: 'Zmiana pozycji i krótki spacer poprawiają krążenie i resetują mózg na kolejne zadanie.' },
-        en: { title: 'Walk around the room', desc: 'Changing position and a short walk improve circulation and reset your brain.' },
-      },
-      {
-        pl: { title: 'Rozciągnij ramiona i szyję', desc: 'Wielogodzinne siedzenie powoduje napięcie w barkach i karku. 30-sekundowe rozciągnięcie zapobiega bólom.' },
-        en: { title: 'Stretch your shoulders and neck', desc: 'Hours of sitting cause tension in shoulders and neck. A 30-second stretch prevents pain.' },
+        pl: { title: 'Wyjdź na krótki spacer', desc: 'Chodzenie podnosi kreatywność myślenia — średnio o ponad połowę w badaniu Stanforda.', source: 'Oppezzo i Schwartz, 2014' },
+        en: { title: 'Take a short walk', desc: 'Walking boosts creative thinking — on average by more than half in the Stanford experiments.', source: 'Oppezzo & Schwartz, 2014' },
       },
     ],
   },
@@ -81,28 +73,28 @@ export const TIP_CATEGORIES: TipCategory[] = [
     titleEn: 'Sleep',
     tips: [
       {
-        pl: { title: 'Kładź się spać o stałej porze', desc: 'Regularny rytm dobowy synchronizuje cykle snu z zegarem biologicznym. Nieregularne pory obniżają jakość snu.' },
-        en: { title: 'Go to bed at a consistent time', desc: 'A regular circadian rhythm syncs your sleep cycles. Irregular bedtimes lower sleep quality.' },
+        pl: { title: 'Kładź się o stałej porze', desc: 'Stała pora (też w weekend) synchronizuje zegar biologiczny — zasypiasz szybciej, śpisz głębiej.', source: 'National Sleep Foundation' },
+        en: { title: 'Keep a consistent bedtime', desc: 'A fixed bedtime (weekends too) syncs your body clock — you fall asleep faster and sleep deeper.', source: 'National Sleep Foundation' },
       },
       {
-        pl: { title: 'Nie używaj telefonu przed snem', desc: 'Niebieskie światło hamuje wydzielanie melatoniny. Odłóż telefon na 30–60 minut przed snem.' },
-        en: { title: "Don't use your phone before bed", desc: 'Blue light inhibits melatonin production. Put your phone away 30–60 minutes before bed.' },
+        pl: { title: 'Śpij 7–9 godzin', desc: 'W głębokim snu mózg przenosi wiedzę z pamięci krótkiej do długiej. Mniej niż 7 h = luki.', source: 'National Sleep Foundation' },
+        en: { title: 'Sleep 7–9 hours', desc: 'During deep sleep the brain moves knowledge into long-term memory. Under 7 hours leaves gaps.', source: 'National Sleep Foundation' },
       },
       {
-        pl: { title: 'Śpij 7–9 godzin na dobę', desc: 'W czasie snu mózg konsoliduje wspomnienia i regeneruje się. Mniej niż 7 godzin obniża zdolność uczenia się.' },
-        en: { title: 'Sleep 7–9 hours per night', desc: 'During sleep your brain consolidates memories and regenerates. Less than 7 hours impairs learning.' },
+        pl: { title: 'Chłodna sypialnia', desc: '16–19°C pomaga — spadek temperatury ciała jest sygnałem do zaśnięcia.', source: 'AASM (higiena snu)' },
+        en: { title: 'A cool bedroom', desc: '16–19°C helps — the drop in body temperature is a signal for your body to fall asleep.', source: 'AASM (sleep hygiene)' },
       },
       {
-        pl: { title: 'Wywietrz sypialnię przed snem', desc: 'Optymalna temperatura do snu to 16–19°C. Chłodne pomieszczenie pomaga szybciej zasnąć.' },
-        en: { title: 'Air out your bedroom before sleeping', desc: 'The optimal sleep temperature is 16–19°C. A cool room helps you fall asleep faster.' },
+        pl: { title: 'Ekran do “nie” na 30–60 min', desc: 'Niebieskie światło ekranów opóźnia wyrzut melatoniny — czytaj papier zamiast scrollować.', source: 'Chang i in., PNAS 2015' },
+        en: { title: 'Screens off 30–60 min before bed', desc: 'Blue screen light delays melatonin release — read on paper instead of scrolling.', source: 'Chang et al., PNAS 2015' },
       },
       {
-        pl: { title: 'Nie jedz ciężkich posiłków przed snem', desc: 'Trawienie obciąża organizm i utrudnia zasypianie. Ostatni posiłek zjedz 2–3 godziny przed snem.' },
-        en: { title: "Don't eat heavy meals before bed", desc: 'Digestion burdens your body and makes it harder to fall asleep. Eat 2–3 hours before bed.' },
+        pl: { title: 'Kofeina min. 6 h przed snem', desc: 'Połowa kofeiny wciąż krąży w ciele po ok. 5 godzinach. Kawa 6 h przed snem skraca sen o niemal godzinę.', source: 'Drake i in., 2013' },
+        en: { title: 'Caffeine 6+ hours before bed', desc: 'Half the caffeine is still in your body after ~5 hours. Coffee 6 h before bed cuts sleep by nearly an hour.', source: 'Drake et al., 2013' },
       },
       {
-        pl: { title: 'Czytaj książkę zamiast scrollować', desc: 'Czytanie wycisza układ nerwowy. 15 minut książki przed snem działa lepiej niż melatonina.' },
-        en: { title: 'Read a book instead of scrolling', desc: 'Reading calms the nervous system. 15 minutes of reading before bed works better than melatonin.' },
+        pl: { title: 'Ruch w ciągu dnia = lepszy sen', desc: 'Osoby aktywne przez 150 min tygodniowo raportowały wyraźnie lepszą jakość snu.', source: 'National Sleep Foundation, 2013' },
+        en: { title: 'Daytime exercise, better sleep', desc: 'People active 150 minutes a week report markedly better sleep quality.', source: 'National Sleep Foundation, 2013' },
       },
     ],
   },
@@ -113,28 +105,28 @@ export const TIP_CATEGORIES: TipCategory[] = [
     titleEn: 'Food',
     tips: [
       {
-        pl: { title: 'Pij dużo wody w ciągu dnia', desc: 'Mózg składa się w 75% z wody. Nawet niewielkie odwodnienie powoduje bóle głowy i spadek koncentracji.' },
-        en: { title: 'Drink plenty of water', desc: 'Your brain is 75% water. Even mild dehydration causes headaches and reduced focus.' },
+        pl: { title: 'Pij wodę regularnie', desc: 'Mózg w ~75% to woda; nawet lekkie odwodnienie daje bóle głowy i rozdrażnienie.', source: 'Popkin i in., 2010' },
+        en: { title: 'Drink water regularly', desc: 'The brain is ~75% water; even mild dehydration brings headaches and irritability.', source: 'Popkin et al., 2010' },
       },
       {
-        pl: { title: 'Unikaj cukru przed nauką', desc: 'Cukier daje szybki zastrzyk energii, po którym następuje gwałtowny spadek. Jesteś bardziej zmęczony niż przed.' },
-        en: { title: 'Avoid sugar before studying', desc: 'Sugar gives a quick energy spike followed by a crash. You end up more tired than before.' },
+        pl: { title: 'Bez cukru przed sesją', desc: 'Słodycze dają szybki skok glukozy i równie szybki spadek — koncentracja pada razem z nim.', source: 'Benton, 2002' },
+        en: { title: 'Skip the sugar hit', desc: 'Sweets give a fast glucose spike and an equally fast crash — focus goes down with it.', source: 'Benton, 2002' },
       },
       {
-        pl: { title: 'Zjedz lekkie śniadanie', desc: 'Owsianka, jajecznica, pełnoziarniste pieczywo — unikaj cukru i wysoko przetworzonych płatków.' },
-        en: { title: 'Eat a light breakfast', desc: 'Oatmeal, eggs, wholegrain bread — avoid sugar and highly processed cereals.' },
+        pl: { title: 'Lekki, powolny posiłek', desc: 'Śniadanie o niskim indeksie glikemicznym (owsianka, jajka) utrzymuje uwagę do południa.', source: 'Adolphus i in., 2013' },
+        en: { title: 'A light, slow breakfast', desc: 'A low-glycaemic breakfast (oats, eggs) keeps attention stable until noon.', source: 'Adolphus et al., 2013' },
       },
       {
-        pl: { title: 'Orzechy i owoce to idealna przekąska', desc: 'Orzechy dostarczają zdrowych tłuszczów, a owoce naturalnej glukozy. Dają stabilną energię.' },
-        en: { title: 'Nuts and fruit are the ideal snack', desc: 'Nuts provide healthy fats, fruit provides natural glucose. They give stable energy.' },
+        pl: { title: 'Orzechy i owoce na przekąskę', desc: 'Tłuszcze z orzechów plus naturalna glukoza z owocu = energia bez skoków cukru.', source: 'zalecenia WHO / WHO dietary guidance' },
+        en: { title: 'Nuts and fruit as a snack', desc: 'Nut fats plus natural fruit glucose = steady energy without sugar swings.', source: 'WHO dietary guidance' },
       },
       {
-        pl: { title: 'Nie ucz się na głodniaka', desc: 'Brak glukozy obniża koncentrację. Lekki posiłek 30–60 minut przed nauką zapewnia mózgowi paliwo.' },
-        en: { title: "Don't study hungry", desc: 'Lack of glucose impairs concentration. A light meal 30–60 min before studying fuels your brain.' },
+        pl: { title: 'Nie pracuj głodny', desc: 'Niski poziom glukozy obniża wytrwałość i samokontrolę. Lekki posiłek 30–60 min przed sesją.', source: 'Gailliot i Baumeister, 2007' },
+        en: { title: "Don't work hungry", desc: 'Low glucose lowers persistence and self-control. Have a light meal 30–60 min before a session.', source: 'Gailliot & Baumeister, 2007' },
       },
       {
-        pl: { title: 'Kawa? Max 2 dziennie', desc: 'Kofeina blokuje receptor zmęczenia, ale jej nadmiar prowadzi do niepokoju. Do 2 kaw dziennie.' },
-        en: { title: 'Coffee? Max 2 per day', desc: 'Caffeine blocks the fatigue receptor, but too much causes anxiety. Up to 2 coffees per day.' },
+        pl: { title: 'Kawa: tak, ale z głową', desc: '1–2 kawy dziennie wzmagą uwagę; więcej prowadzi do niepokoju i pogarsza sen.', source: 'Drake i in., 2013' },
+        en: { title: 'Coffee: yes, but smart', desc: '1–2 coffees sharpen attention; more leads to anxiety and worse sleep.', source: 'Drake et al., 2013' },
       },
     ],
   },
@@ -145,35 +137,35 @@ export const TIP_CATEGORIES: TipCategory[] = [
     titleEn: 'Productivity',
     tips: [
       {
-        pl: { title: 'Rób jedną rzecz na raz', desc: 'Multitasking to mit — mózg szybko przełącza się między zadaniami, a każde przełączenie kosztuje czas i energię.' },
-        en: { title: 'Do one thing at a time', desc: 'Multitasking is a myth — your brain quickly switches between tasks, and each switch costs time and energy.' },
+        pl: { title: 'Jedna rzecz naraz', desc: 'Mózg nie robi dwóch rzeczy naraz — przełącza się. Same przełączanie potrafi zjeść do 40% czasu.', source: 'Rubinstein, Meyer i Evans, 2001 (APA)' },
+        en: { title: 'One thing at a time', desc: 'The brain does not multitask — it switches. Switching alone can eat up to 40% of productive time.', source: 'Rubinstein, Meyer & Evans, 2001 (APA)' },
       },
       {
-        pl: { title: 'Ustal cel przed startem timera', desc: 'Zapisz konkretne zadanie na tę sesję. Zamiast „uczyć się" napisz „zrobić 15 ćwiczeń".' },
-        en: { title: 'Set a goal before starting', desc: 'Write a specific task for this session. Instead of "study", write "do 15 exercises".' },
+        pl: { title: 'Zapisz cel sesji', desc: 'Konkretne „kiedy, gdzie, jak” podwaja szansę, że zamiar zamieni się w działanie.', source: 'Gollwitzer, 1999' },
+        en: { title: 'Write down the session goal', desc: 'A concrete when-where-how plan roughly doubles the chance that intention becomes action.', source: 'Gollwitzer, 1999' },
       },
       {
-        pl: { title: 'Zacznij od najtrudniejszego zadania', desc: 'Zasada „Eat the frog" — jeśli zrobisz najtrudniejszą rzecz rano, reszta pójdzie lekko.' },
-        en: { title: 'Start with the hardest task', desc: 'The "Eat the frog" rule — do the hardest thing first and the rest feels easy.' },
+        pl: { title: 'Zacznij od najtrudniejszego', desc: 'Odkładanie jest ucieczką od emocji związanych z zadaniem. Pierwszy krok przerywa pętlę.', source: 'Sirois i Pychyl, 2013' },
+        en: { title: 'Start with the hardest', desc: 'Procrastination is escaping the feelings attached to a task. The first step breaks the loop.', source: 'Sirois & Pychyl, 2013' },
       },
       {
-        pl: { title: 'Sprzątanie biurka = sprzątanie myśli', desc: 'Bałagan na biurku to bodźce odciągające uwagę. Poświęć 60 sekund na uporządkowanie przestrzeni.' },
-        en: { title: 'Clean desk, clean mind', desc: 'Clutter is visual distraction. Spend 60 seconds tidying up before starting.' },
+        pl: { title: 'Uporządkuj biurko', desc: 'Bałagan konkuruje o uwagę na poziomie zmysłow — mózg przetwarza go mimo woli.', source: 'McMains i Kastner, 2011' },
+        en: { title: 'Tidy the desk', desc: 'Clutter competes for attention at the sensory level — the brain processes it even when you ignore it.', source: 'McMains & Kastner, 2011' },
       },
       {
-        pl: { title: 'Planuj dzień wieczorem', desc: 'Wieczorne zaplanowanie 3 najważniejszych zadań sprawia, że rano nie tracisz energii na decyzję „co robić".' },
-        en: { title: 'Plan your day the evening before', desc: 'Planning the 3 most important tasks the night before saves decision-making energy in the morning.' },
+        pl: { title: 'Zaplanuj jutro wieczorem', desc: 'Zapisany plan wyłącza natrętne „pamiętaj o…” i zwalnia pamięć roboczą.', source: 'Masicampo i Baumeister, 2011' },
+        en: { title: 'Plan tomorrow tonight', desc: 'A written plan switches off intrusive “remember to…” thoughts and frees working memory.', source: 'Masicampo & Baumeister, 2011' },
       },
       {
-        pl: { title: 'Co 4 pomodoro zrób dłuższą przerwę', desc: 'Po 4 cyklach (ok. 2h) mózg potrzebuje dłuższej regeneracji. 15–30 minut przerwy od ekranu.' },
-        en: { title: 'Longer break every 4 pomodoros', desc: 'After 4 cycles (~2h) your brain needs longer recovery. 15–30 min away from screens.' },
+        pl: { title: 'Dłuższa przerwa co ~2 h', desc: 'Uwaga pracuje w cyklach ok. 90 minut. Po 4 pomodoro weź 15–30 min z dala od ekranu.', source: 'cykl BRAC (Kleitman)' },
+        en: { title: 'A longer break every ~2 hours', desc: 'Attention runs in ~90-minute cycles. After 4 pomodoros take 15–30 minutes away from screens.', source: 'BRAC (Kleitman)' },
       },
     ],
   },
 ]
 
 /** A random tip from the break and food categories — shown while a break runs. */
-export function randomBreakTip(lang: 'pl' | 'en'): { title: string; desc: string } {
+export function randomBreakTip(lang: 'pl' | 'en'): { title: string; desc: string; source: string } {
   const pool = [...TIP_CATEGORIES[1].tips, ...TIP_CATEGORIES[3].tips]
   const tip = pool[Math.floor(Math.random() * pool.length)]
   return tip[lang]

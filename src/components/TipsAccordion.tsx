@@ -8,7 +8,7 @@ interface TipsAccordionProps {
 }
 
 export function TipsAccordion({ categories }: TipsAccordionProps) {
-  const { lang } = useI18n()
+  const { lang, t } = useI18n()
   const [openId, setOpenId] = useState<string | null>(null)
 
   return (
@@ -53,6 +53,9 @@ export function TipsAccordion({ categories }: TipsAccordionProps) {
                       <li key={index} className="border-t border-line-subtle py-3 first:border-t-0">
                         <p className="text-[15px] font-medium text-ink">{content.title}</p>
                         <p className="mt-1 text-[14px] leading-relaxed text-ink-2">{content.desc}</p>
+                        <p className="mt-1.5 text-[12px] text-ink-3">
+                          {t('tip.source')}: {content.source}
+                        </p>
                       </li>
                     )
                   })}

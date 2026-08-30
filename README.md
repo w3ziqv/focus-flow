@@ -13,9 +13,9 @@ The interface is deliberately quiet: warm paper tones, a serif clock face, one a
 - Three-phase timer (focus / short break / long break) with rounds and an optional long break every N rounds
 - Countdown survives a page reload — it is anchored to wall-clock time, so a throttled background tab does not drift
 - One-task session field: write what you are working on, the app holds you to it until the session ends
-- Ambient sound generated with the Web Audio API (rain, broadband noise) plus your own audio files, stored locally
+- Ambient soundscapes from freely-licensed field recordings — rain, ocean waves, stream, campfire — plus synthesized brown noise, and your own audio files, all stored locally
 - Session statistics: today, this week, day streak, total focus minutes, and a 7-day bar chart
-- A tips library with 31 entries on learning, breaks, sleep, food, and productivity, in Polish and English
+- A tips library with 30 evidence-backed entries (each cites its research) on learning, breaks, sleep, food, and productivity, in Polish and English
 - Fullscreen focus mode, keyboard shortcuts (Space, R, F, Esc), light and dark theme
 - Installable PWA; works offline after the first visit
 - Polish and English interface, switchable at runtime
@@ -29,6 +29,13 @@ The interface is deliberately quiet: warm paper tones, a serif clock face, one a
 - Self-hosted variable fonts (Fraunces, Instrument Sans) — no external requests at runtime
 
 Timers are easy to get wrong: this one never counts by decrementing a variable each second. It stores a deadline and derives the remaining time from `Date.now()`, which is why it stays accurate when the tab sleeps.
+
+## Ambient sounds
+
+The bundled soundscapes are freely-licensed field recordings from Wikimedia
+Commons, level-normalized and edited into seamless loops — author and license
+credits are in [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md). Brown noise
+is synthesized live with the Web Audio API instead of being shipped as a file.
 
 ## Development
 

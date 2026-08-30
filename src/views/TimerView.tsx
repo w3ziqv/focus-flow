@@ -114,6 +114,9 @@ export function TimerView({
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
           <p className="mt-2 font-serif text-[1.125rem] font-[500] text-ink">{breakTip.title}</p>
           <p className="mt-1 text-[14px] leading-relaxed text-ink-2">{breakTip.desc}</p>
+          <p className="mt-2 text-[12px] text-ink-3">
+            {t('tip.source')}: {breakTip.source}
+          </p>
         </div>
       )}
 

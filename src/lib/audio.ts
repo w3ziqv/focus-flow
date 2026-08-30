@@ -1,14 +1,18 @@
 import type { AmbientSound, CustomSound } from '../types'
 
-/**
- * All audio in one place: the session chime and ambient soundscapes.
- * The Web Audio graph for rain/noise is ported from the original Focus Flow.
- */
+/** Bundled, freely-licensed field recordings (see public/sounds/SOUNDS.md). */
+const SAMPLES: Record<'rain' | 'waves' | 'stream' | 'campfire', string> = {
+  rain: '/sounds/rain.m4a',
+  waves: '/sounds/waves.m4a',
+  stream: '/sounds/stream.m4a',
+  campfire: '/sounds/campfire.m4a',
+}
+
 class AudioEngine {
   private ctx: AudioContext | null = null
   private ambientNodes: AudioScheduledSourceNode[] = []
   private ambientGain: GainNode | null = null
-  private customEl: HTMLAudioElement | null = null
+  private loopEl: HTMLAudioElement | null = null
 
   private ensureContext(): AudioContext | null {
     try {
@@ -62,90 +66,90 @@ class AudioEngine {
       const id = sound.slice(7)
       const record = customSounds.find((s) => s.id === id)
       if (!record) return
-      try {
-        const el = new Audio(record.dataUrl)
-        el.loop = true
-        void el.play().catch(() => {})
-        this.customEl = el
-      } catch {
-        // Corrupt data URL — stay silent.
-      }
+      this.playLooped(record.dataUrl)
       return
     }
 
+    if (sound in SAMPLES) {
+      this.playLooped(SAMPLES[sound as keyof typeof SAMPLES])
+      return
+    }
+
+    if (sound === 'noise') {
+      this.playBrownNoise()
+    }
+  }
+
+  /** Loop a URL (bundled sample or user data URL) through one audio element. */
+  private playLooped(src: string): void {    try {
+      const el = this.ensureLoopElement()
+      if (!el) return
+      if (!el.src.endsWith(src)) {
+        el.src = src
+      }
+      el.loop = true
+      el.volume = 0.7
+      void el.play().catch(() => {})
+    } catch {
+      // Unplayable source — stay silent.
+    }
+  }
+
+  private ensureLoopElement(): HTMLAudioElement | null {
+    if (!this.loopEl) {
+      this.loopEl = new Audio()
+      this.loopEl.preload = 'auto'
+    }
+    return this.loopEl
+  }
+
+  /** Stereo brown noise with a slow breathing swell — steady, low, unobtrusive. */
+  private playBrownNoise(): void {
     const ctx = this.ensureContext()
     if (!ctx) return
 
     const master = ctx.createGain()
-    master.gain.value = 1
+    master.gain.value = 0.045
     master.connect(ctx.destination)
     this.ambientGain = master
 
-    const noiseBuffer = (): AudioBuffer => {
-      const len = ctx.sampleRate * 2
+    const seconds = 6
+    const brownLayer = (): AudioBuffer => {
+      const len = Math.floor(ctx.sampleRate * seconds)
       const buffer = ctx.createBuffer(1, len, ctx.sampleRate)
       const data = buffer.getChannelData(0)
-      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+      let last = 0
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1
+        last = (last + 0.02 * white) / 1.02
+        data[i] = last * 3.5
+      }
       return buffer
     }
-    const loop = (buffer: AudioBuffer): AudioBufferSourceNode => {
+    const layer = (pan: number): AudioBufferSourceNode => {
       const src = ctx.createBufferSource()
-      src.buffer = buffer
+      src.buffer = brownLayer()
       src.loop = true
+      const panner = ctx.createStereoPanner()
+      panner.pan.value = pan
+      src.connect(panner)
+      panner.connect(master)
       src.start()
       this.ambientNodes.push(src)
       return src
     }
+    layer(-0.35)
+    layer(0.35)
 
-    if (sound === 'rain') {
-      // Low rumble + mid hiss + high patter, with a slow LFO breathing on the mid band.
-      const low = loop(noiseBuffer())
-      const lp = ctx.createBiquadFilter()
-      lp.type = 'lowpass'
-      lp.frequency.value = 600
-      const lg = ctx.createGain()
-      lg.gain.value = 0.08
-      low.connect(lp); lp.connect(lg); lg.connect(master)
-
-      const mid = loop(noiseBuffer())
-      const bp = ctx.createBiquadFilter()
-      bp.type = 'bandpass'
-      bp.frequency.value = 2200
-      bp.Q.value = 0.8
-      const mg = ctx.createGain()
-      mg.gain.value = 0.06
-      mid.connect(bp); bp.connect(mg); mg.connect(master)
-
-      const high = loop(noiseBuffer())
-      const hp = ctx.createBiquadFilter()
-      hp.type = 'highpass'
-      hp.frequency.value = 5000
-      const hg = ctx.createGain()
-      hg.gain.value = 0.03
-      high.connect(hp); hp.connect(hg); hg.connect(master)
-
-      const lfo = ctx.createOscillator()
-      lfo.type = 'sine'
-      lfo.frequency.value = 0.15
-      const lfoMid = ctx.createGain()
-      lfoMid.gain.value = 0.015
-      lfo.connect(lfoMid); lfoMid.connect(mg.gain)
-      const lfoHigh = ctx.createGain()
-      lfoHigh.gain.value = 0.01
-      lfo.connect(lfoHigh); lfoHigh.connect(hg.gain)
-      lfo.start()
-      this.ambientNodes.push(lfo)
-    }
-
-    if (sound === 'noise') {
-      const src = loop(noiseBuffer())
-      const lp = ctx.createBiquadFilter()
-      lp.type = 'lowpass'
-      lp.frequency.value = 6000
-      const g = ctx.createGain()
-      g.gain.value = 0.035
-      src.connect(lp); lp.connect(g); g.connect(master)
-    }
+    const lfo = ctx.createOscillator()
+    lfo.type = 'sine'
+    lfo.frequency.value = 0.08
+    const lfoGain = ctx.createGain()
+    lfoGain.gain.value = 0.012
+    lfo.connect(lfoGain)
+    lfoGain.connect(master.gain)
+    lfo.start()
+    this.ambientNodes.push(lfo)
   }
 
   stopAmbient(): void {
@@ -165,10 +169,10 @@ class AudioEngine {
       }
       this.ambientGain = null
     }
-    if (this.customEl) {
-      this.customEl.pause()
-      this.customEl.src = ''
-      this.customEl = null
+    if (this.loopEl) {
+      this.loopEl.pause()
+      this.loopEl.src = ''
+      this.loopEl = null
     }
   }
 

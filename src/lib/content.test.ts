@@ -20,15 +20,17 @@ describe('translations', () => {
 })
 
 describe('tips', () => {
-  it('has five categories with content in both languages', () => {
+  it('has five categories with content and sources in both languages', () => {
     expect(TIP_CATEGORIES).toHaveLength(5)
     for (const category of TIP_CATEGORIES) {
       expect(category.tips.length).toBeGreaterThan(0)
       for (const tip of category.tips) {
         expect(tip.pl.title.trim()).not.toBe('')
         expect(tip.pl.desc.trim()).not.toBe('')
+        expect(tip.pl.source.trim()).not.toBe('')
         expect(tip.en.title.trim()).not.toBe('')
         expect(tip.en.desc.trim()).not.toBe('')
+        expect(tip.en.source.trim()).not.toBe('')
       }
     }
   })
