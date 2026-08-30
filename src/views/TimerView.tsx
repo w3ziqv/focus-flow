@@ -26,6 +26,7 @@ interface TimerViewProps {
   onVolumeChange: (volume: number) => void
   onOpenSettings: () => void
   onEnterFocus: () => void
+  showStats: boolean
 }
 
 export function TimerView({
@@ -40,6 +41,7 @@ export function TimerView({
   onVolumeChange,
   onOpenSettings,
   onEnterFocus,
+  showStats,
 }: TimerViewProps) {
   const { t, lang } = useI18n()
   const breakTip = useMemo(
@@ -76,6 +78,7 @@ export function TimerView({
           running={engine.running}
           round={engine.round}
           rounds={engine.settings.rounds}
+          onToggle={engine.toggle}
         />
       </div>
 
@@ -128,17 +131,19 @@ export function TimerView({
         </div>
       )}
 
-      <div className="fade-up mt-14 max-w-[760px] sm:-mx-[100px]" style={{ animationDelay: '200ms' }}>
-        <div className="grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
-          <StatCard value={engine.stats.today} label={t('stat.today')} emphasized />
-          <StatCard value={engine.stats.week} label={t('stat.week')} />
-          <StatCard value={engine.stats.streak} label={t('stat.streak')} />
-          <StatCard value={engine.stats.minutes} label={t('stat.minutes')} />
+      {showStats && (
+        <div className="fade-up mt-14 max-w-[760px] sm:-mx-[100px]" style={{ animationDelay: '200ms' }}>
+          <div className="grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
+            <StatCard value={engine.stats.today} label={t('stat.today')} emphasized />
+            <StatCard value={engine.stats.week} label={t('stat.week')} />
+            <StatCard value={engine.stats.streak} label={t('stat.streak')} />
+            <StatCard value={engine.stats.minutes} label={t('stat.minutes')} />
+          </div>
+          <div className="mt-10">
+            <WeekChart days={chartDays} totalMinutes={sumMinutes(chartDays)} />
+          </div>
         </div>
-        <div className="mt-10">
-          <WeekChart days={chartDays} totalMinutes={sumMinutes(chartDays)} />
-        </div>
-      </div>
+      )}
     </div>
   )
 }

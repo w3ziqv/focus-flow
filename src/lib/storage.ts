@@ -1,4 +1,4 @@
-import type { CustomSound, Lang, SessionSnapshot, Settings, Stats, Theme } from '../types'
+import type { CustomSound, InterfacePrefs, Lang, SessionSnapshot, Settings, Stats, Theme } from '../types'
 
 export const MAX_SOUND_SIZE = 4 * 1024 * 1024
 
@@ -12,6 +12,7 @@ const KEYS = {
   theme: `${PREFIX}theme`,
   sounds: `${PREFIX}sounds`,
   volume: `${PREFIX}volume`,
+  interface: `${PREFIX}interface`,
   migrated: `${PREFIX}migrated`,
 } as const
 
@@ -193,6 +194,25 @@ export function loadVolume(): number {
 
 export function saveVolume(volume: number): void {
   write(KEYS.volume, volume)
+}
+
+export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showStats: true }
+
+function isInterface(value: unknown): InterfacePrefs | null {
+  if (typeof value !== 'object' || value === null) return null
+  const v = value as Record<string, unknown>
+  return {
+    reduceMotion: v.reduceMotion === true,
+    showStats: v.showStats !== false,
+  }
+}
+
+export function loadInterface(): InterfacePrefs {
+  return read<InterfacePrefs>(KEYS.interface, isInterface) ?? { ...DEFAULT_INTERFACE }
+}
+
+export function saveInterface(prefs: InterfacePrefs): boolean {
+  return write(KEYS.interface, prefs)
 }
 
 export function systemTheme(): Theme {

@@ -29,6 +29,11 @@ export interface CustomSound {
   dataUrl: string
 }
 
+export interface InterfacePrefs {
+  reduceMotion: boolean
+  showStats: boolean
+}
+
 export type AmbientSound =
   | 'none'
   | 'rain'

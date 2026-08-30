@@ -9,6 +9,7 @@ interface DialProps {
   running: boolean
   round: number
   rounds: number
+  onToggle: () => void
 }
 
 const RADIUS = 150
@@ -33,7 +34,7 @@ function ticks(): Array<{ x1: number; y1: number; x2: number; y2: number; major:
 
 const TICKS = ticks()
 
-export function Dial({ mode, remainingMs, totalMs, running, round, rounds }: DialProps) {
+export function Dial({ mode, remainingMs, totalMs, running, round, rounds, onToggle }: DialProps) {
   const { t } = useI18n()
   const secondsLeft = Math.ceil(remainingMs / 1000)
   const minutes = Math.floor(secondsLeft / 60)
@@ -54,12 +55,8 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds }: Dia
   const complete = remainingMs === 0
 
   return (
-    <div
-      role="img"
-      aria-label={t('timer.aria', { time, mode: modeLabel })}
-      className={'relative mx-auto aspect-square w-full max-w-[400px]' + (complete ? ' dial-complete' : '')}
-    >
-      <svg viewBox="0 0 360 360" className="absolute inset-0 h-full w-full -rotate-90">
+    <div className={'relative mx-auto aspect-square w-full max-w-[400px]' + (complete ? ' dial-complete' : '')}>
+      <svg aria-hidden="true" viewBox="0 0 360 360" className="absolute inset-0 h-full w-full -rotate-90">
         {TICKS.map((tick, i) => (
           <line
             key={i}
@@ -87,13 +84,19 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds }: Dia
           style={{ transition: 'stroke-dashoffset 1s linear, opacity 200ms var(--ease-standard)' }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+      <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center gap-1">
         <span className="text-overline text-ink-3">{modeLabel}</span>
-        <span aria-hidden="true" className="tnum font-serif text-[clamp(3.25rem,11vw,5rem)] leading-none font-[340] tracking-[-0.02em] text-ink">
+        <span className="tnum font-serif text-[clamp(3.25rem,11vw,5rem)] leading-none font-[340] tracking-[-0.02em] text-ink">
           {time}
         </span>
         <span className="text-caption text-ink-2">{t('timer.round', { n: Math.min(round + 1, rounds), total: rounds })}</span>
       </div>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={t('timer.aria', { time, mode: modeLabel }) + ' ' + t(running ? 'timer.pause' : 'timer.start')}
+        className="absolute inset-0 cursor-pointer rounded-full opacity-0 focus-visible:opacity-100 focus-visible:outline-2"
+      />
       <span aria-live="polite" className="sr-only">
         {announce.text}
       </span>

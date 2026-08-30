@@ -1,16 +1,19 @@
 import { useRef, useState } from 'react'
 import { Download, Upload } from 'lucide-react'
-import type { Theme } from '../types'
+import type { InterfacePrefs, Theme } from '../types'
 import { useI18n } from '../lib/i18n'
 import { detectPlatform } from '../lib/platform'
 import { exportData, importData } from '../lib/dataPort'
 import { Modal } from './Modal'
 import { SegmentedTabs } from './SegmentedTabs'
+import { Switch } from './Switch'
 
 interface AppSettingsModalProps {
   open: boolean
   theme: Theme
   onTheme: (theme: Theme) => void
+  interfacePrefs: InterfacePrefs
+  onInterfaceChange: (patch: Partial<InterfacePrefs>) => void
   onClose: () => void
 }
 
@@ -21,7 +24,7 @@ const platformLabels = {
   browser: 'platform.browser',
 } as const
 
-export function AppSettingsModal({ open, theme, onTheme, onClose }: AppSettingsModalProps) {
+export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInterfaceChange, onClose }: AppSettingsModalProps) {
   const { t, lang, setLang } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState(false)
@@ -108,6 +111,22 @@ export function AppSettingsModal({ open, theme, onTheme, onClose }: AppSettingsM
         />
       </div>
       {importError && <p className="mt-2 text-[13px] text-danger">{t('data.importInvalid')}</p>}
+
+      <div className="my-5 h-px bg-line" />
+
+      <p className="text-overline text-ink-3">{t('interface.title')}</p>
+      <div className="mt-4 flex flex-col gap-4">
+        <Switch
+          checked={interfacePrefs.reduceMotion}
+          onChange={(reduceMotion) => onInterfaceChange({ reduceMotion })}
+          label={t('interface.reduceMotion')}
+        />
+        <Switch
+          checked={interfacePrefs.showStats}
+          onChange={(showStats) => onInterfaceChange({ showStats })}
+          label={t('interface.showStats')}
+        />
+      </div>
 
       <p className="mt-6 text-[12px] text-ink-3">
         Focus Flow v{__APP_VERSION__} · {t(platformLabels[platform])}

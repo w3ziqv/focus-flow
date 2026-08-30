@@ -117,6 +117,9 @@ export function useTimerEngine(): TimerEngine {
     const currentMode = modeRef.current
     const currentSettings = settingsRef.current
     audio.chime()
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate([120, 70, 120])
+    }
 
     if (currentMode === 'focus') {
       const nextStats = recordFocusSession(statsRef.current, currentSettings.focus)

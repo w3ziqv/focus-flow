@@ -3,14 +3,17 @@ import type { AmbientSound, CustomSound, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
+import { useWakeLock } from './lib/useWakeLock'
 import { audio } from './lib/audio'
 import { accentStyle } from './lib/accent'
 import {
   loadCustomSounds,
+  loadInterface,
   loadTheme,
   loadVolume,
   MAX_SOUND_SIZE,
   saveCustomSounds,
+  saveInterface,
   saveTheme,
   saveVolume,
   systemTheme,
@@ -34,6 +37,7 @@ function Shell() {
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [appSettingsOpen, setAppSettingsOpen] = useState(false)
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
+  const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
   const [ambient, setAmbient] = useState<AmbientSound>('none')
@@ -54,6 +58,12 @@ function Shell() {
   useEffect(() => {
     audio.setVolume(volume)
   }, [volume])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('reduce-motion', interfacePrefs.reduceMotion)
+  }, [interfacePrefs.reduceMotion])
+
+  useWakeLock(engine.running)
 
   useEffect(() => {
     document.body.style.overflow = focusOpen ? 'hidden' : ''
@@ -167,6 +177,7 @@ function Shell() {
       running={engine.running}
       round={engine.round}
       rounds={engine.settings.rounds}
+      onToggle={engine.toggle}
     />
   )
 
@@ -188,6 +199,7 @@ function Shell() {
             onVolumeChange={changeVolume}
             onOpenSettings={() => setTimerSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
+            showStats={interfacePrefs.showStats}
           />
         ) : (
           <Suspense fallback={<div className="min-h-[60vh]" />}>
@@ -204,6 +216,14 @@ function Shell() {
         open={appSettingsOpen}
         theme={theme}
         onTheme={setThemeAndPersist}
+        interfacePrefs={interfacePrefs}
+        onInterfaceChange={(patch) => {
+          setInterfacePrefs((prev) => {
+            const next = { ...prev, ...patch }
+            saveInterface(next)
+            return next
+          })
+        }}
         onClose={() => setAppSettingsOpen(false)}
       />
 

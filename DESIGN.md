@@ -103,10 +103,10 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 ## 5. Components
 
 ### Dial (signature primitive)
-- **Structure**: square SVG; 60 hairline ticks (5-minute ticks slightly longer); track circle stroke var(--border-default) 2px; progress arc stroke accent 3px, rounded linecaps, rotated -90°; center stack: mode overline, Fraunces digits, round counter caption.
+- **Structure**: square SVG; 60 hairline ticks (5-minute ticks slightly longer); track circle stroke var(--border-default) 2px; progress arc stroke accent 3px, rounded linecaps, rotated -90°; center stack: mode overline, Fraunces digits, round counter caption. The whole dial is tappable — a transparent overlay button toggles start/pause (mobile-first affordance), keyboard focusable with a visible ring.
 - **Variants**: focus (terracotta arc), short/long break (sage arc), paused (arc at 40% opacity), running (arc full accent).
 - **States**: idle, running, paused, complete (arc full + one gentle scale-pulse of the center stack, 500ms emphasis).
-- **Accessibility**: digits `aria-hidden`; sibling visually-hidden `aria-live="polite"` line announces minute marks and mode changes only; the SVG is `role="img"` with a label describing remaining time.
+- **Accessibility**: digits `aria-hidden`; sibling visually-hidden `aria-live="polite"` line announces minute marks and mode changes only; overlay button carries a full action+state label.
 - **Motion**: arc updates via SVG stroke-dashoffset transition 1s linear (matches tick cadence); center never reflows.
 - **Layout**: centered stack; square, `min(70vw, 340px)` mobile / 360–400px desktop.
 
@@ -124,7 +124,7 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 - **Motion**: press scale 120ms micro; color 150ms.
 
 ### TaskField
-- **Structure**: borderless input, bottom hairline (1px --border-default) that turns accent on focus; placeholder = tertiary; a check-circle + completed-task line replaces it while a session runs.
+- **Structure**: time-of-day greeting as a quiet overline above; borderless input, bottom hairline (1px --border-default) that turns accent on focus; placeholder = the plain question ("Nad czym pracujesz?"); a check-circle + completed-task line replaces it while a session runs.
 - **States**: empty, filled, focused (hairline→accent 150ms), locked (session running: read-only completed line), completed.
 - **Accessibility**: real `<label>` visually hidden; `aria-describedby` hint.
 
@@ -143,7 +143,7 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 - **Accessibility**: `role="img"` + aria-label summary; `<title>` per bar with minutes.
 
 ### Modal (settings)
-- **Structure**: --surface-elevated, radius 20px, ring-halo + whisper shadow; backdrop = page color at 60% + 8px blur; numeric fields are steppers — a quiet round −/+ button flanking a center-aligned number input with native spinners hidden, clamped to their bounds (buttons disable at min/max); a real switch for auto-start.
+- **Structure**: shared `Modal` primitive (surface-elevated, radius 20px, ring-halo + whisper shadow; backdrop = page color at 60% + 8px blur; focus trap, Esc and backdrop-click close). Two instances: **App settings** (theme, language, interface switches: reduce-motion and show-statistics, data export/import, version + runtime footer) and **Timer settings** (numeric steppers with −/+ buttons and hidden native spinners, clamped to bounds, and a real switch for auto-start).
 - **States**: closed/open (scale 0.97→1 + fade 200ms standard); Esc and backdrop-click close; focus trapped; return focus to opener.
 - **Accessibility**: `role="dialog"` `aria-modal`, labelled by title; labels on every field.
 

@@ -11,7 +11,7 @@ export function NavPill({ view, onView, onOpenSettings }: NavPillProps) {
   const { t } = useI18n()
 
   const linkClass = (active: boolean) =>
-    `rounded-full px-4 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] ${
+    `rounded-full px-4 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] active:bg-sunken ${
       active ? 'bg-sunken text-ink' : 'text-ink-2 hover:text-ink'
     }`
 

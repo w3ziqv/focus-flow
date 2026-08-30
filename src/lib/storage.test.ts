@@ -52,7 +52,8 @@ describe('legacy migration', () => {
   })
 })
 
-describe('loadStats', () => {  it('rolls today and week counters on a new day', () => {
+describe('loadStats', () => {
+  it('rolls today and week counters on a new day', () => {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const stale: Stats = {
@@ -61,7 +62,7 @@ describe('loadStats', () => {  it('rolls today and week counters on a new day', 
       streak: 4,
       minutes: 900,
       date: yesterday.toDateString(),
-      weekStart: weekStartOf(yesterday),
+      weekStart: weekStartOf(),
       lastDate: yesterday.toDateString(),
       history: {},
     }
