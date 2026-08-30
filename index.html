@@ -1,179 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Focus Flow — minimalistyczny minutnik Pomodoro z trybem focus, statystykami i poradami do efektywnej nauki.">
-  <meta name="theme-color" content="#ffffff">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Focus Flow — Pomodoro & Wskazówki">
-  <meta property="og:description" content="Minimalistyczny minutnik Pomodoro z trybem focus, statystykami i poradami.">
-  <meta property="og:image" content="og-image.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <title>Focus Flow — Pomodoro</title>
-</head>
-<body>
-<a class="skip-link" href="#view-timer" data-i18n="skip">Przejdź do timera</a>
-
-<button class="hamburger" id="hamburger" aria-label="Menu">
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-    <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
-  </svg>
-</button>
-
-<div class="sidebar-overlay" id="sidebarOverlay">
-  <aside class="sidebar" role="navigation" aria-label="Nawigacja">
-    <button class="sidebar-close" id="sidebarClose" aria-label="Zamknij menu">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-        <line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/>
-      </svg>
-    </button>
-    <nav class="sidebar-nav">
-      <a class="nav-link active" data-view="timer" data-i18n="nav-timer" tabindex="0">Timer</a>
-      <a class="nav-link" data-view="tips" data-i18n="nav-tips" tabindex="0">Wskazówki</a>
-      <a href="https://github.com/w3ziqv" target="_blank" rel="noopener noreferrer" data-i18n="nav-github" data-i18n-aria="nav-github-aria">GitHub</a>
-    </nav>
-    <div class="sidebar-section-label" data-i18n="sidebar-settings">Ustawienia</div>
-    <div class="sidebar-controls">
-      <div class="sidebar-row">
-        <span data-i18n="sidebar-theme">Motyw</span>
-        <button class="theme-btn" id="themeBtn" data-i18n="theme-light" aria-label="Przełącz motyw">Jasny</button>
-      </div>
-      <div class="sidebar-row">
-        <span data-i18n="sidebar-lang">Język</span>
-        <button class="lang-btn" id="sidebarLang" data-i18n="lang-btn">EN</button>
-      </div>
-    </div>
-    <div class="sidebar-footer"><span class="label">Focus Flow</span></div>
-  </aside>
-</div>
-
-<main>
-<section id="view-timer" class="view view-timer active">
-  <div class="container">
-    <span class="label" data-i18n="app-name">Focus Flow</span>
-
-    <div class="task-input-wrap" id="taskWrap">
-      <input class="task-input" id="taskInput" type="text" data-i18n-placeholder="task-placeholder" placeholder="Co robisz w tej sesji?" autocomplete="off">
-      <div class="task-done" id="taskDone" style="display:none;"><span class="check">✓</span> <span id="taskDoneText"></span></div>
-    </div>
-
-    <div class="mode-tabs" role="tablist">
-      <button class="mode-tab active" data-mode="focus" role="tab" aria-selected="true" data-i18n="mode-focus">Focus</button>
-      <button class="mode-tab" data-mode="short" role="tab" aria-selected="false" data-i18n="mode-short">Short Break</button>
-      <button class="mode-tab" data-mode="long" role="tab" aria-selected="false" data-i18n="mode-long">Long Break</button>
-    </div>
-
-    <div class="timer-display" id="timerDisplay">25:00</div>
-    <div class="timer-round" id="timerRound" data-i18n="round-count">Runda 0 / 4</div>
-
-    <div class="timer-controls">
-      <button class="timer-btn primary" id="timerStart" data-i18n="timer-start">Start</button>
-      <button class="timer-btn" id="timerReset" data-i18n="timer-reset">Reset</button>
-      <button class="timer-btn" id="timerSettings" data-i18n="timer-settings">Ustawienia</button>
-    </div>
-
-    <div class="sound-controls">
-      <button class="sound-btn active" data-sound="none" data-i18n="sound-none">Wyłącz</button>
-      <button class="sound-btn" data-sound="rain" data-i18n="sound-rain">Deszcz</button>
-      <button class="sound-btn" data-sound="noise" data-i18n="sound-noise">Szum</button>
-      <div class="sound-customs" id="customSounds"></div>
-      <button class="sound-btn" id="soundUpload" type="button" data-i18n="sound-upload">Dodaj dźwięk</button>
-      <input type="file" id="soundFile" accept="audio/*" data-i18n-aria="sound-choose" hidden>
-    </div>
-    <div class="sound-msg" id="soundMsg" role="status"></div>
-
-    <div class="timer-tip" id="timerTip">
-      <div class="timer-tip-inner">
-        <span class="timer-tip-icon" id="timerTipIcon"></span>
-        <div>
-          <div class="timer-tip-text" id="timerTipText"></div>
-          <div class="timer-tip-source" id="timerTipSource"></div>
-        </div>
-      </div>
-    </div>
-
-    <button class="focus-btn" id="focusBtn"><span data-i18n="focus-enter">Wejdź w tryb Focus</span> <span>→</span></button>
-
-    <div class="stats-bar">
-      <div class="stat-item"><div class="stat-value" id="statToday">0</div><div class="stat-label" data-i18n="stat-today">dzisiaj</div></div>
-      <div class="stat-item"><div class="stat-value" id="statWeek">0</div><div class="stat-label" data-i18n="stat-week">w tym tygodniu</div></div>
-      <div class="stat-item"><div class="stat-value" id="statStreak">0</div><div class="stat-label" data-i18n="stat-streak">dni z rzędu</div></div>
-      <div class="stat-item"><div class="stat-value" id="statMinutes">0</div><div class="stat-label" data-i18n="stat-minutes">minut focusu</div></div>
-    </div>
-
-    <div class="chart-wrap" id="chartWrap">
-      <div class="stat-label" data-i18n="chart-label">Minuty focusu</div>
-      <div class="chart" id="chart"></div>
-      <div class="chart-labels" id="chartLabels"></div>
-    </div>
-  </div>
-</section>
-
-<section id="view-tips" class="view view-tips">
-  <div class="container">
-    <span class="label" data-i18n="tips-label">Wskazówki</span>
-    <p class="tips-desc" data-i18n="tips-desc">Praktyczne porady podzielone na kategorie.</p>
-    <div id="tipsContainer"></div>
-  </div>
-</section>
-</main>
-
-<footer class="site-footer"><div class="container"><span class="label">© 2026 Focus Flow</span></div></footer>
-
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal">
-    <button class="modal-close" id="settingsClose" aria-label="Zamknij">✕</button>
-    <h2 data-i18n="settings-title">Ustawienia timera</h2>
-    <div class="modal-field">
-      <label data-i18n="settings-focus">Czas Focus (min)</label>
-      <input type="number" id="settingsFocus" min="1" max="120" value="25">
-    </div>
-    <div class="modal-field">
-      <label data-i18n="settings-short">Short Break (min)</label>
-      <input type="number" id="settingsShort" min="1" max="60" value="5">
-    </div>
-    <div class="modal-field">
-      <label data-i18n="settings-long">Long Break (min)</label>
-      <input type="number" id="settingsLong" min="1" max="120" value="15">
-    </div>
-    <div class="modal-field">
-      <label data-i18n="settings-rounds">Rund do Long Break</label>
-      <input type="number" id="settingsRounds" min="1" max="20" value="4">
-    </div>
-    <div class="modal-field">
-      <label class="checkbox-label"><input type="checkbox" id="settingsAutoStart"> <span data-i18n="settings-autostart">Auto-start kolejnej rundy</span></label>
-    </div>
-    <button class="modal-save" id="settingsSave" data-i18n="settings-save">Zapisz</button>
-  </div>
-</div>
-
-<div class="focus-overlay" id="focusOverlay">
-  <button class="focus-exit" id="focusExit" data-i18n="focus-exit">Wyjście</button>
-  <div class="timer-display" id="focusTimerDisplay">25:00</div>
-  <div class="timer-round" id="focusTimerRound" data-i18n="round-count">Runda 0 / 4</div>
-  <div class="timer-controls">
-    <button class="timer-btn primary" id="focusStart" data-i18n="timer-start">Start</button>
-    <button class="timer-btn" id="focusReset" data-i18n="timer-reset">Reset</button>
-  </div>
-  <div class="timer-tip" id="focusTip">
-    <div class="timer-tip-inner">
-      <span class="timer-tip-icon" id="focusTipIcon"></span>
-      <div>
-        <div class="timer-tip-text" id="focusTipText"></div>
-        <div class="timer-tip-source" id="focusTipSource"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script type="module" src="src/main.js"></script>
-<script type="module" src="src/sw-register.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Focus Flow is a quiet Pomodoro focus timer with ambient sound, session stats, and a warm editorial interface. Runs offline, in Polish or English." />
+    <meta name="theme-color" content="#f5f4ed" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Focus Flow — a quiet Pomodoro timer" />
+    <meta property="og:description" content="Focus sessions, ambient sound, and honest stats in a warm, editorial interface." />
+    <meta property="og:image" content="/focus-flow.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Focus Flow — Pomodoro focus timer</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

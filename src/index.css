@@ -1,0 +1,235 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/instrument-sans';
+
+/*
+ * Focus Flow design tokens — single source of truth is DESIGN.md.
+ * Section numbers below reference DESIGN.md.
+ */
+
+@theme {
+  /* Section 2 — Color (light values; dark overrides live in .dark below) */
+  --color-page: #f5f4ed;
+  --color-card: #faf9f5;
+  --color-elevated: #ffffff;
+  --color-sunken: #edebe2;
+  --color-ink: #141413;
+  --color-ink-2: #5e5d59;
+  --color-ink-3: #87867f;
+  --color-line: #e8e6dc;
+  --color-line-subtle: #f0eee6;
+  --color-accent: #c96442;
+  --color-accent-strong: #a84e2f;
+  --color-accent-soft: rgba(201, 100, 66, 0.12);
+  --color-break: #6e7f5c;
+  --color-break-strong: #57664a;
+  --color-break-soft: rgba(110, 127, 92, 0.14);
+  --color-success: #5a7248;
+  --color-danger: #b53333;
+  --color-ring: #3898ec;
+  --color-on-accent: #faf9f5;
+
+  /* Section 3 — Typography */
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+
+  /* Section 4 — Spacing uses Tailwind's default 4px scale; no overrides */
+
+  /* Section 6 — Motion */
+  --ease-micro: cubic-bezier(0.2, 0, 0, 1);
+  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Section 7 — Depth */
+  --shadow-halo: 0 0 0 1px rgba(232, 230, 220, 0.6), 0 1px 2px rgba(20, 20, 19, 0.04);
+  --shadow-whisper: 0 4px 24px rgba(20, 20, 19, 0.06);
+}
+
+/* Dark theme overrides — same token names, warm near-black values (DESIGN.md §2) */
+.dark {
+  --color-page: #141413;
+  --color-card: #1e1e1c;
+  --color-elevated: #262624;
+  --color-sunken: #1a1a18;
+  --color-ink: #faf9f5;
+  --color-ink-2: #b0aea5;
+  --color-ink-3: #87867f;
+  --color-line: #30302e;
+  --color-line-subtle: #262624;
+  --color-accent: #d97757;
+  --color-accent-strong: #e08a6d;
+  --color-accent-soft: rgba(217, 119, 87, 0.16);
+  --color-break: #8fa07a;
+  --color-break-strong: #9fb28a;
+  --color-break-soft: rgba(143, 160, 122, 0.18);
+  --color-success: #7e9668;
+  --color-danger: #c95050;
+  --color-ring: #58a8f0;
+  --shadow-halo: 0 0 0 1px rgba(48, 48, 46, 0.6), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Section 3 — base typography */
+html {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-page);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fraunces optical sizing: let the variable axis work */
+.font-serif {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+}
+
+/* Tabular digits for the Dial and stats (DESIGN.md §3) */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section 8 — keyboard focus: visible everywhere, warm-cool ring is the only cool color */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Section 7 — film grain (light theme signature) */
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark.grain::before {
+  opacity: 0.02;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+/* Utilities + keyframes: traced to DESIGN.md §3 (type), §5–§7 (motion, depth) */
+
+@utility text-overline {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+@utility text-caption {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fade-up 400ms var(--ease-emphasis) backwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-backdrop {
+  animation: fade-in 200ms var(--ease-standard) backwards;
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-in {
+  animation: modal-pop 200ms var(--ease-standard) backwards;
+}
+
+@keyframes chart-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.chart-bar {
+  animation: chart-grow 500ms var(--ease-emphasis) backwards;
+  transform-origin: bottom;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.session-dot {
+  animation: dot-pulse 2s var(--ease-standard) infinite;
+}
+
+@keyframes dial-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.dial-complete {
+  animation: dial-pulse 500ms var(--ease-emphasis);
+}
