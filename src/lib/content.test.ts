@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { dict as translations } from './translations'
-import { TIP_CATEGORIES } from './tips'
+import { ARTICLES } from './articles'
+import { TOPICS } from './topics'
 
 describe('translations', () => {
   it('has the same key set in Polish and English', () => {
@@ -19,18 +20,29 @@ describe('translations', () => {
   })
 })
 
-describe('tips', () => {
-  it('has five categories with content and sources in both languages', () => {
-    expect(TIP_CATEGORIES).toHaveLength(5)
-    for (const category of TIP_CATEGORIES) {
-      expect(category.tips.length).toBeGreaterThan(0)
-      for (const tip of category.tips) {
-        expect(tip.pl.title.trim()).not.toBe('')
-        expect(tip.pl.desc.trim()).not.toBe('')
-        expect(tip.pl.source.trim()).not.toBe('')
-        expect(tip.en.title.trim()).not.toBe('')
-        expect(tip.en.desc.trim()).not.toBe('')
-        expect(tip.en.source.trim()).not.toBe('')
+describe('topics and articles', () => {
+  it('has seven topics with descriptions in both languages', () => {
+    expect(TOPICS).toHaveLength(7)
+    for (const topic of TOPICS) {
+      expect(topic.descPl.trim()).not.toBe('')
+      expect(topic.descEn.trim()).not.toBe('')
+    }
+  })
+
+  it('has at least one methodical article per topic in both languages', () => {
+    for (const topic of TOPICS) {
+      const articles = Object.values(ARTICLES).filter((a) => a.topicId === topic.id)
+      expect(articles.length, `topic ${topic.id}`).toBeGreaterThanOrEqual(1)
+      for (const article of articles) {
+        expect(article.sections.length).toBeGreaterThanOrEqual(3)
+        for (const s of article.sections) {
+          expect(s.hPl.trim()).not.toBe('')
+          expect(s.hEn.trim()).not.toBe('')
+          expect(s.pPl.trim()).not.toBe('')
+          expect(s.pEn.trim()).not.toBe('')
+        }
+        expect(article.sourcesPl.length).toBeGreaterThanOrEqual(2)
+        expect(article.sourcesEn.length).toBeGreaterThanOrEqual(2)
       }
     }
   })

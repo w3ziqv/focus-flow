@@ -15,7 +15,7 @@ interface SoundChipRowProps {
 }
 
 const chipBase =
-  'inline-flex min-h-11 items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:bg-sunken'
+  'inline-flex min-h-11 shrink-0 snap-start items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:bg-sunken'
 
 export function SoundChipRow({ current, sounds, message, volume, onChange, onAddFile, onRemove, onVolumeChange }: SoundChipRowProps) {
   const { t } = useI18n()
@@ -32,7 +32,7 @@ export function SoundChipRow({ current, sounds, message, volume, onChange, onAdd
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="flex max-w-full flex-wrap items-center justify-center gap-2" role="group" aria-label={t('sound.group')}>
+      <div className="no-scrollbar flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-x-visible" role="group" aria-label={t('sound.group')}>
         {builtIns.map((item) => {
           const active = current === item.id
           return (

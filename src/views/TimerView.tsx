@@ -1,9 +1,4 @@
-import { useMemo } from 'react'
-import { Maximize2, Pause, Play, RotateCcw, Settings2 } from 'lucide-react'
-import type { AmbientSound, CustomSound, Mode } from '../types'
-import type { TimerEngine } from '../lib/timer'
-import { last7Days, sumMinutes } from '../lib/stats'
-import { randomBreakTip } from '../lib/tips'
+import { randomBreakTip } from '../lib/breakTips'
 import { taskGreeting } from '../lib/placeholders'
 import { useI18n } from '../lib/i18n'
 import { Dial } from '../components/Dial'
@@ -11,8 +6,10 @@ import { SegmentedTabs } from '../components/SegmentedTabs'
 import { TaskField } from '../components/TaskField'
 import { PillButton } from '../components/PillButton'
 import { SoundChipRow } from '../components/SoundChipRow'
-import { StatCard } from '../components/StatCard'
-import { WeekChart } from '../components/WeekChart'
+import type { AmbientSound, CustomSound, Mode } from '../types'
+import type { TimerEngine } from '../lib/timer'
+import { useMemo } from 'react'
+import { Maximize2, Pause, Play, RotateCcw, Settings2 } from 'lucide-react'
 
 interface TimerViewProps {
   engine: TimerEngine
@@ -26,7 +23,7 @@ interface TimerViewProps {
   onVolumeChange: (volume: number) => void
   onOpenSettings: () => void
   onEnterFocus: () => void
-  showStats: boolean
+  showGreeting: boolean
 }
 
 export function TimerView({
@@ -41,14 +38,11 @@ export function TimerView({
   onVolumeChange,
   onOpenSettings,
   onEnterFocus,
-  showStats,
+  showGreeting,
 }: TimerViewProps) {
   const { t, lang } = useI18n()
-  const breakTip = useMemo(
-    () => (engine.mode === 'focus' ? null : randomBreakTip(lang)),
-    [engine.mode, lang],
-  )
-  const greeting = useMemo(() => taskGreeting(lang), [lang])
+  const breakTip = useMemo(() => (engine.mode === 'focus' ? null : randomBreakTip()), [engine.mode])
+  const greeting = useMemo(() => (showGreeting ? taskGreeting(lang) : null), [lang, showGreeting])
 
   const tabs: Array<{ id: Mode; label: string }> = [
     { id: 'focus', label: t('mode.focus') },
@@ -57,13 +51,16 @@ export function TimerView({
   ]
 
   const taskPhase = engine.running ? 'running' : engine.taskDone ? 'done' : 'draft'
-  const chartDays = last7Days(engine.stats, lang)
   const StartIcon = engine.running ? Pause : Play
 
   return (
-    <div className="mx-auto w-full max-w-[560px] px-4 pt-24 pb-16 max-md:pt-20">
+    <div className="mx-auto w-full max-w-[560px] px-4 pt-20 pb-16 max-md:pt-28">
+      <p aria-hidden="true" className="mb-8 text-center text-overline text-ink-3 max-sm:block sm:hidden">
+        FOCUS FLOW
+      </p>
+
       <div className="fade-up" style={{ animationDelay: '0ms' }}>
-        <TaskField phase={taskPhase} value={engine.task} greeting={greeting} onChange={engine.setTask} />
+        <TaskField phase={taskPhase} value={engine.task} greeting={greeting ?? ''} onChange={engine.setTask} />
       </div>
 
       <div className="fade-up mt-8" style={{ animationDelay: '40ms' }}>
@@ -91,7 +88,7 @@ export function TimerView({
           <RotateCcw size={15} aria-hidden="true" />
           {t('timer.reset')}
         </PillButton>
-        <PillButton variant="icon" onClick={onOpenSettings} aria-label={t('timer.settings')} title={t('timer.settings')}>
+        <PillButton variant="icon" onClick={onOpenSettings} aria-label={t('settings.timer')} title={t('settings.timer')}>
           <Settings2 size={18} aria-hidden="true" />
         </PillButton>
       </div>
@@ -123,25 +120,12 @@ export function TimerView({
       {breakTip !== null && (
         <div className="fade-up mt-10 rounded-2xl border border-line bg-card p-5">
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
-          <p className="mt-2 font-serif text-[1.125rem] font-[500] text-ink">{breakTip.title}</p>
-          <p className="mt-1 text-[14px] leading-relaxed text-ink-2">{breakTip.desc}</p>
-          <p className="mt-2 text-[12px] text-ink-3">
-            {t('tip.source')}: {breakTip.source}
+          <p className="mt-2 font-serif text-[1.125rem] font-[500] text-ink">
+            {lang === 'pl' ? breakTip.titlePl : breakTip.titleEn}
           </p>
-        </div>
-      )}
-
-      {showStats && (
-        <div className="fade-up mt-14 max-w-[760px] sm:-mx-[100px]" style={{ animationDelay: '200ms' }}>
-          <div className="grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
-            <StatCard value={engine.stats.today} label={t('stat.today')} emphasized />
-            <StatCard value={engine.stats.week} label={t('stat.week')} />
-            <StatCard value={engine.stats.streak} label={t('stat.streak')} />
-            <StatCard value={engine.stats.minutes} label={t('stat.minutes')} />
-          </div>
-          <div className="mt-10">
-            <WeekChart days={chartDays} totalMinutes={sumMinutes(chartDays)} />
-          </div>
+          <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
+            {lang === 'pl' ? breakTip.descPl : breakTip.descEn}
+          </p>
         </div>
       )}
     </div>

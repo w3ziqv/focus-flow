@@ -278,6 +278,14 @@ a,
   height: 28px;
 }
 
+/* Chip row: horizontal scroll on phones without a visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Settings steppers: hide native number-input spinners, steppers are custom */
 .no-spin::-webkit-outer-spin-button,
 .no-spin::-webkit-inner-spin-button {

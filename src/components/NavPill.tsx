@@ -2,8 +2,8 @@ import { Settings2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
 interface NavPillProps {
-  view: 'timer' | 'tips'
-  onView: (view: 'timer' | 'tips') => void
+  view: 'timer' | 'stats' | 'tips'
+  onView: (view: 'timer' | 'stats' | 'tips') => void
   onOpenSettings: () => void
 }
 
@@ -27,6 +27,9 @@ export function NavPill({ view, onView, onOpenSettings }: NavPillProps) {
         </span>
         <button type="button" aria-current={view === 'timer' ? 'page' : undefined} onClick={() => onView('timer')} className={linkClass(view === 'timer')}>
           {t('nav.timer')}
+        </button>
+        <button type="button" aria-current={view === 'stats' ? 'page' : undefined} onClick={() => onView('stats')} className={linkClass(view === 'stats')}>
+          {t('stats.view')}
         </button>
         <button type="button" aria-current={view === 'tips' ? 'page' : undefined} onClick={() => onView('tips')} className={linkClass(view === 'tips')}>
           {t('nav.tips')}

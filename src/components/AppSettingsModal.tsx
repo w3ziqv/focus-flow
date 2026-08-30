@@ -122,9 +122,9 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
           label={t('interface.reduceMotion')}
         />
         <Switch
-          checked={interfacePrefs.showStats}
-          onChange={(showStats) => onInterfaceChange({ showStats })}
-          label={t('interface.showStats')}
+          checked={interfacePrefs.showGreeting}
+          onChange={(showGreeting) => onInterfaceChange({ showGreeting })}
+          label={t('interface.showGreeting')}
         />
       </div>
 

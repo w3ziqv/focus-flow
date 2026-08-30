@@ -196,14 +196,14 @@ export function saveVolume(volume: number): void {
   write(KEYS.volume, volume)
 }
 
-export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showStats: true }
+export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showGreeting: true }
 
 function isInterface(value: unknown): InterfacePrefs | null {
   if (typeof value !== 'object' || value === null) return null
   const v = value as Record<string, unknown>
   return {
     reduceMotion: v.reduceMotion === true,
-    showStats: v.showStats !== false,
+    showGreeting: v.showGreeting !== false,
   }
 }
 

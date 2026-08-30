@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Mode, Settings, Stats } from '../types'
 import { loadSession, loadSettings, loadStats, saveSession, saveSettings } from './storage'
 import { recordFocusSession } from './stats'
+import { addSession } from './sessions'
 import { audio } from './audio'
 
 export interface TimerEvent {
@@ -125,6 +126,12 @@ export function useTimerEngine(): TimerEngine {
       const nextStats = recordFocusSession(statsRef.current, currentSettings.focus)
       setStats(nextStats)
       statsRef.current = nextStats
+      addSession({
+        id: `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
+        date: new Date().toISOString(),
+        minutes: currentSettings.focus,
+        task: taskRef.current.trim() !== '' ? taskRef.current.trim() : null,
+      })
       if (taskRef.current.trim() !== '') {
         setTaskDone(true)
         taskDoneRef.current = true

@@ -23,15 +23,25 @@ export interface Stats {
   history: Record<string, number>
 }
 
+export interface InterfacePrefs {
+  reduceMotion: boolean
+  showGreeting: boolean
+}
+
 export interface CustomSound {
   id: string
   name: string
   dataUrl: string
 }
 
-export interface InterfacePrefs {
-  reduceMotion: boolean
-  showStats: boolean
+export type TopicId = 'learning' | 'break' | 'sleep' | 'food' | 'productivity' | 'wellbeing' | 'mindfulness'
+
+export interface SessionLogEntry {
+  id: string
+  /** ISO timestamp of completion */
+  date: string
+  minutes: number
+  task: string | null
 }
 
 export type AmbientSound =

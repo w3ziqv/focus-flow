@@ -18,6 +18,7 @@ import {
   saveVolume,
   systemTheme,
 } from './lib/storage'
+import { last7Days, sumMinutes } from './lib/stats'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
@@ -26,18 +27,27 @@ import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
 import { TimerView } from './views/TimerView'
 
-const TipsView = lazy(() => import('./views/TipsView'))
+const TipsView = lazy(() => import('./views/TopicsIndex'))
+const TopicViewLazy = lazy(() => import('./views/TopicView'))
+const ArticleViewLazy = lazy(() => import('./views/ArticleView'))
+const StatsView = lazy(() => import('./views/StatsView'))
 
-type View = 'timer' | 'tips'
+type View = 'timer' | 'stats' | 'tips'
+
+interface TipsRoute {
+  topicId: string
+  articleId?: string
+}
 
 function Shell() {
   const engine = useTimerEngine()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [view, setView] = useState<View>('timer')
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [appSettingsOpen, setAppSettingsOpen] = useState(false)
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
+  const [tipsStack, setTipsStack] = useState<TipsRoute[]>([])
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
   const [ambient, setAmbient] = useState<AmbientSound>('none')
@@ -92,6 +102,7 @@ function Shell() {
 
   const changeView = useCallback((next: View) => {
     setView(next)
+    setTipsStack([])
   }, [])
 
   const addSoundFile = useCallback(
@@ -164,6 +175,7 @@ function Shell() {
     focusMode: () => setFocusOpen(true),
     escape: () => {
       if (focusOpen) setFocusOpen(false)
+      else if (tipsStack.length > 0) setTipsStack((s) => s.slice(0, -1))
       else if (timerSettingsOpen) setTimerSettingsOpen(false)
       else if (appSettingsOpen) setAppSettingsOpen(false)
     },
@@ -199,11 +211,37 @@ function Shell() {
             onVolumeChange={changeVolume}
             onOpenSettings={() => setTimerSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
-            showStats={interfacePrefs.showStats}
+            showGreeting={interfacePrefs.showGreeting}
           />
+        ) : view === 'stats' ? (
+          <Suspense fallback={<div className="min-h-[60vh]" />}>
+            <StatsView
+              key={engine.lastEvent?.at ?? 'stats'}
+              stats={engine.stats}
+              lang={lang}
+              chartDays={last7Days(engine.stats, lang)}
+              totalMinutes={sumMinutes(last7Days(engine.stats, lang))}
+            />
+          </Suspense>
+        ) : tipsStack.length === 0 ? (
+          <Suspense fallback={<div className="min-h-[60vh]" />}>
+            <TipsView onOpenTopic={(topicId) => setTipsStack([{ topicId }])} />
+          </Suspense>
+        ) : tipsStack.length === 1 ? (
+          <Suspense fallback={<div className="min-h-[60vh]" />}>
+            <TopicViewLazy
+              topicId={tipsStack[0].topicId}
+              onBack={() => setTipsStack([])}
+              onOpenArticle={(articleId) => setTipsStack((s) => [...s, { topicId: s[0].topicId, articleId }])}
+            />
+          </Suspense>
         ) : (
           <Suspense fallback={<div className="min-h-[60vh]" />}>
-            <TipsView />
+            <ArticleViewLazy
+              topicId={tipsStack[0].topicId}
+              articleId={tipsStack[tipsStack.length - 1].articleId ?? ''}
+              onBack={() => setTipsStack((s) => s.slice(0, -1))}
+            />
           </Suspense>
         )}
       </main>
