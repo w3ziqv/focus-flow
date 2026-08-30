@@ -90,6 +90,28 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Touch polish for iOS Safari and Android Chrome */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+[role='tab'],
+[role='switch'] {
+  touch-action: manipulation;
+}
+
+/* iPhone home indicator: keep the bottom nav above the gesture bar */
+@media (max-width: 639.98px) {
+  .nav-mobile-bottom {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .footer-safe-bottom {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* Fraunces optical sizing: let the variable axis work */
 .font-serif {
   font-family: var(--font-serif);
@@ -243,7 +265,7 @@ body {
 /* Sound volume slider — accent follows the active mode color */
 .sound-volume {
   accent-color: var(--ac);
-  height: 20px;
+  height: 28px;
 }
 
 /* Settings steppers: hide native number-input spinners, steppers are custom */

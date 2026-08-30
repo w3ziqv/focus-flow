@@ -14,8 +14,8 @@ const variants: Record<Variant, string> = {
   primary:
     'bg-[var(--ac-fill)] text-[var(--color-on-accent)] px-7 py-3 text-[15px] hover:bg-[color-mix(in_srgb,var(--ac-fill)_86%,black)]',
   secondary:
-    'border border-line bg-card px-5 py-2.5 text-[14px] text-ink shadow-halo hover:bg-sunken',
-  icon: 'size-10 text-ink-2 hover:bg-sunken hover:text-ink',
+    'border border-line bg-card px-5 py-3 text-[14px] text-ink shadow-halo hover:bg-sunken',
+  icon: 'size-11 text-ink-2 hover:bg-sunken hover:text-ink',
 }
 
 export function PillButton({ variant = 'secondary', className = '', children, type, ...rest }: PillButtonProps) {

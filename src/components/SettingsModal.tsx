@@ -13,10 +13,10 @@ interface SettingsModalProps {
 }
 
 const fieldClass =
-  'no-spin w-full rounded-xl border border-line bg-card px-3 py-2 text-center text-[15px] text-ink tnum outline-none transition-colors duration-150 focus:border-[var(--ac)]'
+  'no-spin w-full rounded-xl border border-line bg-card px-3 py-2 text-center text-base text-ink tnum outline-none transition-colors duration-150 focus:border-[var(--ac)]'
 
 const stepButtonClass =
-  'flex size-8 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
+  'flex size-9 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
 
 export function SettingsModal({ open, settings, onSave, onClose }: SettingsModalProps) {
   const { t } = useI18n()

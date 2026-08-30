@@ -15,7 +15,7 @@ interface SoundChipRowProps {
 }
 
 const chipBase =
-  'inline-flex items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken'
+  'inline-flex min-h-11 items-center gap-1 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken'
 
 export function SoundChipRow({ current, sounds, message, volume, onChange, onAddFile, onRemove, onVolumeChange }: SoundChipRowProps) {
   const { t } = useI18n()
@@ -69,7 +69,7 @@ export function SoundChipRow({ current, sounds, message, volume, onChange, onAdd
                 type="button"
                 aria-label={t('sound.remove', { name: sound.name })}
                 onClick={() => onRemove(sound.id)}
-                className="flex size-8 items-center justify-center rounded-full p-2 text-ink-3 transition-colors hover:bg-sunken hover:text-danger"
+                className="flex size-11 items-center justify-center rounded-full p-3 text-ink-3 transition-colors hover:bg-sunken hover:text-danger"
               >
                 <X size={14} aria-hidden="true" />
               </button>

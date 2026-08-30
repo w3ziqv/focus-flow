@@ -59,7 +59,7 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange }: Segme
             aria-selected={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            className={`relative z-10 flex-1 rounded-full py-2 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] ${
+            className={`relative z-10 flex-1 rounded-full py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] ${
               active ? 'text-[var(--ac-strong)]' : 'text-ink-2 hover:text-ink'
             }`}
           >

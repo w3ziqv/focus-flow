@@ -96,7 +96,7 @@ export function TimerView({
       <button
         type="button"
         onClick={onEnterFocus}
-        className="mx-auto mt-6 flex items-center gap-2 rounded-full px-4 py-2 text-caption text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-[var(--ac-strong)]"
+        className="mx-auto mt-6 flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-caption text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-[var(--ac-strong)]"
       >
         <Maximize2 size={14} aria-hidden="true" />
         {t('focus.enter')}

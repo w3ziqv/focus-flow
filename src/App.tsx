@@ -207,7 +207,7 @@ function Shell() {
         )}
       </main>
 
-      <footer className="pb-28 text-center text-caption text-ink-3 md:pb-10">
+      <footer className="footer-safe-bottom pb-28 text-center text-caption text-ink-3 md:pb-10">
         {t('footer', { year: 2026 })}
       </footer>
 
