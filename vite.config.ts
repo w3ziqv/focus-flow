@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { version: string }
+
 const fontPreload = (): Plugin => ({
   name: 'font-preload',
   apply: 'build',
@@ -23,6 +25,9 @@ const fontPreload = (): Plugin => ({
 })
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -37,6 +42,7 @@ export default defineConfig({
         theme_color: '#f5f4ed',
         background_color: '#f5f4ed',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         start_url: '/',
         icons: [
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
