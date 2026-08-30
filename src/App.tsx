@@ -4,6 +4,7 @@ import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
 import { audio } from './lib/audio'
+import { accentStyle } from './lib/accent'
 import {
   loadCustomSounds,
   loadTheme,
@@ -15,7 +16,7 @@ import {
 import { NavPill } from './components/NavPill'
 import { SettingsModal } from './components/SettingsModal'
 import { FocusOverlay } from './components/FocusOverlay'
-import { PillButton, accentStyle } from './components/PillButton'
+import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
 import { TimerView } from './views/TimerView'
 import { TipsView } from './views/TipsView'

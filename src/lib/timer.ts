@@ -66,15 +66,7 @@ export function useTimerEngine(): TimerEngine {
   const statsRef = useRef<Stats>(stats)
   const taskRef = useRef<string>(task)
   const taskDoneRef = useRef<boolean>(taskDone)
-
-  remainingRef.current = remainingMs
-  runningRef.current = running
-  modeRef.current = mode
-  roundRef.current = round
-  settingsRef.current = settings
-  statsRef.current = stats
-  taskRef.current = task
-  taskDoneRef.current = taskDone
+  const autoStartTimer = useRef<number | null>(null)
 
   const totalMs = useMemo(() => durationOf(settings, mode), [settings, mode])
 
@@ -95,11 +87,12 @@ export function useTimerEngine(): TimerEngine {
 
   const start = useCallback(() => {
     if (runningRef.current) return
-    if (Notification.permission === 'default') {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       void Notification.requestPermission()
     }
     const endTs = Date.now() + Math.max(1000, remainingRef.current)
     endTsRef.current = endTs
+    remainingRef.current = endTs - Date.now()
     setTaskDone(false)
     taskDoneRef.current = false
     setRunning(true)
@@ -166,7 +159,8 @@ export function useTimerEngine(): TimerEngine {
 
     if (currentSettings.autoStart) {
       // Start the next phase after a beat so the completion state is visible.
-      window.setTimeout(() => {
+      autoStartTimer.current = window.setTimeout(() => {
+        autoStartTimer.current = null
         if (!runningRef.current) start()
       }, 1200)
     }
@@ -190,12 +184,15 @@ export function useTimerEngine(): TimerEngine {
       setRemainingMs(remaining)
       remainingRef.current = remaining
     }
-    tick()
     const id = window.setInterval(tick, TICK_MS)
     return () => window.clearInterval(id)
   }, [running, complete])
 
   const reset = useCallback(() => {
+    if (autoStartTimer.current !== null) {
+      window.clearTimeout(autoStartTimer.current)
+      autoStartTimer.current = null
+    }
     const next = durationOf(settingsRef.current, modeRef.current)
     endTsRef.current = null
     setRunning(false)
@@ -210,6 +207,10 @@ export function useTimerEngine(): TimerEngine {
   const switchMode = useCallback(
     (nextMode: Mode) => {
       if (nextMode === modeRef.current && !runningRef.current) return
+      if (autoStartTimer.current !== null) {
+        window.clearTimeout(autoStartTimer.current)
+        autoStartTimer.current = null
+      }
       if (nextMode === 'focus' && roundRef.current >= settingsRef.current.rounds) {
         roundRef.current = 0
         setRound(0)
@@ -268,6 +269,7 @@ export function useTimerEngine(): TimerEngine {
 
   useEffect(() => {
     return () => {
+      if (autoStartTimer.current !== null) window.clearTimeout(autoStartTimer.current)
       audio.dispose()
     }
   }, [])

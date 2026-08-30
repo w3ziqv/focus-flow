@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { Mode } from '../types'
 import { useI18n } from '../lib/i18n'
 
@@ -46,14 +46,10 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds }: Dia
   const accent = mode === 'focus' ? 'var(--color-accent)' : 'var(--color-break)'
   const paused = !running && remainingMs < totalMs && remainingMs > 0
 
-  const [announcedMinute, setAnnouncedMinute] = useState(minutes)
-  const liveRef = useRef('')
-  useEffect(() => {
-    if (minutes !== announcedMinute) {
-      setAnnouncedMinute(minutes)
-      liveRef.current = t('timer.aria', { time, mode: modeLabel })
-    }
-  }, [minutes, announcedMinute, time, modeLabel, t])
+  const [announce, setAnnounce] = useState({ minute: -1, text: '' })
+  if (announce.minute !== minutes) {
+    setAnnounce({ minute: minutes, text: t('timer.aria', { time, mode: modeLabel }) })
+  }
 
   const complete = remainingMs === 0
 
@@ -99,7 +95,7 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds }: Dia
         <span className="text-caption text-ink-2">{t('timer.round', { n: Math.min(round + 1, rounds), total: rounds })}</span>
       </div>
       <span aria-live="polite" className="sr-only">
-        {liveRef.current}
+        {announce.text}
       </span>
     </div>
   )

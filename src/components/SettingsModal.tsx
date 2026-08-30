@@ -18,14 +18,22 @@ export function SettingsModal({ open, settings, onSave, onClose }: SettingsModal
   const { t } = useI18n()
   const [draft, setDraft] = useState<Settings>(settings)
   const panelRef = useRef<HTMLDivElement>(null)
+  const [wasOpen, setWasOpen] = useState(false)
+
+  if (open && !wasOpen) {
+    setWasOpen(true)
+    setDraft(settings)
+  }
+  if (!open && wasOpen) {
+    setWasOpen(false)
+  }
 
   useEffect(() => {
     if (open) {
-      setDraft(settings)
       const first = panelRef.current?.querySelector<HTMLInputElement>('input')
       first?.focus()
     }
-  }, [open, settings])
+  }, [open])
 
   if (!open) return null
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { Maximize2, Pause, Play, RotateCcw, Settings2 } from 'lucide-react'
 import type { AmbientSound, CustomSound, Mode } from '../types'
 import type { TimerEngine } from '../lib/timer'
@@ -37,15 +37,10 @@ export function TimerView({
   onEnterFocus,
 }: TimerViewProps) {
   const { t, lang } = useI18n()
-  const [breakTip, setBreakTip] = useState<{ title: string; desc: string } | null>(null)
-
-  useEffect(() => {
-    if (engine.mode === 'focus') {
-      setBreakTip(null)
-      return
-    }
-    setBreakTip(randomBreakTip(lang))
-  }, [engine.mode, lang])
+  const breakTip = useMemo(
+    () => (engine.mode === 'focus' ? null : randomBreakTip(lang)),
+    [engine.mode, lang],
+  )
 
   const tabs: Array<{ id: Mode; label: string }> = [
     { id: 'focus', label: t('mode.focus') },
