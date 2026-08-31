@@ -4,15 +4,16 @@ import { useI18n } from '../lib/i18n'
 interface WeekChartProps {
   days: ChartDay[]
   totalMinutes: number
+  title?: string
 }
 
-export function WeekChart({ days, totalMinutes }: WeekChartProps) {
+export function WeekChart({ days, totalMinutes, title }: WeekChartProps) {
   const { t } = useI18n()
   const max = Math.max(...days.map((d) => d.minutes), 1)
 
   return (
-    <div className="mx-auto w-full max-w-[420px]">
-      <p className="mb-4 text-center text-overline text-ink-3">{t('chart.label')}</p>
+    <div className="mx-auto w-full max-w-[520px]">
+      <p className="mb-4 text-center text-overline text-ink-3">{title ?? t('chart.label')}</p>
       <div
         role="img"
         aria-label={t('chart.aria', { total: totalMinutes })}

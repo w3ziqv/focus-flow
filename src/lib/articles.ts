@@ -425,3 +425,7 @@ export function readMinutes(article: Article, lang: 'pl' | 'en'): number {
   const words = [article.introPl, ...article.sections.map((s) => s.pPl), ...article.sourcesPl].join(' ').split(/\s+/).length
   return Math.max(1, Math.round(words / (lang === 'pl' ? 180 : 200)))
 }
+
+export function totalReadMinutesForTopic(topicId: TopicId, lang: 'pl' | 'en'): number {
+  return articlesForTopic(topicId).reduce((acc, a) => acc + readMinutes(a, lang), 0)
+}

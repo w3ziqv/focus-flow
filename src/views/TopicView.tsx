@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { articlesForTopic, readMinutes } from '../lib/articles'
+import { articlesForTopic, readMinutes, totalReadMinutesForTopic } from '../lib/articles'
 import { topicById } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
@@ -16,7 +16,7 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps) {
   const Icon = topic.icon
   const articles = articlesForTopic(topic.id)
   const title = lang === 'pl' ? topic.titlePl : topic.titleEn
-  const desc = lang === 'pl' ? topic.descPl : topic.descEn
+  const totalMinutes = totalReadMinutesForTopic(topic.id, lang)
 
   return (
     <div
@@ -37,7 +37,9 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps) {
           <Icon size={30} strokeWidth={1.5} className="text-[var(--ac)]" aria-hidden="true" />
         </span>
         <h1 className="mt-5 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{title}</h1>
-        <p className="mt-3 max-w-[46ch] text-[15px] leading-relaxed text-ink-2">{desc}</p>
+        <p className="mt-2 text-caption text-ink-3">
+          {t('topic.meta', { count: articles.length, minutes: totalMinutes })}
+        </p>
       </div>
 
       <div className="mt-10 border-t border-line">

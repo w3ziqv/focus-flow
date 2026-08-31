@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dict as translations } from './translations'
-import { ARTICLES } from './articles'
+import { ARTICLES, totalReadMinutesForTopic } from './articles'
 import { TOPICS } from './topics'
 
 describe('translations', () => {
@@ -44,6 +44,13 @@ describe('topics and articles', () => {
         expect(article.sourcesPl.length).toBeGreaterThanOrEqual(2)
         expect(article.sourcesEn.length).toBeGreaterThanOrEqual(2)
       }
+    }
+  })
+
+  it('calculates total read minutes for every topic', () => {
+    for (const topic of TOPICS) {
+      expect(totalReadMinutesForTopic(topic.id, 'pl')).toBeGreaterThan(0)
+      expect(totalReadMinutesForTopic(topic.id, 'en')).toBeGreaterThan(0)
     }
   })
 })
