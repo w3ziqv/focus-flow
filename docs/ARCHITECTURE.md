@@ -96,10 +96,19 @@ Keyboard shortcuts, focus trapping and restoration, live regions for timer
 announcements, 44-class touch targets and AA contrast are enforced in review
 and covered by manual + Lighthouse audits.
 
+**Accepted deviation — pinch-zoom is locked** (`user-scalable=no,
+maximum-scale=1` in the viewport meta, plus a `gesturestart` blocker for iOS
+Safari). Rationale: in an installed PWA a timer that zooms by accident feels
+broken, and the UI never carries small text that requires zooming (body ≥14px,
+clamped dial digits). This trades away WCAG 1.4.4 (Resize Text) — a deliberate
+product decision, not an oversight. iOS ignores the lock anyway; revisit only
+if a real accessibility need surfaces.
+
 ## 4. Testing strategy
 
 - Unit: engine (fake timers), stats math, storage validators, content parity.
-- Build gates: `tsc --noEmit`, ESLint, `vite build` on every change.
+- Build gates: `tsc --noEmit`, ESLint, `vite build` on every change — enforced
+  by CI (`.github/workflows/ci.yml`) on every push and pull request.
 - Visual: production-build screenshots at 390 / 1280 widths across light/dark
   and every dialog (see the design showcase set).
 - Not yet: end-to-end flows; add when the UI surface stabilises.

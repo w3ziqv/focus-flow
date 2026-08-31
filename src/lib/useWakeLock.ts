@@ -26,7 +26,9 @@ export function useWakeLock(active: boolean): void {
           if (cancelled) void s.release()
           else sentinel = s
         })
-        .catch(() => {})
+        .catch(() => {
+          // Denied or dropped (low battery, screen off) — the timer is deadline-based and loses nothing.
+        })
     }
 
     acquire()

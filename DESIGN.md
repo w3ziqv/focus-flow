@@ -215,4 +215,5 @@ All neutrals are warm — every gray has a yellow-brown undertone (from claude.m
 | Item | Location | Why accepted | Owner / Exit |
 |------|----------|--------------|--------------|
 | Legacy `ff_*` localStorage stats migrate best-effort; malformed legacy data silently resets to defaults | `src/lib/storage.ts` | One-shot migration for a personal project's old data; new schema is authoritative | Next breaking change of storage schema |
+| Pinch-zoom locked (`user-scalable=no`, iOS `gesturestart` blocker) | `index.html`, `src/main.tsx` | In an installed PWA accidental zoom reads as broken; body text ≥14px and dial digits are clamped, so nothing needs zooming. WCAG 1.4.4 deviation accepted by the owner (see ADR-008) | Revisit on real accessibility feedback |
 | Lighthouse performance 98/100 (mobile, throttled): LCP ≈ 2.1–2.3 s is gated by the Fraunces webfont that renders the Dial digits | `vite.config.ts` font-preload plugin | Reaching 100 would require inlining the font as base64 (+~90 KB HTML) or replacing the serif LCP element — both harm the design that is the point of the product | Revisit if a static host serves fonts with HTTP/2 priority hints |
