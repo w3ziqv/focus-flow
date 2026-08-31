@@ -1,4 +1,4 @@
-import type { AmbientSound, CustomSound } from '../types'
+import type { AmbientSound, PlayableSound } from '../types'
 
 /** Bundled, freely-licensed field recordings (see public/sounds/SOUNDS.md). */
 const SAMPLES: Record<'rain' | 'waves' | 'stream' | 'campfire', string> = {
@@ -66,15 +66,15 @@ class AudioEngine {
   }
 
   /** Switches the ambient soundscape. `none` stops everything. */
-  setAmbient(sound: AmbientSound, customSounds: CustomSound[]): void {
+  setAmbient(sound: AmbientSound, sounds: PlayableSound[]): void {
     this.stopAmbient()
     if (sound === 'none') return
 
     if (sound.startsWith('custom:')) {
       const id = sound.slice(7)
-      const record = customSounds.find((s) => s.id === id)
+      const record = sounds.find((s) => s.id === id)
       if (!record) return
-      this.playLooped(record.dataUrl)
+      this.playLooped(record.url)
       return
     }
 

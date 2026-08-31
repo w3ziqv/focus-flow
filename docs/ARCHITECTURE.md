@@ -19,7 +19,8 @@ lib/
   timer.ts        timer engine — deadline-based, framework-agnostic core
   audio.ts        audio engine — chime + ambient + uploads
   storage.ts      the ONLY module touching localStorage (typed, validated)
-  dataPort.ts     backup export/import on top of storage
+  soundStore.ts   custom sound audio blobs in IndexedDB (metadata in storage.ts)
+  dataPort.ts     backup export/import on top of storage + soundStore
   platform.ts     runtime capability detection (browser / PWA / Tauri / Electron)
   i18n.tsx        translation provider
   stats.ts, tips.ts, placeholders.ts   pure data + derivations
@@ -52,6 +53,12 @@ browsers may evict it under pressure and it is per-origin. The adapter shape
 (`load*/save*` functions, validators at the boundary) makes a later swap to
 IndexedDB or a desktop file adapter a one-module change. Mitigation for data
 loss anxiety: JSON export/import (`dataPort.ts`).
+
+The one exception that outgrew localStorage is custom sound audio: base64 in
+localStorage caps a file well under ~4 MB before the ~5 MB origin quota trips,
+so audio Blobs moved to IndexedDB (`soundStore.ts`, 200 MB per file) while the
+metadata stays in `storage.ts`. Backups still embed the audio, so export/import
+remains a single file.
 
 ### ADR-004 — Timer is deadline-based, never decrementing — Accepted
 `Date.now()` vs a persisted deadline keeps the countdown correct through tab

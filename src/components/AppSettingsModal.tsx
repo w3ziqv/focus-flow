@@ -103,8 +103,8 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
         <button
           type="button"
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken"
-          onClick={() => {
-            const backup = exportData()
+          onClick={async () => {
+            const backup = await exportData()
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
             const url = URL.createObjectURL(blob)
             const link = document.createElement('a')
@@ -136,7 +136,7 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
             const file = event.target.files?.[0]
             event.target.value = ''
             if (!file) return
-            const ok = importData(await file.text())
+            const ok = await importData(await file.text())
             if (ok) {
               location.reload()
             } else {

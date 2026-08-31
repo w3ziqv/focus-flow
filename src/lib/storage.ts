@@ -1,6 +1,6 @@
 import type { CustomSound, InterfacePrefs, Lang, SessionSnapshot, Settings, Stats, Theme } from '../types'
 
-export const MAX_SOUND_SIZE = 4 * 1024 * 1024
+export const MAX_SOUND_SIZE = 200 * 1024 * 1024
 
 const PREFIX = 'ff2_'
 const LEGACY_PREFIX = 'ff_'
@@ -101,14 +101,14 @@ function isStats(value: unknown): Stats | null {
 
 function isCustomSounds(value: unknown): CustomSound[] | null {
   if (!Array.isArray(value)) return null
-  return value.filter(
-    (x): x is CustomSound =>
-      typeof x === 'object' &&
-      x !== null &&
-      typeof (x as CustomSound).id === 'string' &&
-      typeof (x as CustomSound).name === 'string' &&
-      typeof (x as CustomSound).dataUrl === 'string',
-  )
+  const sounds: CustomSound[] = []
+  for (const x of value) {
+    if (typeof x !== 'object' || x === null) continue
+    const v = x as Record<string, unknown>
+    if (typeof v.id !== 'string' || typeof v.name !== 'string') continue
+    sounds.push(typeof v.dataUrl === 'string' ? { id: v.id, name: v.name, dataUrl: v.dataUrl } : { id: v.id, name: v.name })
+  }
+  return sounds
 }
 
 /* ---------- legacy migration (ff_* keys from the vanilla version) ---------- */

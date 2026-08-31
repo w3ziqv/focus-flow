@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import type { AmbientSound, CustomSound, Theme } from './types'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { AmbientSound, CustomSound, PlayableSound, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
@@ -21,6 +21,7 @@ import {
 } from './lib/storage'
 import { last7Days, sumMinutes } from './lib/stats'
 import { captureInstallPrompt } from './lib/installPrompt'
+import { deleteSound, getSoundBlob, migrateLegacySounds, putSound } from './lib/soundStore'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
@@ -56,6 +57,7 @@ function Shell() {
   const [tipsStack, setTipsStack] = useState<TipsRoute[]>([])
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
+  const [soundUrls, setSoundUrls] = useState<Record<string, string>>({})
   const [ambient, setAmbient] = useState<AmbientSound>('none')
   const [volume, setVolume] = useState<number>(loadVolume)
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
@@ -80,9 +82,39 @@ function Shell() {
     root.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
+  // Custom sound audio lives in IndexedDB — resolve every blob to a session URL.
   useEffect(() => {
-    audio.setAmbient(ambient, sounds)
-  }, [ambient, sounds])
+    let cancelled = false
+    void migrateLegacySounds()
+      .then(() => {
+        if (cancelled) return null
+        const metas = loadCustomSounds()
+        setSounds(metas)
+        return Promise.all(
+          metas.map(async (sound) => {
+            const blob = await getSoundBlob(sound.id).catch(() => null)
+            return blob ? ([sound.id, URL.createObjectURL(blob)] as const) : null
+          }),
+        )
+      })
+      .then((entries) => {
+        if (cancelled || entries === null) return
+        setSoundUrls(Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => entry !== null)))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const playableSounds = useMemo<PlayableSound[]>(
+    () => sounds.map((sound) => ({ ...sound, url: soundUrls[sound.id] ?? sound.dataUrl ?? '' })),
+    [sounds, soundUrls],
+  )
+
+  useEffect(() => {
+    audio.setAmbient(ambient, playableSounds)
+  }, [ambient, playableSounds])
 
   useEffect(() => {
     audio.setVolume(volume)
@@ -125,37 +157,42 @@ function Shell() {
   }, [])
 
   const addSoundFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       if (file.size > MAX_SOUND_SIZE) {
         flashMessage('sound.tooLarge')
         return
       }
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result !== 'string') return
-        const name = (file.name.replace(/\.[^.]+$/, '').trim() || t('sound.unnamed')).slice(0, 40)
-        const record: CustomSound = {
-          id: `cs${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
-          name,
-          dataUrl: reader.result,
-        }
-        const next = [...sounds, record]
-        const persisted = saveCustomSounds(next)
-        setSounds(next)
-        setAmbient(`custom:${record.id}`)
-        if (persisted) {
-          flashMessage('sound.added', name)
-        } else {
-          flashMessage('sound.storageFull')
-        }
+      const name = (file.name.replace(/\.[^.]+$/, '').trim() || t('sound.unnamed')).slice(0, 40)
+      const id = `cs${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+      try {
+        await putSound(id, name, file)
+      } catch {
+        flashMessage('sound.storageFull')
+        return
       }
-      reader.readAsDataURL(file)
+      const next = [...sounds, { id, name }]
+      if (!saveCustomSounds(next)) {
+        void deleteSound(id).catch(() => {})
+        flashMessage('sound.storageFull')
+        return
+      }
+      setSounds(next)
+      setSoundUrls((prev) => ({ ...prev, [id]: URL.createObjectURL(file) }))
+      flashMessage('sound.added', name)
     },
     [flashMessage, t, sounds],
   )
 
   const removeSound = useCallback(
     (id: string) => {
+      void deleteSound(id).catch(() => {})
+      setSoundUrls((prev) => {
+        const next = { ...prev }
+        const url = next[id]
+        if (url !== undefined) URL.revokeObjectURL(url)
+        delete next[id]
+        return next
+      })
       const next = sounds.filter((sound) => sound.id !== id)
       saveCustomSounds(next)
       setSounds(next)

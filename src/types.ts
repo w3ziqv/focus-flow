@@ -31,7 +31,13 @@ export interface InterfacePrefs {
 export interface CustomSound {
   id: string
   name: string
-  dataUrl: string
+  /** Legacy fallback: inline data: URL kept only when the IndexedDB migration failed. */
+  dataUrl?: string
+}
+
+/** A custom sound with a playable URL for this session (object URL or legacy data: URL). */
+export interface PlayableSound extends CustomSound {
+  url: string
 }
 
 export type TopicId = 'learning' | 'break' | 'sleep' | 'food' | 'productivity' | 'wellbeing' | 'mindfulness'
