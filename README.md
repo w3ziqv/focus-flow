@@ -42,6 +42,7 @@ is synthesized live with the Web Audio API instead of being shipped as a file.
 
 - [`DESIGN.md`](DESIGN.md) — the design system: tokens, components, motion, accessibility
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture decisions (ADRs), including the desktop-packaging analysis (PWA vs Tauri vs Electron)
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — product roadmap for future versions (v2.1 to v3.0)
 - [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md) — sound credits and licenses
 
 ## Requirements
