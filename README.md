@@ -6,7 +6,7 @@ The interface is deliberately quiet: warm paper tones, a serif clock face, one a
 
 | Desktop | Mobile |
 | --- | --- |
-| ![Desktop](focus-flow.png?v=3) | ![Mobile](mobile.png?v=3) |
+| ![Desktop](focus-flow.png?v=4) | ![Mobile](mobile.png?v=4) |
 
 ## What it does
 
