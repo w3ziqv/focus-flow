@@ -9,6 +9,7 @@ import { accentStyle } from './lib/accent'
 import {
   loadCustomSounds,
   loadInterface,
+  loadOnboardingDone,
   loadTheme,
   loadVolume,
   MAX_SOUND_SIZE,
@@ -19,11 +20,14 @@ import {
   systemTheme,
 } from './lib/storage'
 import { last7Days, sumMinutes } from './lib/stats'
+import { captureInstallPrompt } from './lib/installPrompt'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
 import { SoundSettingsDialog } from './components/SoundSettingsDialog'
 import { FocusOverlay } from './components/FocusOverlay'
+import { InstallPrompt } from './components/InstallPrompt'
+import { Onboarding } from './components/Onboarding'
 import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
 import { TimerView } from './views/TimerView'
@@ -55,7 +59,20 @@ function Shell() {
   const [ambient, setAmbient] = useState<AmbientSound>('none')
   const [volume, setVolume] = useState<number>(loadVolume)
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
+  const [onboardingDone, setOnboardingDone] = useState(loadOnboardingDone)
   const messageTimer = useRef<number | undefined>(undefined)
+
+  useEffect(() => {
+    captureInstallPrompt()
+  }, [])
+
+  // PWA app-shortcut target (/?start=focus): launch straight into a session.
+  const { start: startSession } = engine
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('start') !== 'focus') return
+    window.history.replaceState(null, '', window.location.pathname)
+    startSession()
+  }, [startSession])
 
   useEffect(() => {
     const root = document.documentElement
@@ -247,6 +264,8 @@ function Shell() {
         {t('footer', { year: 2026 })}
       </footer>
 
+      <Onboarding open={!onboardingDone} onDone={() => setOnboardingDone(true)} />
+
       <AppSettingsModal
         open={appSettingsOpen}
         theme={theme}
@@ -283,6 +302,11 @@ function Shell() {
         onRemove={removeSound}
         onVolumeChange={changeVolume}
         onClose={() => setSoundSettingsOpen(false)}
+      />
+
+      <InstallPrompt
+        focusCompleted={engine.lastEvent?.kind === 'focus'}
+        onboardingOpen={!onboardingDone}
       />
 
       <FocusOverlay open={focusOpen} onClose={() => setFocusOpen(false)}>

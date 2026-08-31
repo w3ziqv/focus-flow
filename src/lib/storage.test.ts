@@ -1,6 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Stats } from '../types'
-import { loadCustomSounds, loadSettings, loadStats, saveCustomSounds, weekStartOf } from './storage'
+import {
+  loadCustomSounds,
+  loadInstallDismissed,
+  loadOnboardingDone,
+  loadSettings,
+  loadStats,
+  saveCustomSounds,
+  saveInstallDismissed,
+  saveOnboardingDone,
+  weekStartOf,
+} from './storage'
 
 beforeEach(() => {
   localStorage.clear()
@@ -80,5 +90,26 @@ describe('loadStats', () => {
     expect(stats.today).toBe(0)
     expect(stats.streak).toBe(0)
     expect(stats.history).toEqual({})
+  })
+})
+
+describe('onboarding and install flags', () => {
+  it('defaults both flags to false', () => {
+    expect(loadOnboardingDone()).toBe(false)
+    expect(loadInstallDismissed()).toBe(false)
+  })
+
+  it('persists once written', () => {
+    saveOnboardingDone()
+    saveInstallDismissed()
+    expect(loadOnboardingDone()).toBe(true)
+    expect(loadInstallDismissed()).toBe(true)
+  })
+
+  it('treats corrupt values as false', () => {
+    localStorage.setItem('ff2_onboardingDone', '{bad')
+    localStorage.setItem('ff2_installDismissed', '"yes"')
+    expect(loadOnboardingDone()).toBe(false)
+    expect(loadInstallDismissed()).toBe(false)
   })
 })

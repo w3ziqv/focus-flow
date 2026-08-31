@@ -14,6 +14,8 @@ const KEYS = {
   volume: `${PREFIX}volume`,
   interface: `${PREFIX}interface`,
   migrated: `${PREFIX}migrated`,
+  onboardingDone: `${PREFIX}onboardingDone`,
+  installDismissed: `${PREFIX}installDismissed`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
@@ -213,6 +215,22 @@ export function loadInterface(): InterfacePrefs {
 
 export function saveInterface(prefs: InterfacePrefs): boolean {
   return write(KEYS.interface, prefs)
+}
+
+export function loadOnboardingDone(): boolean {
+  return read<boolean>(KEYS.onboardingDone, (v) => v === true) === true
+}
+
+export function saveOnboardingDone(): void {
+  write(KEYS.onboardingDone, true)
+}
+
+export function loadInstallDismissed(): boolean {
+  return read<boolean>(KEYS.installDismissed, (v) => v === true) === true
+}
+
+export function saveInstallDismissed(): void {
+  write(KEYS.installDismissed, true)
 }
 
 export function systemTheme(): Theme {

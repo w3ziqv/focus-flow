@@ -44,11 +44,32 @@ export default defineConfig({
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui'],
         start_url: '/',
+        id: '/',
+        lang: 'pl',
         icons: [
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        screenshots: [
+          {
+            src: 'screenshots/desktop.png',
+            sizes: '1280x800',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'The Focus Flow dial on desktop',
+          },
+          {
+            src: 'screenshots/mobile.png',
+            sizes: '390x844',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'The Focus Flow dial on a phone',
+          },
+        ],
+        shortcuts: [
+          { name: 'Start Focus', short_name: 'Focus', url: '/?start=focus', description: 'Start a focus session right away' },
         ],
       },
       workbox: {

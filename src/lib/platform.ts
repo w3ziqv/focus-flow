@@ -1,4 +1,5 @@
 export type Platform = 'tauri' | 'electron' | 'pwa' | 'browser'
+export type OS = 'ios' | 'android' | 'desktop'
 
 /**
  * Runtime capability seam (docs/ARCHITECTURE.md ADR-006).
@@ -13,4 +14,16 @@ export function detectPlatform(): Platform {
     return 'pwa'
   }
   return 'browser'
+}
+
+/**
+ * iPadOS 13+ reports a desktop Mac UA — `maxTouchPoints > 1` is the tell.
+ */
+export function detectOS(): OS {
+  if (typeof navigator === 'undefined') return 'desktop'
+  const ua = navigator.userAgent
+  const iPadOS = ua.includes('Macintosh') && navigator.maxTouchPoints > 1
+  if (/iPhone|iPad|iPod/.test(ua) || iPadOS) return 'ios'
+  if (ua.includes('Android')) return 'android'
+  return 'desktop'
 }
