@@ -62,6 +62,37 @@ export function deleteSound(id: string): Promise<void> {
   return withStore('readwrite', (store) => store.delete(id)).then(() => undefined)
 }
 
+const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|oga|opus|m4a|m4b|aac|flac|weba|webm|mp4)$/i
+
+export function isAudioUpload(file: { type: string; name: string }): boolean {
+  if (file.type === '') return AUDIO_EXTENSIONS.test(file.name)
+  return file.type.startsWith('audio/')
+}
+
+/**
+ * Hard gate: pushes the blob through the browser's real media parser and only
+ * accepts it if metadata decodes. Catches files that carry an audio-looking
+ * name or MIME but are anything else.
+ */
+export function probeAudio(blob: Blob, timeoutMs = 10_000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob)
+    const audio = new Audio()
+    let settled = false
+    const done = (ok: boolean) => {
+      if (settled) return
+      settled = true
+      URL.revokeObjectURL(url)
+      resolve(ok)
+    }
+    audio.preload = 'metadata'
+    audio.onloadedmetadata = () => done(true)
+    audio.onerror = () => done(false)
+    window.setTimeout(() => done(false), timeoutMs)
+    audio.src = url
+  })
+}
+
 interface LegacyEntry {
   id: string
   name: string

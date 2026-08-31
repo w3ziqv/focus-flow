@@ -21,7 +21,7 @@ import {
 } from './lib/storage'
 import { last7Days, sumMinutes } from './lib/stats'
 import { captureInstallPrompt } from './lib/installPrompt'
-import { deleteSound, getSoundBlob, migrateLegacySounds, putSound } from './lib/soundStore'
+import { deleteSound, getSoundBlob, isAudioUpload, migrateLegacySounds, probeAudio, putSound } from './lib/soundStore'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
@@ -158,8 +158,16 @@ function Shell() {
 
   const addSoundFile = useCallback(
     async (file: File) => {
+      if (!isAudioUpload({ type: file.type, name: file.name })) {
+        flashMessage('sound.notAudio')
+        return
+      }
       if (file.size > MAX_SOUND_SIZE) {
         flashMessage('sound.tooLarge')
+        return
+      }
+      if (!(await probeAudio(file))) {
+        flashMessage('sound.notAudio')
         return
       }
       const name = (file.name.replace(/\.[^.]+$/, '').trim() || t('sound.unnamed')).slice(0, 40)

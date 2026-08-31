@@ -14,6 +14,8 @@ vi.mock('./soundStore', () => ({
   getSoundBlob: vi.fn(async (id: string) => soundBlobs.get(id)?.blob ?? null),
   deleteSound: vi.fn(async () => undefined),
   migrateLegacySounds: vi.fn(async () => undefined),
+  isAudioUpload: vi.fn(() => true),
+  probeAudio: vi.fn(async () => true),
 }))
 
 beforeEach(() => {

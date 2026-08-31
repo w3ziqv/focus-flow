@@ -13,7 +13,7 @@ import {
   saveTheme,
   saveVolume,
 } from './storage'
-import { getSoundBlob, putSound } from './soundStore'
+import { getSoundBlob, isAudioUpload, probeAudio, putSound } from './soundStore'
 
 export interface BackupSound {
   id: string
@@ -109,6 +109,8 @@ export async function importData(raw: string): Promise<boolean> {
       if (audio !== null) {
         try {
           const blob = await (await fetch(audio)).blob()
+          if (!isAudioUpload({ type: blob.type, name: v.name })) continue
+          if (!(await probeAudio(blob))) continue
           await putSound(v.id, v.name, blob)
         } catch {
           continue
