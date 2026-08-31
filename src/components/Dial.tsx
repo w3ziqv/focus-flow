@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { Mode } from '../types'
 import { useI18n } from '../lib/i18n'
 
@@ -46,12 +45,7 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds, onTog
   const dashOffset = CIRCUMFERENCE * (1 - progress)
   const accent = mode === 'focus' ? 'var(--color-accent)' : 'var(--color-break)'
   const paused = !running && remainingMs < totalMs && remainingMs > 0
-
-  const [announce, setAnnounce] = useState({ minute: -1, text: '' })
-  if (announce.minute !== minutes) {
-    setAnnounce({ minute: minutes, text: t('timer.aria', { time, mode: modeLabel }) })
-  }
-
+  const announceText = t('timer.aria', { time, mode: modeLabel })
   const complete = remainingMs === 0
 
   return (
@@ -98,7 +92,7 @@ export function Dial({ mode, remainingMs, totalMs, running, round, rounds, onTog
         className="absolute inset-0 cursor-pointer rounded-full opacity-0 focus-visible:opacity-100 focus-visible:outline-2"
       />
       <span aria-live="polite" className="sr-only">
-        {announce.text}
+        {announceText}
       </span>
     </div>
   )

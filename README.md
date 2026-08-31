@@ -44,11 +44,19 @@ is synthesized live with the Web Audio API instead of being shipped as a file.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture decisions (ADRs), including the desktop-packaging analysis (PWA vs Tauri vs Electron)
 - [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md) — sound credits and licenses
 
+## Requirements
+
+- Node.js 20+ (recommended: Node 22)
+- npm 10+
+
 ## Development
 
 ```bash
 npm install
 npm run dev        # local dev server
+npm run test:run   # run unit tests (Vitest)
+npm run lint       # ESLint check
+npm run typecheck  # TypeScript check
 npm run build      # typecheck + production build
 npm run preview    # serve the production build
 ```

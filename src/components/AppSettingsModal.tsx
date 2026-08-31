@@ -136,10 +136,20 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
             const file = event.target.files?.[0]
             event.target.value = ''
             if (!file) return
-            const ok = await importData(await file.text())
-            if (ok) {
-              location.reload()
-            } else {
+            // Guard against massive JSON files crashing the thread (max 250 MB)
+            if (file.size > 250 * 1024 * 1024) {
+              setImportError(true)
+              return
+            }
+            try {
+              const text = await file.text()
+              const ok = await importData(text)
+              if (ok) {
+                location.reload()
+              } else {
+                setImportError(true)
+              }
+            } catch {
               setImportError(true)
             }
           }}
