@@ -6,7 +6,7 @@ interface SwitchProps {
   label: string
 }
 
-export function Switch({ checked, onChange, label }: SwitchProps) {
+export function Switch({ checked, onChange, label }: SwitchProps): React.JSX.Element {
   const id = useId()
   return (
     <span className="inline-flex items-center gap-3">

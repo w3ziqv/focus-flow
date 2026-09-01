@@ -5,7 +5,7 @@ interface TaskBreakdownProps {
   items: TaskBreakdownItem[]
 }
 
-export function TaskBreakdown({ items }: TaskBreakdownProps) {
+export function TaskBreakdown({ items }: TaskBreakdownProps): React.JSX.Element | null {
   const { t } = useI18n()
 
   if (items.length === 0) {

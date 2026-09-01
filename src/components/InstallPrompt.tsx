@@ -19,7 +19,7 @@ interface InstallPromptProps {
   onboardingOpen: boolean
 }
 
-export function InstallPrompt({ focusCompleted, onboardingOpen }: InstallPromptProps) {
+export function InstallPrompt({ focusCompleted, onboardingOpen }: InstallPromptProps): React.JSX.Element | null {
   const { t } = useI18n()
   const [action, setAction] = useState<InstallPromptAction>('none')
   const [open, setOpen] = useState(false)

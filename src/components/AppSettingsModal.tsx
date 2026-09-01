@@ -27,7 +27,7 @@ const platformLabels = {
   browser: 'platform.browser',
 } as const
 
-export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInterfaceChange, onClose }: AppSettingsModalProps) {
+export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInterfaceChange, onClose }: AppSettingsModalProps): React.JSX.Element {
   const { t, lang, setLang } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState(false)

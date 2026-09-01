@@ -12,7 +12,7 @@ interface SegmentedTabsProps<T extends string> {
   ariaLabel: string
 }
 
-export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLabel }: SegmentedTabsProps<T>) {
+export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLabel }: SegmentedTabsProps<T>): React.JSX.Element {
   const refs = useRef<Array<HTMLButtonElement | null>>([])
   const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.id === value))
 

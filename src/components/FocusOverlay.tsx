@@ -10,7 +10,7 @@ interface FocusOverlayProps {
   children: ReactNode
 }
 
-export function FocusOverlay({ open, onClose, children }: FocusOverlayProps) {
+export function FocusOverlay({ open, onClose, children }: FocusOverlayProps): React.JSX.Element {
   const { t } = useI18n()
   const exitRef = useRef<HTMLButtonElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)

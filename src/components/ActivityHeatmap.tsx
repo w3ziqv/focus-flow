@@ -14,7 +14,7 @@ const LEVEL_CLASSES: Record<0 | 1 | 2 | 3 | 4, string> = {
   4: 'bg-[var(--ac)] border-[var(--ac-strong)]',
 }
 
-export function ActivityHeatmap({ days, totalMinutes }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ days, totalMinutes }: ActivityHeatmapProps): React.JSX.Element {
   const { t } = useI18n()
 
   return (

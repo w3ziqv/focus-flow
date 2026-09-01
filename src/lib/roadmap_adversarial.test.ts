@@ -1,26 +1,25 @@
-import { describe, it, expect } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { SessionLogEntry } from '../types'
+import {
+  addSession,
+  isSessionEntry,
+  loadSessions,
+  MAX_SESSIONS,
+  sanitizeSessionEntry,
+  saveSessions,
+} from './storage'
+
+beforeEach(() => {
+  localStorage.clear()
+})
 
 // ============================================================================
 // AREA 1: Ephemeral Session Micro-Steps & Storage Stress
 // ============================================================================
 
-interface ChecklistItem {
-  id: string
-  text: string
-  completed: boolean
-}
-
-interface SessionLogEntryV2 {
-  id: string
-  date: string
-  minutes: number
-  task: string | null
-  checklist?: ChecklistItem[]
-}
-
-describe('Area 1: Micro-Steps & Storage Bounds Stress', () => {
-  it('measures payload size of 1,000 realistic SessionLogEntryV2 items', () => {
-    const entries: SessionLogEntryV2[] = []
+describe('Area 1: Storage Bounds Stress & Production Persistence Adapter', () => {
+  it('measures payload size of 1,000 realistic SessionLogEntry items in production storage', () => {
+    const entries: SessionLogEntry[] = []
     const baseDate = new Date('2026-01-01T08:00:00Z').getTime()
 
     for (let i = 0; i < 1000; i++) {
@@ -29,118 +28,164 @@ describe('Area 1: Micro-Steps & Storage Bounds Stress', () => {
         date: new Date(baseDate + i * 3600 * 1000).toISOString(),
         minutes: 25,
         task: `Design architecture spec and implement feature component #${i}`,
-        checklist: [
-          { id: `c1_${i}`, text: 'Draft interface types and ADR schema', completed: true },
-          { id: `c2_${i}`, text: 'Implement Web Audio synthesis graph', completed: true },
-          { id: `c3_${i}`, text: 'Run unit test suite & vitest coverage', completed: i % 2 === 0 },
-        ],
       })
     }
 
-    const serialized = JSON.stringify(entries)
-    const bytes = new TextEncoder().encode(serialized).length
+    const saved = saveSessions(entries)
+    expect(saved).toBe(true)
+
+    const raw = localStorage.getItem('ff2_sessions')!
+    expect(raw).not.toBeNull()
+
+    const bytes = new TextEncoder().encode(raw).length
     const kb = bytes / 1024
 
-    console.log(`[Storage Benchmark] 1,000 entries size: ${kb.toFixed(2)} KB (${bytes} bytes)`)
+    console.log(`[Storage Benchmark] 1,000 production entries size: ${kb.toFixed(2)} KB (${bytes} bytes)`)
 
-    // Empirical finding: 1000 entries with 3 micro-steps each is ~380 KB (not 120 KB as estimated in roadmap)
+    // 1000 realistic entries are ~100-200 KB (well within 5MB browser quota)
     expect(kb).toBeLessThan(500)
-    expect(kb).toBeGreaterThan(200)
+    expect(kb).toBeGreaterThan(50)
+
+    const loaded = loadSessions()
+    expect(loaded).toHaveLength(1000)
+    expect(loaded[0].task).toBe(entries[0].task)
   })
 
-  it('demonstrates vulnerability when micro-step text is uncapped (Adversarial Stress)', () => {
-    const entries: SessionLogEntryV2[] = []
-    const maliciousLongText = 'A'.repeat(5000) // 5KB per micro-step text
+  it('demonstrates adversarial stress handling when task strings are uncapped vs sanitized in storage', () => {
+    const maliciousLongTask = 'A'.repeat(5000) // 5KB per task string
+    const dirtyEntries: Array<Record<string, unknown>> = []
 
     for (let i = 0; i < 500; i++) {
-      entries.push({
+      dirtyEntries.push({
         id: `s_${i}`,
         date: new Date().toISOString(),
         minutes: 25,
-        task: 'Normal task',
-        checklist: [
-          { id: `c1_${i}`, text: maliciousLongText, completed: false },
-          { id: `c2_${i}`, text: maliciousLongText, completed: false },
-          { id: `c3_${i}`, text: maliciousLongText, completed: false },
-        ],
+        task: maliciousLongTask,
       })
     }
 
-    const uncappedBytes = new TextEncoder().encode(JSON.stringify(entries)).length
+    const uncappedBytes = new TextEncoder().encode(JSON.stringify(dirtyEntries)).length
     const uncappedMb = uncappedBytes / (1024 * 1024)
-    console.log(`[Adversarial Storage] Uncapped 500 entries size: ${uncappedMb.toFixed(2)} MB`)
+    console.log(`[Adversarial Storage] Uncapped 500 entries raw size: ${uncappedMb.toFixed(2)} MB`)
+    expect(uncappedMb).toBeGreaterThan(2.0)
 
-    // This would exceed the 5MB localStorage quota!
-    expect(uncappedMb).toBeGreaterThan(5.0)
+    // Save through production saveSessions adapter
+    saveSessions(dirtyEntries as unknown as SessionLogEntry[])
+    const loaded = loadSessions()
+    expect(loaded).toHaveLength(500)
 
-    // With sanitization (e.g. text.slice(0, 100), max 3 items)
-    const sanitizedEntries = entries.map(e => ({
-      ...e,
-      task: e.task ? e.task.slice(0, 200) : null,
-      checklist: e.checklist?.slice(0, 3).map(c => ({
-        id: c.id.slice(0, 32),
-        text: c.text.slice(0, 100),
-        completed: Boolean(c.completed),
-      })),
-    }))
+    // Every task must be clamped to 200 chars
+    for (const entry of loaded) {
+      expect(entry.task?.length).toBeLessThanOrEqual(200)
+      expect(entry.task).toBe('A'.repeat(200))
+    }
 
-    const sanitizedBytes = new TextEncoder().encode(JSON.stringify(sanitizedEntries)).length
-    const sanitizedKb = sanitizedBytes / 1024
-    console.log(`[Sanitized Storage] Sanitized 500 entries size: ${sanitizedKb.toFixed(2)} KB`)
-    expect(sanitizedKb).toBeLessThan(300)
+    const storedBytes = new TextEncoder().encode(localStorage.getItem('ff2_sessions')!).length
+    const storedKb = storedBytes / 1024
+    console.log(`[Sanitized Storage] Production sanitized 500 entries size: ${storedKb.toFixed(2)} KB`)
+    expect(storedKb).toBeLessThan(200)
   })
 
-  it('validates robust boundary parser discarding malformed micro-steps without throwing', () => {
-    function sanitizeChecklistItem(raw: unknown): ChecklistItem | null {
-      if (typeof raw !== 'object' || raw === null) return null
-      const v = raw as Record<string, unknown>
-      if (typeof v.id !== 'string' || !v.id.trim()) return null
-      if (typeof v.text !== 'string') return null
-      const text = v.text.trim().slice(0, 140)
-      if (!text) return null
-      return {
-        id: v.id.slice(0, 64),
-        text,
-        completed: v.completed === true,
-      }
-    }
-
-    function sanitizeSessionEntry(raw: unknown): SessionLogEntryV2 | null {
-      if (typeof raw !== 'object' || raw === null) return null
-      const v = raw as Record<string, unknown>
-      if (typeof v.id !== 'string' || typeof v.date !== 'string') return null
-      if (typeof v.minutes !== 'number' || !Number.isFinite(v.minutes) || v.minutes < 0) return null
-
-      let checklist: ChecklistItem[] | undefined
-      if (Array.isArray(v.checklist)) {
-        checklist = v.checklist
-          .map(sanitizeChecklistItem)
-          .filter((item): item is ChecklistItem => item !== null)
-          .slice(0, 3)
-      }
-
-      return {
-        id: v.id.slice(0, 64),
-        date: v.date,
-        minutes: Math.round(v.minutes),
-        task: typeof v.task === 'string' && v.task.trim() ? v.task.trim().slice(0, 200) : null,
-        ...(checklist && checklist.length > 0 ? { checklist } : {}),
-      }
-    }
-
-    // Test malformed inputs
+  it('validates robust boundary parser discarding malformed sessions and adversarial payloads without throwing', () => {
+    // Test malformed inputs with production sanitizeSessionEntry / isSessionEntry
+    expect(isSessionEntry(null)).toBeNull()
     expect(sanitizeSessionEntry(null)).toBeNull()
+    expect(isSessionEntry(undefined)).toBeNull()
     expect(sanitizeSessionEntry(undefined)).toBeNull()
+    expect(isSessionEntry('invalid json')).toBeNull()
     expect(sanitizeSessionEntry('invalid json')).toBeNull()
+    expect(isSessionEntry(12345)).toBeNull()
+    expect(sanitizeSessionEntry(12345)).toBeNull()
+    expect(isSessionEntry([])).toBeNull()
+    expect(sanitizeSessionEntry([])).toBeNull()
+    expect(isSessionEntry({ id: '1', date: '2026-01-01', minutes: -5 })).toBeNull()
     expect(sanitizeSessionEntry({ id: '1', date: '2026-01-01', minutes: -5 })).toBeNull()
+    expect(isSessionEntry({ id: '1', date: '2026-01-01', minutes: NaN })).toBeNull()
     expect(sanitizeSessionEntry({ id: '1', date: '2026-01-01', minutes: NaN })).toBeNull()
+    expect(isSessionEntry({ id: '1', date: '2026-01-01', minutes: Infinity })).toBeNull()
+    expect(sanitizeSessionEntry({ id: '1', date: '2026-01-01', minutes: Infinity })).toBeNull()
+    expect(isSessionEntry({ id: '', date: '2026-01-01T00:00:00Z', minutes: 25 })).toBeNull()
+    expect(sanitizeSessionEntry({ id: '', date: '2026-01-01T00:00:00Z', minutes: 25 })).toBeNull()
+    expect(isSessionEntry({ id: '1', date: 'not-a-valid-date', minutes: 25 })).toBeNull()
+    expect(sanitizeSessionEntry({ id: '1', date: 'not-a-valid-date', minutes: 25 })).toBeNull()
 
-    // Test prototype pollution payload
-    const dirty = JSON.parse('{"id":"1","date":"2026-01-01","minutes":25,"__proto__":{"polluted":true},"checklist":[{"id":"c1","text":"normal","completed":true},{"id":"c2","text":"","completed":false},{"text":"missing id"}]}')
-    const clean = sanitizeSessionEntry(dirty)
+    // Test legacy / alias fields and coercion
+    const legacy = isSessionEntry({
+      id: 'leg_1',
+      startTime: '2026-09-01T10:00:00.000Z',
+      durationMinutes: '45',
+      task: '  Valid trimmed task  ',
+    })
+    expect(legacy).toEqual({
+      id: 'leg_1',
+      date: '2026-09-01T10:00:00.000Z',
+      minutes: 45,
+      task: 'Valid trimmed task',
+    })
+  })
+
+  it('resists prototype pollution attacks against production storage pipeline', () => {
+    // Malicious payload with __proto__, constructor, and prototype pollution attempts
+    const dirtyJson =
+      '{"id":"polluted_1","date":"2026-01-01T12:00:00.000Z","minutes":25,"task":"safe task","__proto__":{"polluted":true,"isAdmin":true},"constructor":{"prototype":{"injected":true}}}'
+    const dirtyObj = JSON.parse(dirtyJson)
+
+    const clean = sanitizeSessionEntry(dirtyObj)
     expect(clean).not.toBeNull()
-    expect(clean?.checklist?.length).toBe(1)
-    expect(clean?.checklist?.[0].text).toBe('normal')
+    expect(clean?.id).toBe('polluted_1')
+    expect(clean?.minutes).toBe(25)
+    expect(clean?.task).toBe('safe task')
+
+    // Confirm Object.prototype is untouched
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+    expect(globalProto['isAdmin']).toBeUndefined()
+    expect(globalProto['injected']).toBeUndefined()
+
+    // Confirm clean object does not have extra injected properties
+    const cleanRecord = clean as unknown as Record<string, unknown>
+    expect(cleanRecord['polluted']).toBeUndefined()
+    expect(cleanRecord['isAdmin']).toBeUndefined()
+
+    // Test through full persistence pipeline
+    saveSessions([dirtyObj] as unknown as SessionLogEntry[])
+    const loaded = loadSessions()
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0].id).toBe('polluted_1')
+    expect((loaded[0] as unknown as Record<string, unknown>)['polluted']).toBeUndefined()
+    expect(globalProto['polluted']).toBeUndefined()
+  })
+
+  it('enforces rolling limit capping at MAX_SESSIONS (1000) under sequential addSession operations', () => {
+    // Seed storage with 1,000 entries
+    const initial: SessionLogEntry[] = []
+    for (let i = 0; i < MAX_SESSIONS; i++) {
+      initial.push({
+        id: `init_${i}`,
+        date: new Date(Date.now() - (MAX_SESSIONS - i) * 60000).toISOString(),
+        minutes: 25,
+        task: `Initial task ${i}`,
+      })
+    }
+    saveSessions(initial)
+    expect(loadSessions()).toHaveLength(MAX_SESSIONS)
+
+    // Add 10 new sessions via addSession
+    for (let j = 0; j < 10; j++) {
+      const result = addSession({
+        id: `new_${j}`,
+        date: new Date().toISOString(),
+        minutes: 30,
+        task: `New Task ${j}`,
+      })
+      expect(result).toHaveLength(MAX_SESSIONS)
+    }
+
+    const finalSessions = loadSessions()
+    expect(finalSessions).toHaveLength(MAX_SESSIONS)
+    expect(finalSessions[0].id).toBe('new_9')
+    expect(finalSessions[9].id).toBe('new_0')
+    expect(finalSessions[10].id).toBe('init_0')
   })
 })
 
@@ -275,7 +320,11 @@ describe('Area 4: Ecosystem Serializers & Boundary Compliance', () => {
       return `"${str.replace(/"/g, '""')}"`
     }
 
-    function generateCsv(entries: SessionLogEntryV2[]): string {
+    interface CsvExportItem extends SessionLogEntry {
+      checklist?: Array<{ id: string; text: string; completed: boolean }>
+    }
+
+    function generateCsv(entries: CsvExportItem[]): string {
       const BOM = '\uFEFF'
       const header = 'id,date_iso,minutes,task,checklist_count'
       const rows = entries.map(e => [
@@ -288,7 +337,7 @@ describe('Area 4: Ecosystem Serializers & Boundary Compliance', () => {
       return [BOM + header, ...rows].join('\r\n')
     }
 
-    const testEntries: SessionLogEntryV2[] = [
+    const testEntries: CsvExportItem[] = [
       {
         id: 's1',
         date: '2026-09-01T12:00:00.000Z',

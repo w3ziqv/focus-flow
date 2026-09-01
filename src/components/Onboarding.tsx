@@ -10,7 +10,7 @@ interface OnboardingProps {
   onDone: () => void
 }
 
-export function Onboarding({ open, onDone }: OnboardingProps) {
+export function Onboarding({ open, onDone }: OnboardingProps): React.JSX.Element | null {
   const { t } = useI18n()
   const [step, setStep] = useState(0)
 

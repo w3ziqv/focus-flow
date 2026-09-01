@@ -2,13 +2,14 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "typecheck:node": "npx --package=typescript@5.8 tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run"

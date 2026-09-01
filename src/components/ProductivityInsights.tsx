@@ -13,7 +13,7 @@ const TIME_LABEL_KEYS: Record<TimeOfDay, 'stats.timeMorning' | 'stats.timeAftern
   night: 'stats.timeNight',
 }
 
-export function ProductivityInsights({ insights }: ProductivityInsightsProps) {
+export function ProductivityInsights({ insights }: ProductivityInsightsProps): React.JSX.Element | null {
   const { t } = useI18n()
 
   if (insights.totalSessions === 0) {

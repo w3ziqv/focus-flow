@@ -27,7 +27,7 @@ export function SoundSettingsDialog({
   onRemove,
   onVolumeChange,
   onClose,
-}: SoundSettingsDialogProps) {
+}: SoundSettingsDialogProps): React.JSX.Element {
   const { t } = useI18n()
   // On touch-primary devices the hardware volume buttons control media volume;
   // a draggable slider adds no value there.

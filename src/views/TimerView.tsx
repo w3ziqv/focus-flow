@@ -26,7 +26,7 @@ export function TimerView({
   onOpenSoundSettings,
   onEnterFocus,
   showGreeting,
-}: TimerViewProps) {
+}: TimerViewProps): React.JSX.Element {
   const { t, lang } = useI18n()
   const breakTip = useMemo(() => (engine.mode === 'focus' ? null : randomBreakTip()), [engine.mode])
   const greeting = useMemo(() => (showGreeting ? taskGreeting(lang) : null), [lang, showGreeting])

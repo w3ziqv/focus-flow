@@ -44,7 +44,7 @@ interface ArticleViewProps {
   onBack: () => void
 }
 
-export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps) {
+export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): React.JSX.Element | null {
   const { t, lang } = useI18n()
   const topic = topicById(topicId as never)
   const article = articleById(topic.id, articleId)

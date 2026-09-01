@@ -7,7 +7,7 @@ interface WeekChartProps {
   title?: string
 }
 
-export function WeekChart({ days, totalMinutes, title }: WeekChartProps) {
+export function WeekChart({ days, totalMinutes, title }: WeekChartProps): React.JSX.Element {
   const { t } = useI18n()
   const max = Math.max(...days.map((d) => d.minutes), 1)
   const isMonthly = days.length > 7

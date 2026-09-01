@@ -93,36 +93,12 @@ export function probeAudio(blob: Blob, timeoutMs = 10_000): Promise<boolean> {
   })
 }
 
-interface LegacyEntry {
-  id: string
-  name: string
-  dataUrl: string
-}
-
-function isLegacyEntry(value: unknown): value is LegacyEntry {
-  if (typeof value !== 'object' || value === null) return false
-  const v = value as Record<string, unknown>
-  return (
-    typeof v.id === 'string' && typeof v.name === 'string' && typeof v.dataUrl === 'string' && v.dataUrl.startsWith('data:')
-  )
-}
-
-/**
- * One-time move of pre-IndexedDB sounds (inline base64 in localStorage) into
- * IDB. Idempotent: migrated entries lose their dataUrl, so the next run finds
- * nothing to do. Entries that fail keep the data: URL and still play through
- * the runtime fallback.
- */
 export async function migrateLegacySounds(): Promise<void> {
   if (typeof indexedDB === 'undefined') return
-  let raw: unknown
-  try {
-    raw = JSON.parse(localStorage.getItem('ff2_sounds') ?? 'null')
-  } catch {
-    return
-  }
-  if (!Array.isArray(raw)) return
-  const legacy = raw.filter(isLegacyEntry)
+  const currentSounds = loadCustomSounds()
+  const legacy = currentSounds.filter((s): s is CustomSound & { dataUrl: string } =>
+    typeof s.dataUrl === 'string' && s.dataUrl.startsWith('data:')
+  )
   if (legacy.length === 0) return
 
   const migrated = new Set<string>()

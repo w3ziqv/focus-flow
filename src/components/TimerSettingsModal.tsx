@@ -19,7 +19,7 @@ const fieldClass =
 const stepButtonClass =
   'flex size-9 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
 
-export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSettingsModalProps) {
+export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSettingsModalProps): React.JSX.Element | null {
   const { t } = useI18n()
   const [draft, setDraft] = useState<Settings>(settings)
   const [wasOpen, setWasOpen] = useState(false)

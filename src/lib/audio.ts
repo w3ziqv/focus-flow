@@ -8,7 +8,7 @@ const SAMPLES: Record<'rain' | 'waves' | 'stream' | 'campfire', string> = {
   campfire: '/sounds/campfire.m4a',
 }
 
-class AudioEngine {
+export class AudioEngine {
   private ctx: AudioContext | null = null
   private ambientNodes: AudioScheduledSourceNode[] = []
   private ambientGain: GainNode | null = null
@@ -191,4 +191,4 @@ class AudioEngine {
   }
 }
 
-export const audio = new AudioEngine()
+export const audio: AudioEngine = new AudioEngine()

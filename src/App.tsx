@@ -369,7 +369,7 @@ function Shell() {
   )
 }
 
-export default function App() {
+export default function App(): React.JSX.Element {
   return (
     <I18nProvider>
       <Shell />

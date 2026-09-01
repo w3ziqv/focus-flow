@@ -7,7 +7,7 @@ interface TipsAccordionProps {
   categories: TipCategory[]
 }
 
-export function TipsAccordion({ categories }: TipsAccordionProps) {
+export function TipsAccordion({ categories }: TipsAccordionProps): React.JSX.Element {
   const { lang, t } = useI18n()
   const [openId, setOpenId] = useState<string | null>(null)
 

@@ -10,7 +10,7 @@ interface TopicViewProps {
   onOpenArticle: (articleId: string) => void
 }
 
-export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps) {
+export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): React.JSX.Element {
   const { t, lang } = useI18n()
   const topic = topicById(topicId as never)
   const Icon = topic.icon

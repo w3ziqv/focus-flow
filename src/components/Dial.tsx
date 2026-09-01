@@ -33,7 +33,7 @@ function ticks(): Array<{ x1: number; y1: number; x2: number; y2: number; major:
 
 const TICKS = ticks()
 
-export function Dial({ mode, remainingMs, totalMs, running, round, rounds, onToggle }: DialProps) {
+export function Dial({ mode, remainingMs, totalMs, running, round, rounds, onToggle }: DialProps): React.JSX.Element {
   const { t } = useI18n()
   const secondsLeft = Math.ceil(remainingMs / 1000)
   const minutes = Math.floor(secondsLeft / 60)

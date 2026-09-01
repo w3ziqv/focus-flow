@@ -1,6 +1,7 @@
-import type { CustomSound, InterfacePrefs, Lang, SessionSnapshot, Settings, Stats, Theme } from '../types'
+import type { CustomSound, InterfacePrefs, Lang, SessionLogEntry, SessionSnapshot, Settings, Stats, Theme } from '../types'
 
-export const MAX_SOUND_SIZE = 200 * 1024 * 1024
+export const MAX_SOUND_SIZE: number = 200 * 1024 * 1024
+export const MAX_SESSIONS: number = 1000
 
 const PREFIX = 'ff2_'
 const LEGACY_PREFIX = 'ff_'
@@ -8,6 +9,7 @@ const LEGACY_PREFIX = 'ff_'
 const KEYS = {
   settings: `${PREFIX}settings`,
   stats: `${PREFIX}stats`,
+  sessions: `${PREFIX}sessions`,
   lang: `${PREFIX}lang`,
   theme: `${PREFIX}theme`,
   sounds: `${PREFIX}sounds`,
@@ -64,7 +66,7 @@ function isSettings(value: unknown): Settings | null {
   }
 }
 
-export function weekStartOf(date = new Date()): string {
+export function weekStartOf(date: Date = new Date()): string {
   const d = new Date(date)
   const day = d.getDay()
   d.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
@@ -111,6 +113,34 @@ function isCustomSounds(value: unknown): CustomSound[] | null {
   return sounds
 }
 
+export function isSessionEntry(value: unknown): SessionLogEntry | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+
+  if (typeof v.id !== 'string' || v.id.trim() === '') return null
+  const id: string = v.id.trim().slice(0, 64)
+
+  const rawDate: unknown = typeof v.date === 'string' ? v.date : (typeof v.startTime === 'string' ? v.startTime : null)
+  if (typeof rawDate !== 'string' || rawDate.trim() === '') return null
+  const parsedDate = Date.parse(rawDate.trim())
+  if (Number.isNaN(parsedDate)) return null
+  const date: string = rawDate.trim()
+
+  let rawMinutes: unknown = v.minutes !== undefined ? v.minutes : v.durationMinutes
+  if (typeof rawMinutes === 'string') {
+    const parsed = Number(rawMinutes)
+    if (!Number.isNaN(parsed)) rawMinutes = parsed
+  }
+  if (typeof rawMinutes !== 'number' || !Number.isFinite(rawMinutes) || rawMinutes < 0) return null
+  const minutes: number = Math.round(rawMinutes)
+
+  const task: string | null = typeof v.task === 'string' && v.task.trim() !== '' ? v.task.trim().slice(0, 200) : null
+
+  return { id, date, minutes, task }
+}
+
+export { isSessionEntry as sanitizeSessionEntry }
+
 /* ---------- legacy migration (ff_* keys from the vanilla version) ---------- */
 
 function migrateLegacy(): void {
@@ -121,6 +151,11 @@ function migrateLegacy(): void {
   if (legacyStats) write(KEYS.stats, legacyStats)
   const legacySounds = read<CustomSound[]>(`${LEGACY_PREFIX}custom_sounds`, isCustomSounds)
   if (legacySounds) write(KEYS.sounds, legacySounds)
+  const legacySessions = read<SessionLogEntry[]>(`${LEGACY_PREFIX}sessions`, (value) => {
+    if (!Array.isArray(value)) return null
+    return value.map(isSessionEntry).filter((e): e is SessionLogEntry => e !== null).slice(0, MAX_SESSIONS)
+  })
+  if (legacySessions) write(KEYS.sessions, legacySessions)
   const legacyTheme = readString(`${LEGACY_PREFIX}theme`)
   if (legacyTheme === 'dark' || legacyTheme === 'light') write(KEYS.theme, legacyTheme)
   const legacyLang = readString(`${LEGACY_PREFIX}lang`)
@@ -157,6 +192,33 @@ export function saveStats(stats: Stats): void {
   write(KEYS.stats, stats)
 }
 
+export function loadSessions(): SessionLogEntry[] {
+  migrateLegacy()
+  return (
+    read<SessionLogEntry[]>(KEYS.sessions, (value) => {
+      if (!Array.isArray(value)) return null
+      return value.map(isSessionEntry).filter((e): e is SessionLogEntry => e !== null).slice(0, MAX_SESSIONS)
+    }) ?? []
+  )
+}
+
+export function saveSessions(sessions: SessionLogEntry[]): boolean {
+  if (!Array.isArray(sessions)) return false
+  const sanitized: SessionLogEntry[] = sessions
+    .map(isSessionEntry)
+    .filter((e): e is SessionLogEntry => e !== null)
+    .slice(0, MAX_SESSIONS)
+  return write(KEYS.sessions, sanitized)
+}
+
+export function addSession(entry: SessionLogEntry): SessionLogEntry[] {
+  const sanitized = isSessionEntry(entry)
+  const existing = loadSessions()
+  const updated = sanitized ? [sanitized, ...existing].slice(0, MAX_SESSIONS) : existing.slice(0, MAX_SESSIONS)
+  saveSessions(updated)
+  return updated
+}
+
 export function loadCustomSounds(): CustomSound[] {
   migrateLegacy()
   return read<CustomSound[]>(KEYS.sounds, isCustomSounds) ?? []
@@ -187,7 +249,7 @@ export function saveTheme(theme: Theme): void {
   write(KEYS.theme, theme)
 }
 
-export const DEFAULT_VOLUME = 0.7
+export const DEFAULT_VOLUME: number = 0.7
 
 export function loadVolume(): number {
   const stored = read<number>(KEYS.volume, (v) => (typeof v === 'number' && v >= 0 && v <= 1 ? v : null))

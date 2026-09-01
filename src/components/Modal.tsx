@@ -9,7 +9,7 @@ interface ModalProps {
   children: ReactNode
 }
 
-export function Modal({ open, title, onClose, children }: ModalProps) {
+export function Modal({ open, title, onClose, children }: ModalProps): React.JSX.Element | null {
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 

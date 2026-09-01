@@ -29,7 +29,7 @@ const GREETINGS: Record<Bucket, Record<Lang, string[]>> = {
   },
 }
 
-export function taskGreeting(lang: Lang, date = new Date()): string {
+export function taskGreeting(lang: Lang, date: Date = new Date()): string {
   const bucket = bucketOf(date)
   const variants = GREETINGS[bucket][lang]
   return variants[Math.floor(Math.random() * variants.length)]

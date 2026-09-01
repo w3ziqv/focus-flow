@@ -4,7 +4,7 @@ interface StatCardProps {
   emphasized?: boolean
 }
 
-export function StatCard({ value, label, emphasized = false }: StatCardProps) {
+export function StatCard({ value, label, emphasized = false }: StatCardProps): React.JSX.Element {
   return (
     <div className="flex flex-col items-center gap-1 sm:flex-1 sm:border-l sm:border-line sm:px-4 sm:first:border-l-0">
       <span

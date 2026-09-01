@@ -18,7 +18,7 @@ const variants: Record<Variant, string> = {
   icon: 'size-11 text-ink-2 hover:bg-sunken hover:text-ink',
 }
 
-export function PillButton({ variant = 'secondary', className = '', children, type, ...rest }: PillButtonProps) {
+export function PillButton({ variant = 'secondary', className = '', children, type, ...rest }: PillButtonProps): React.JSX.Element {
   return (
     <button type={type ?? 'button'} className={`${base} ${variants[variant]} ${className}`} {...rest}>
       {children}

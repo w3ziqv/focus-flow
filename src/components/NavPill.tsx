@@ -7,7 +7,7 @@ interface NavPillProps {
   onOpenSettings: () => void
 }
 
-export function NavPill({ view, onView, onOpenSettings }: NavPillProps) {
+export function NavPill({ view, onView, onOpenSettings }: NavPillProps): React.JSX.Element {
   const { t } = useI18n()
 
   const linkClass = (active: boolean) =>

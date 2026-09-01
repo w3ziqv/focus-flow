@@ -6,7 +6,7 @@ import { dict } from './translations'
 import type { TranslationKey } from './translations'
 
 
-type I18nContextValue = {
+export type I18nContextValue = {
   lang: Lang
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string
   setLang: (lang: Lang) => void
@@ -14,7 +14,7 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [lang, setLangState] = useState<Lang>(() => loadLang() ?? 'pl')
 
   useEffect(() => {

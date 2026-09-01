@@ -8,7 +8,7 @@ interface TaskFieldProps {
   onChange: (value: string) => void
 }
 
-export function TaskField({ phase, value, greeting, onChange }: TaskFieldProps) {
+export function TaskField({ phase, value, greeting, onChange }: TaskFieldProps): React.JSX.Element {
   const { t } = useI18n()
 
   if (phase === 'done' && value.trim() !== '') {

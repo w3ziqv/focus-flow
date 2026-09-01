@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
 import fs from 'node:fs'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, type Plugin, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -24,7 +24,7 @@ const fontPreload = (): Plugin => ({
   },
 })
 
-export default defineConfig({
+const config: UserConfig = defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
@@ -83,4 +83,6 @@ export default defineConfig({
     setupFiles: ['src/test/setup.ts'],
   },
 })
+
+export default config
 

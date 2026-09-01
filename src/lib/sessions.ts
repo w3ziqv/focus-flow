@@ -1,42 +1,13 @@
 import type { SessionLogEntry } from '../types'
+import {
+  addSession,
+  loadSessions,
+  MAX_SESSIONS,
+  saveSessions,
+} from './storage'
 
-const KEY = 'ff2_sessions'
-const MAX_ENTRIES = 200
-
-function isEntry(value: unknown): SessionLogEntry | null {
-  if (typeof value !== 'object' || value === null) return null
-  const v = value as Record<string, unknown>
-  if (typeof v.id !== 'string' || typeof v.date !== 'string') return null
-  if (typeof v.minutes !== 'number' || !Number.isFinite(v.minutes)) return null
-  return {
-    id: v.id,
-    date: v.date,
-    minutes: Math.max(0, Math.round(v.minutes)),
-    task: typeof v.task === 'string' && v.task.trim() !== '' ? v.task.slice(0, 200) : null,
-  }
-}
-
-export function loadSessions(): SessionLogEntry[] {
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (raw === null) return []
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.map(isEntry).filter((e): e is SessionLogEntry => e !== null)
-  } catch {
-    return []
-  }
-}
-
-export function addSession(entry: SessionLogEntry): SessionLogEntry[] {
-  const sessions = [entry, ...loadSessions()].slice(0, MAX_ENTRIES)
-  try {
-    localStorage.setItem(KEY, JSON.stringify(sessions))
-  } catch {
-    // Storage full — the log is best-effort; stats remain authoritative.
-  }
-  return sessions
-}
+export type { SessionLogEntry }
+export { addSession, loadSessions, MAX_SESSIONS, saveSessions }
 
 export interface LogDay {
   /** date string used as key (toDateString) */

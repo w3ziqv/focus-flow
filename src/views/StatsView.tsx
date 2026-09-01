@@ -25,7 +25,7 @@ interface StatsViewProps {
 
 type Range = '7' | '30'
 
-export function StatsView({ stats, lang }: StatsViewProps) {
+export function StatsView({ stats, lang }: StatsViewProps): React.JSX.Element {
   const { t } = useI18n()
   const [sessions] = useState(loadSessions)
   const [range, setRange] = useState<Range>('7')
