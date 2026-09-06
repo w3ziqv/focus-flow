@@ -4,6 +4,7 @@ import {
   addSession,
   DEFAULT_INTERFACE,
   DEFAULT_SETTINGS,
+  DEFAULT_SOUND_PREFERENCES,
   DEFAULT_VOLUME,
   isSessionEntry,
   loadCustomSounds,
@@ -14,10 +15,13 @@ import {
   loadSession,
   loadSessions,
   loadSettings,
+  loadSoundPreferences,
   loadStats,
   loadTheme,
   loadVolume,
   MAX_SESSIONS,
+  MAX_TONE_WARMTH,
+  MIN_TONE_WARMTH,
   sanitizeSessionEntry,
   saveCustomSounds,
   saveInstallDismissed,
@@ -27,6 +31,7 @@ import {
   saveSession,
   saveSessions,
   saveSettings,
+  saveSoundPreferences,
   saveStats,
   saveTheme,
   saveVolume,
@@ -644,3 +649,174 @@ describe('onboarding and install flags', () => {
     expect(loadInstallDismissed()).toBe(false)
   })
 })
+
+describe('loadSoundPreferences & saveSoundPreferences (Schema v1.2)', () => {
+  it('returns default sound preferences when storage is empty', () => {
+    expect(loadSoundPreferences()).toEqual(DEFAULT_SOUND_PREFERENCES)
+  })
+
+  it('restores valid custom sound preferences from ff2_sound_prefs', () => {
+    const prefs = {
+      baseTexture: 'rain' as const,
+      binauralMode: 'alpha' as const,
+      toneWarmthCutoff: 650,
+      volume: 0.85,
+    }
+    expect(saveSoundPreferences(prefs)).toBe(true)
+    expect(loadSoundPreferences()).toEqual(prefs)
+  })
+
+  it('clamps toneWarmthCutoff to [MIN_TONE_WARMTH, MAX_TONE_WARMTH]', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'waves',
+        binauralMode: 'theta',
+        toneWarmthCutoff: 9999,
+        volume: 0.5,
+      }),
+    )
+    expect(loadSoundPreferences().toneWarmthCutoff).toBe(MAX_TONE_WARMTH)
+
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'waves',
+        binauralMode: 'theta',
+        toneWarmthCutoff: -50,
+        volume: 0.5,
+      }),
+    )
+    expect(loadSoundPreferences().toneWarmthCutoff).toBe(MIN_TONE_WARMTH)
+  })
+
+  it('clamps volume to [0, 1]', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'brown',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: 2.5,
+      }),
+    )
+    expect(loadSoundPreferences().volume).toBe(1)
+
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'brown',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: -0.5,
+      }),
+    )
+    expect(loadSoundPreferences().volume).toBe(0)
+  })
+
+  it('maps legacy noise to brown texture', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'noise',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: 0.7,
+      }),
+    )
+    expect(loadSoundPreferences().baseTexture).toBe('brown')
+  })
+
+  it('validates custom sound ID and falls back corrupted custom sound to brown', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'custom:my_valid_id',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: 0.7,
+      }),
+    )
+    expect(loadSoundPreferences().baseTexture).toBe('custom:my_valid_id')
+
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'custom:',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: 0.7,
+      }),
+    )
+    expect(loadSoundPreferences().baseTexture).toBe('brown')
+  })
+
+  it('falls back unrecognized baseTexture to none', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'unknown_synth_sound',
+        binauralMode: 'off',
+        toneWarmthCutoff: 800,
+        volume: 0.7,
+      }),
+    )
+    expect(loadSoundPreferences().baseTexture).toBe('none')
+  })
+
+  it('validates binauralMode and falls back invalid values to off', () => {
+    localStorage.setItem(
+      'ff2_sound_prefs',
+      JSON.stringify({
+        baseTexture: 'none',
+        binauralMode: 'gamma_invalid',
+        toneWarmthCutoff: 800,
+        volume: 0.7,
+      }),
+    )
+    expect(loadSoundPreferences().binauralMode).toBe('off')
+  })
+
+  it('falls back to default preferences when JSON is corrupted', () => {
+    localStorage.setItem('ff2_sound_prefs', '{"baseTexture": invalid json}')
+    expect(loadSoundPreferences()).toEqual(DEFAULT_SOUND_PREFERENCES)
+  })
+
+  it('resists prototype pollution attacks against ff2_sound_prefs', () => {
+    const malicious = JSON.stringify({
+      baseTexture: 'pink',
+      binauralMode: 'alpha',
+      toneWarmthCutoff: 800,
+      volume: 0.7,
+      __proto__: { polluted: true },
+      constructor: { prototype: { injected: true } },
+    })
+    localStorage.setItem('ff2_sound_prefs', malicious)
+
+    const loaded = loadSoundPreferences()
+    expect(loaded.baseTexture).toBe('pink')
+    expect(loaded.binauralMode).toBe('alpha')
+
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+    expect(globalProto['injected']).toBeUndefined()
+  })
+
+  it('migrates legacy ff2_volume when ff2_sound_prefs is absent', () => {
+    localStorage.setItem('ff2_volume', '0.92')
+    const loaded = loadSoundPreferences()
+    expect(loaded.volume).toBe(0.92)
+    expect(loaded.baseTexture).toBe('none')
+  })
+
+  it('saveSoundPreferences also synchronizes legacy ff2_volume', () => {
+    saveSoundPreferences({
+      baseTexture: 'waves',
+      binauralMode: 'theta',
+      toneWarmthCutoff: 900,
+      volume: 0.45,
+    })
+    expect(loadVolume()).toBe(0.45)
+  })
+})
+

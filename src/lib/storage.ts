@@ -1,4 +1,17 @@
-import type { CustomSound, InterfacePrefs, Lang, SessionLogEntry, SessionSnapshot, Settings, Stats, Theme } from '../types'
+import {
+  DEFAULT_SOUND_PREFERENCES,
+  type BaseSoundTexture,
+  type BinauralMode,
+  type CustomSound,
+  type InterfacePrefs,
+  type Lang,
+  type SessionLogEntry,
+  type SessionSnapshot,
+  type Settings,
+  type SoundPreferences,
+  type Stats,
+  type Theme,
+} from '../types'
 
 export const MAX_SOUND_SIZE: number = 200 * 1024 * 1024
 export const MAX_SESSIONS: number = 1000
@@ -14,6 +27,7 @@ const KEYS = {
   theme: `${PREFIX}theme`,
   sounds: `${PREFIX}sounds`,
   volume: `${PREFIX}volume`,
+  soundPrefs: `${PREFIX}sound_prefs`,
   interface: `${PREFIX}interface`,
   migrated: `${PREFIX}migrated`,
   onboardingDone: `${PREFIX}onboardingDone`,
@@ -259,6 +273,100 @@ export function loadVolume(): number {
 export function saveVolume(volume: number): void {
   write(KEYS.volume, volume)
 }
+
+export { DEFAULT_SOUND_PREFERENCES }
+export const DEFAULT_TONE_WARMTH: number = 800
+export const MIN_TONE_WARMTH: number = 200
+export const MAX_TONE_WARMTH: number = 1200
+
+const VALID_BUILTIN_TEXTURES = new Set<string>(['none', 'brown', 'pink', 'rain', 'waves'])
+const VALID_BINAURAL_MODES = new Set<string>(['off', 'alpha', 'theta'])
+
+export function isSoundPreferences(value: unknown): SoundPreferences | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+
+  // 1. Base Texture validation & fallback
+  let baseTexture: BaseSoundTexture = DEFAULT_SOUND_PREFERENCES.baseTexture
+  const rawTexture = v.baseTexture ?? v.texture
+  if (typeof rawTexture === 'string') {
+    const trimmed = rawTexture.trim()
+    if (VALID_BUILTIN_TEXTURES.has(trimmed)) {
+      baseTexture = trimmed as BaseSoundTexture
+    } else if (trimmed === 'noise') {
+      baseTexture = 'brown'
+    } else if (trimmed.startsWith('custom:')) {
+      const customId = trimmed.slice(7).trim()
+      if (customId.length > 0 && customId.length <= 64) {
+        baseTexture = `custom:${customId}`
+      } else {
+        // Corrupt custom sound metadata falls back to brown noise per ROADMAP spec
+        baseTexture = 'brown'
+      }
+    } else {
+      // Unrecognized string -> fallback to none
+      baseTexture = 'none'
+    }
+  }
+
+  // 2. Binaural Mode validation
+  let binauralMode: BinauralMode = DEFAULT_SOUND_PREFERENCES.binauralMode
+  const rawBinaural = v.binauralMode ?? v.binaural
+  if (typeof rawBinaural === 'string') {
+    const trimmed = rawBinaural.trim()
+    if (VALID_BINAURAL_MODES.has(trimmed)) {
+      binauralMode = trimmed as BinauralMode
+    } else if (trimmed === 'none') {
+      binauralMode = 'off'
+    }
+  }
+
+  // 3. Tone Warmth Cutoff (200 - 1200 Hz)
+  let toneWarmthCutoff = DEFAULT_TONE_WARMTH
+  const rawWarmth = v.toneWarmthCutoff ?? v.toneWarmth
+  if (typeof rawWarmth === 'number' && Number.isFinite(rawWarmth)) {
+    toneWarmthCutoff = Math.min(MAX_TONE_WARMTH, Math.max(MIN_TONE_WARMTH, Math.round(rawWarmth)))
+  }
+
+  // 4. Volume (0.0 - 1.0)
+  let volume = DEFAULT_VOLUME
+  if (typeof v.volume === 'number' && Number.isFinite(v.volume)) {
+    volume = Math.min(1, Math.max(0, Math.round(v.volume * 100) / 100))
+  }
+
+  // Clean object stripping prototype pollution
+  return {
+    baseTexture,
+    binauralMode,
+    toneWarmthCutoff,
+    volume,
+  }
+}
+
+export function loadSoundPreferences(): SoundPreferences {
+  migrateLegacy()
+  const stored = read<SoundPreferences>(KEYS.soundPrefs, isSoundPreferences)
+  if (stored) return stored
+  const legacyVol = loadVolume()
+  return {
+    ...DEFAULT_SOUND_PREFERENCES,
+    volume: legacyVol,
+  }
+}
+
+export function saveSoundPreferences(prefs: SoundPreferences): boolean {
+  const sanitized = isSoundPreferences(prefs)
+  if (!sanitized) return false
+  const ok = write(KEYS.soundPrefs, sanitized)
+  if (ok) {
+    saveVolume(sanitized.volume)
+  }
+  return ok
+}
+
+export const isSoundPrefs: (value: unknown) => SoundPreferences | null = isSoundPreferences
+export const loadSoundPrefs: () => SoundPreferences = loadSoundPreferences
+export const saveSoundPrefs: (prefs: SoundPreferences) => boolean = saveSoundPreferences
 
 export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showGreeting: true }
 

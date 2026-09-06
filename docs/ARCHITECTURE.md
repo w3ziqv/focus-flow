@@ -279,10 +279,17 @@ if a real accessibility need surfaces.
   and every dialog (see the design showcase set).
 - Not yet: end-to-end flows; add when the UI surface stabilises.
 
-## 5. Roadmap (planned, in order of value)
+## 5. Roadmap (6-Stage Evolution)
 
-1. **v2.1 — stats depth**: monthly view, session log, streak calendar.
-2. **v2.1 — tasks**: optional task list per session (today: single task).
-3. **v2.2 — import formats**: accept generic Pomodoro app exports.
-4. **v3 — desktop**: Tauri 2 wrapper (tray, global shortcut, autostart,
-   updater) once the trigger in ADR-006 fires; storage adapter swaps to files.
+1. **Stage 1: v2.1 — Infrastructure & Toolchain Hardening** (*Completed*):
+   TypeScript 7.0 (Project Corsa Native Go compiler), strict compiler flags, unified storage adapter with prototype pollution stripping and boundary sanitization.
+2. **Stage 2: v2.2 — Enhanced Audio Engine & Sound Synthesis** (*Current*):
+   Pure on-device Web Audio mathematical synthesis (Kellet pink noise, Leaky brown noise with spatial breathing LFO, procedural soft rain, ocean waves with asymmetric tidal LFO, Tibetan singing bowl modal chime with 5 inharmonic partials), binaural beats (Alpha/Theta), tone warmth Biquad filter, dual-layer sound palette, storage schema v1.2 (`ff2_sound_prefs`), 0 KB static audio asset footprint.
+3. **Stage 3: v2.3 — Task Management & Productivity Analytics**:
+   Ephemeral micro-steps (max 3), Zen Pebble focus momentum, reflective session summaries, session log management.
+4. **Stage 4: v2.4 — Data Portability, State Archival & Interoperability**:
+   Self-sovereign data vault, full JSON export/import schema v2.0 (`BackupFileV2`), standard formats (CSV, iCalendar).
+5. **Stage 5: v2.5 — Atmospheric Immersion, Fluid Theming & Sensory Polish**:
+   Dynamic ambient themes (Warm Parchment, Muted Moss, Deep Ochre), tactile micro-interactions, responsive typography.
+6. **Stage 6: v3.0 — Native Desktop Ecosystem & P2P Synchronicity**:
+   Tauri 2 native desktop wrappers (tray, global shortcuts, autostart), local-first file persistence, zero-server local P2P CRDT sync.

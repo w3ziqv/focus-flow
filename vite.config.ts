@@ -73,7 +73,7 @@ const config: UserConfig = defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,m4a}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         navigateFallback: '/index.html',
       },
     }),

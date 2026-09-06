@@ -5,7 +5,7 @@ import { Dial } from '../components/Dial'
 import { SegmentedTabs } from '../components/SegmentedTabs'
 import { TaskField } from '../components/TaskField'
 import { PillButton } from '../components/PillButton'
-import type { AmbientSound, Mode } from '../types'
+import type { AmbientSound, BinauralMode, Mode } from '../types'
 import type { TimerEngine } from '../lib/timer'
 import { useMemo } from 'react'
 import { Maximize2, Pause, Play, RotateCcw, Settings2, Volume2 } from 'lucide-react'
@@ -13,6 +13,7 @@ import { Maximize2, Pause, Play, RotateCcw, Settings2, Volume2 } from 'lucide-re
 interface TimerViewProps {
   engine: TimerEngine
   ambient: AmbientSound
+  binaural?: BinauralMode
   onOpenSettings: () => void
   onOpenSoundSettings: () => void
   onEnterFocus: () => void
@@ -22,6 +23,7 @@ interface TimerViewProps {
 export function TimerView({
   engine,
   ambient,
+  binaural = 'off',
   onOpenSettings,
   onOpenSoundSettings,
   onEnterFocus,
@@ -99,7 +101,7 @@ export function TimerView({
         >
           <Volume2 size={15} aria-hidden="true" />
           {t('sound.settings')}
-          {ambient !== 'none' && (
+          {(ambient !== 'none' || (binaural && binaural !== 'off')) && (
             <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--ac)]" />
           )}
         </button>

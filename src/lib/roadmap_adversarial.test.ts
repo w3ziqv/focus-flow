@@ -3,11 +3,14 @@ import type { SessionLogEntry } from '../types'
 import {
   addSession,
   isSessionEntry,
+  isSoundPreferences,
   loadSessions,
+  loadSoundPreferences,
   MAX_SESSIONS,
   sanitizeSessionEntry,
   saveSessions,
 } from './storage'
+import { getBinauralConfig, getSingingBowlPartials } from './audio'
 
 beforeEach(() => {
   localStorage.clear()
@@ -243,19 +246,68 @@ describe('Area 2: Web Audio Math & Numerical Stability', () => {
 
   it('verifies Tibetan Singing Bowl partial ratios and harmonic intervals', () => {
     const f0 = 216.0
-    const partials = [
-      { name: 'f1 (Fundamental)', ratio: 1.000, freq: f0 * 1.000, decay: 6.0 },
-      { name: 'f2 (Prime)', ratio: 1.414, freq: f0 * 1.414, decay: 4.5 },
-      { name: 'f3 (Tierce)', ratio: 2.000, freq: f0 * 2.000, decay: 3.2 },
-      { name: 'f4 (Septimal)', ratio: 2.760, freq: f0 * 2.760, decay: 2.0 },
-      { name: 'f5 (High Metal)', ratio: 5.404, freq: f0 * 5.404, decay: 0.8 },
-    ]
+    const partials = getSingingBowlPartials(f0)
 
     expect(partials[0].freq).toBeCloseTo(216.0, 1)
     expect(partials[1].freq).toBeCloseTo(305.4, 1)
     expect(partials[2].freq).toBeCloseTo(432.0, 1)
     expect(partials[3].freq).toBeCloseTo(596.2, 1)
     expect(partials[4].freq).toBeCloseTo(1167.3, 1)
+    expect(partials[0].decay).toBe(6.0)
+    expect(partials[1].decay).toBe(4.5)
+  })
+
+  it('verifies Binaural Beat carrier frequencies and delta entrainment values', () => {
+    const alpha = getBinauralConfig('alpha')
+    expect(alpha).not.toBeNull()
+    expect(alpha?.leftFreq).toBe(216)
+    expect(alpha?.rightFreq).toBe(226)
+    expect(alpha?.deltaFreq).toBe(10)
+
+    const theta = getBinauralConfig('theta')
+    expect(theta).not.toBeNull()
+    expect(theta?.leftFreq).toBe(180)
+    expect(theta?.rightFreq).toBe(186)
+    expect(theta?.deltaFreq).toBe(6)
+
+    expect(getBinauralConfig('off')).toBeNull()
+  })
+
+  it('resists adversarial inputs and prototype pollution in Schema v1.2 sound preferences', () => {
+    // Malicious object with NaN, Infinity, and prototype pollution attempts
+    const dirtyObj = {
+      baseTexture: 'waves',
+      binauralMode: 'alpha',
+      toneWarmthCutoff: NaN,
+      volume: Infinity,
+      __proto__: { polluted: true, isAdmin: true },
+      constructor: { prototype: { injected: true } },
+    }
+
+    const clean = isSoundPreferences(dirtyObj)
+    expect(clean).not.toBeNull()
+    expect(clean?.baseTexture).toBe('waves')
+    expect(clean?.binauralMode).toBe('alpha')
+    // NaN and Infinity fallback to default ranges
+    expect(clean?.toneWarmthCutoff).toBe(800)
+    expect(clean?.volume).toBe(0.7)
+
+    // Verify global prototype was not polluted
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+    expect(globalProto['isAdmin']).toBeUndefined()
+    expect(globalProto['injected']).toBeUndefined()
+
+    // Test through full persistence pipeline with dirty JSON string
+    const dirtyJson =
+      '{"baseTexture":"waves","binauralMode":"alpha","toneWarmthCutoff":"not_a_number","volume":-99,"__proto__":{"polluted":true}}'
+    localStorage.setItem('ff2_sound_prefs', dirtyJson)
+    const loaded = loadSoundPreferences()
+    expect(loaded.baseTexture).toBe('waves')
+    expect(loaded.binauralMode).toBe('alpha')
+    expect(loaded.toneWarmthCutoff).toBe(800)
+    expect(loaded.volume).toBe(0)
+    expect(globalProto['polluted']).toBeUndefined()
   })
 })
 

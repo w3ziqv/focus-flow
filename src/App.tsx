@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { AmbientSound, CustomSound, PlayableSound, Theme } from './types'
+import type { AmbientSound, BaseSoundTexture, BinauralMode, CustomSound, PlayableSound, SoundPreferences, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
@@ -10,13 +10,13 @@ import {
   loadCustomSounds,
   loadInterface,
   loadOnboardingDone,
+  loadSoundPreferences,
   loadTheme,
-  loadVolume,
   MAX_SOUND_SIZE,
   saveCustomSounds,
   saveInterface,
+  saveSoundPreferences,
   saveTheme,
-  saveVolume,
   systemTheme,
 } from './lib/storage'
 import { last7Days, sumMinutes } from './lib/stats'
@@ -58,11 +58,18 @@ function Shell() {
   const [focusOpen, setFocusOpen] = useState(false)
   const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
   const [soundUrls, setSoundUrls] = useState<Record<string, string>>({})
-  const [ambient, setAmbient] = useState<AmbientSound>('none')
-  const [volume, setVolume] = useState<number>(loadVolume)
+  const [soundPrefs, setSoundPrefs] = useState<SoundPreferences>(loadSoundPreferences)
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
   const [onboardingDone, setOnboardingDone] = useState(loadOnboardingDone)
   const messageTimer = useRef<number | undefined>(undefined)
+
+  const updateSoundPrefs = useCallback((patch: Partial<SoundPreferences>) => {
+    setSoundPrefs((prev) => {
+      const next: SoundPreferences = { ...prev, ...patch }
+      saveSoundPreferences(next)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     captureInstallPrompt()
@@ -113,12 +120,21 @@ function Shell() {
   )
 
   useEffect(() => {
-    audio.setAmbient(ambient, playableSounds)
-  }, [ambient, playableSounds])
+    audio.applyPreferences(soundPrefs, playableSounds)
+  }, [soundPrefs, playableSounds])
 
+  const isFirstMount = useRef(true)
   useEffect(() => {
-    audio.setVolume(volume)
-  }, [volume])
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
+    if (engine.running) {
+      audio.startSession()
+    } else {
+      audio.pauseSession()
+    }
+  }, [engine.running])
 
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', interfacePrefs.reduceMotion)
@@ -204,15 +220,45 @@ function Shell() {
       const next = sounds.filter((sound) => sound.id !== id)
       saveCustomSounds(next)
       setSounds(next)
-      setAmbient((current) => (current === `custom:${id}` ? 'none' : current))
+      setSoundPrefs((prev) => {
+        if (prev.baseTexture === `custom:${id}`) {
+          const updated = { ...prev, baseTexture: 'none' as const }
+          saveSoundPreferences(updated)
+          return updated
+        }
+        return prev
+      })
     },
     [sounds],
   )
 
-  const changeVolume = useCallback((next: number) => {
-    setVolume(next)
-    saveVolume(next)
-  }, [])
+  const setAmbientSound = useCallback(
+    (sound: AmbientSound) => {
+      updateSoundPrefs({ baseTexture: sound as BaseSoundTexture })
+    },
+    [updateSoundPrefs],
+  )
+
+  const setBinauralMode = useCallback(
+    (mode: BinauralMode) => {
+      updateSoundPrefs({ binauralMode: mode })
+    },
+    [updateSoundPrefs],
+  )
+
+  const setToneWarmth = useCallback(
+    (warmth: number) => {
+      updateSoundPrefs({ toneWarmthCutoff: warmth })
+    },
+    [updateSoundPrefs],
+  )
+
+  const changeVolume = useCallback(
+    (next: number) => {
+      updateSoundPrefs({ volume: next })
+    },
+    [updateSoundPrefs],
+  )
 
   const notify = useCallback(
     (kind: 'focus' | 'break') => {
@@ -266,7 +312,8 @@ function Shell() {
         {view === 'timer' ? (
           <TimerView
             engine={engine}
-            ambient={ambient}
+            ambient={soundPrefs.baseTexture}
+            binaural={soundPrefs.binauralMode}
             onOpenSettings={() => setTimerSettingsOpen(true)}
             onOpenSoundSettings={() => setSoundSettingsOpen(true)}
             onEnterFocus={() => setFocusOpen(true)}
@@ -338,14 +385,18 @@ function Shell() {
 
       <SoundSettingsDialog
         open={soundSettingsOpen}
-        current={ambient}
+        current={soundPrefs.baseTexture}
+        binaural={soundPrefs.binauralMode}
+        toneWarmth={soundPrefs.toneWarmthCutoff}
+        volume={soundPrefs.volume}
         sounds={sounds}
         message={soundMessage}
-        volume={volume}
-        onChange={setAmbient}
+        onChange={setAmbientSound}
+        onBinauralChange={setBinauralMode}
+        onToneWarmthChange={setToneWarmth}
+        onVolumeChange={changeVolume}
         onAddFile={addSoundFile}
         onRemove={removeSound}
-        onVolumeChange={changeVolume}
         onClose={() => setSoundSettingsOpen(false)}
       />
 

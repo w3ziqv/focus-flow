@@ -50,14 +50,35 @@ export interface SessionLogEntry {
   task: string | null
 }
 
-export type AmbientSound =
+export type BaseSoundTexture =
   | 'none'
+  | 'brown'
+  | 'pink'
   | 'rain'
   | 'waves'
+  | `custom:${string}`
+
+export type BinauralMode = 'off' | 'alpha' | 'theta'
+
+export interface SoundPreferences {
+  baseTexture: BaseSoundTexture
+  binauralMode: BinauralMode
+  toneWarmthCutoff: number // 200 to 1200 Hz
+  volume: number // 0.0 to 1.0
+}
+
+export const DEFAULT_SOUND_PREFERENCES: SoundPreferences = {
+  baseTexture: 'none',
+  binauralMode: 'off',
+  toneWarmthCutoff: 800,
+  volume: 0.7,
+}
+
+export type AmbientSound =
+  | BaseSoundTexture
   | 'stream'
   | 'campfire'
   | 'noise'
-  | `custom:${string}`
 
 export interface Tip {
   title: string
