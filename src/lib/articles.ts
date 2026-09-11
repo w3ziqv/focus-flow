@@ -343,7 +343,7 @@ export const ARTICLES: Record<string, Article> = {
       {
         hPl: 'Czego unikać',
         hEn: 'What to avoid',
-        pPl: 'Blok bez konkretu zamieni się w „oddychanie" w mediach społecznościowych. Elastyczne „kiedy się znajdzie czas" nigdy się nie znajduje. Wielogodzinne bloki bez przerw obniżają jakość — 90 minut to realny limit',
+        pPl: 'Blok bez konkretu zamieni się w „oddychanie" w mediach społecznościowych. Elastyczne „kiedy się znajdzie czas" nigdy się nie znajduje. Wielogodzinne bloki bez przerw obniżają jakość — 90 minut to realny limit.',
         pEn: 'A block without a concrete goal turns into social-media breathing. Flexible "when I find time" never gets found. Multi-hour blocks without breaks lower quality — 90 minutes is a real ceiling.',
       },
     ],
@@ -410,6 +410,538 @@ export const ARTICLES: Record<string, Article> = {
     sourcesPl: ['Kabat-Zinn, „Full Catastrophe Living" (1990)', 'Zeidan i in., 2010 (krótka praktyka uważności)', 'Tang i in., 2007 (PNAS — IBMT)'],
     sourcesEn: ['Kabat-Zinn, "Full Catastrophe Living" (1990)', 'Zeidan et al., 2010 (brief mindfulness practice)', 'Tang et al., 2007 (PNAS — IBMT)'],
   },
+  'interleaving-practice': {
+    id: 'interleaving-practice',
+    topicId: 'learning',
+    titlePl: 'Przeplatanie materiału: dlaczego bloki dają złudzenie nauki',
+    titleEn: 'Interleaved practice: why blocked study is an illusion',
+    introPl: 'Uczenie się jednego tematu przez kilka godzin daje szybkie poczucie biegłości, które błyskawicznie znika. Przeplatanie różnych kategorii problemów zmusza mózg do aktywnego dobierania strategii, budując trwałą strukturę wiedzy.',
+    introEn: 'Studying one topic for hours creates a quick feeling of mastery that evaporates just as quickly. Interleaving distinct problem categories forces the brain to actively select strategies, building durable knowledge structures.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'W nauce blokowej (AAAA, BBBB) mózg po pierwszym zadaniu przestaje decydować, jakiej metody użyć — wykonuje jedynie mechaniczną procedurę. Przeplatanie (ABAB, CDCD) wprowadza pożądaną trudność: przy każdym kolejnym problemie musisz najpierw rozpoznać jego strukturę głęboką, a dopiero potem dobrać rozwiązanie. Badania pokazują, że choć podczas sesji przeplatanej popełnia się więcej błędów, retencja po tygodniu jest nawet o kilkadziesiąt procent wyższa niż przy nauce blokowej.',
+        pEn: 'In blocked practice (AAAA, BBBB), after the first problem the brain stops deciding which method to apply — it merely executes mechanical procedures. Interleaving (ABAB, CDCD) introduces desirable difficulty: with each problem you must first diagnose its deep structure before retrieving the right solution. Research demonstrates that despite higher error rates during the practice session, retention after one week is dramatically higher than with blocked study.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Wybierz 2–3 pokrewne, ale odrębne zagadnienia na dany blok nauki (np. dwa różne typy równań lub dwie koncepcje gramatyczne). 2. Ustaw sesję Focus Flow na 25 minut. 3. Wymieszaj zadania w losowej kolejności, zamiast rozwiązywać je rozdział po rozdziale. 4. Przy każdym zadaniu nazwij na głos lub zapisz regułę, dlaczego wybierasz daną metodę. 5. W 5-minutowej przerwie zweryfikuj wyłącznie trafność wybranej strategii, nie tylko poprawność wyniku liczbowego.',
+        pEn: '1. Select 2–3 related but distinct topics for your study block (such as two equation types or grammatical structures). 2. Set a 25-minute Focus Flow session. 3. Shuffle problems in a random sequence instead of working chapter by chapter. 4. For each problem, write down or state aloud why this specific method applies. 5. In the 5-minute break, check whether your diagnosis of the method was correct, not just the final calculation.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie mieszaj zagadnień zupełnie ze sobą niezwiązanych (np. słówek z hiszpańskiego z fizyką kwantową w jednym zadaniu) — przeplatanie działa najsilniej na pojęcia łatwe do pomylenia. Nie poddawaj się frustracji wolniejszego tempa: wysiłek odróżniania to moment, w którym faktycznie powstaje wiedza. Unikaj powrotu do bloków tylko dlatego, że dają przyjemniejsze poczucie płynności.',
+        pEn: 'Avoid mixing completely unrelated domains (such as Spanish vocabulary and quantum mechanics in one problem set) — interleaving works best on concepts that are easily confused. Do not surrender to the frustration of slower perceived progress: the effort of discrimination is where learning actually happens. Avoid retreating to blocked practice merely because it feels smoother.',
+      },
+    ],
+    sourcesPl: [
+      'Rohrer i Taylor, 2007 (Instructional Science — The shuffling of mathematics problems improves learning)',
+      'Kornell i Bjork, 2008 (Psychological Science — Learning concepts and categories: is spacing the "enemy of induction"?)',
+      'Dunlosky i in., 2013 (Psychological Science in the Public Interest — Improving students’ learning)',
+    ],
+    sourcesEn: [
+      'Rohrer & Taylor, 2007 (Instructional Science — The shuffling of mathematics problems improves learning)',
+      'Kornell & Bjork, 2008 (Psychological Science — Learning concepts and categories: is spacing the "enemy of induction"?)',
+      'Dunlosky et al., 2013 (Psychological Science in the Public Interest — Improving students’ learning)',
+    ],
+  },
+  'dual-coding': {
+    id: 'dual-coding',
+    topicId: 'learning',
+    titlePl: 'Podwójne kodowanie: słowa i obrazy w pamięci roboczej',
+    titleEn: 'Dual coding: words and visuals in working memory',
+    introPl: 'Mózg przetwarza informacje werbalne i wizualne przez dwa niezależne kanały sensoryczne. Połączenie słowa z przestrzennym schematem podwaja szansę na odtworzenie wiedzy bez przeciążania pamięci roboczej.',
+    introEn: 'The human brain processes verbal and visual information through two distinct cognitive channels. Coupling words with spatial diagrams doubles retrieval pathways without overloading working memory capacity.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Zgodnie z teorią podwójnego kodowania Allana Paivio, system poznawczy operuje na dwóch odrębnych podsystemach: werbalnym (logogeny) i niewerbalnym (imageny). Gdy informacja jest zakodowana jednocześnie tekstem i powiązanym z nim schematem, w korze mózgowej powstają dwa komplementarne ślady pamięciowe. Uruchomienie jednego automatycznie aktywuje drugi, co ułatwia przypominanie i dramatycznie redukuje obciążenie poznawcze przy złożonych pojęciach.',
+        pEn: 'According to Allan Paivio’s Dual Coding Theory, human cognition operates through two independent subsystems: verbal (logogens) and non-verbal (imagens). When information is encoded simultaneously via text and a structurally aligned diagram, the cortex establishes two complementary memory traces. Activating one automatically primes the other, facilitating recall and substantially reducing cognitive load during complex reasoning.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Po przeczytaniu fragmentu tekstu w sesji skupienia odłóż notatki. 2. Weź czystą kartkę i narysuj prosty model relacji: osie czasu, schemat blokowy zależności lub graf przyczynowo-skutkowy. 3. Ogranicz tekst na rysunku do kluczowych pojęć i strzałek kierunkowych. 4. Spróbuj opowiedzieć na głos całą ideę, prowadząc palcem po własnym schemacie. 5. Skonfrontuj rysunek ze źródłem i uzupełnij brakujące węzły innym kolorem.',
+        pEn: '1. After reading an informational section in a focus session, set your reading material aside. 2. Take a blank sheet and draw a simple relationship model: timelines, flowchart arrows, or a cause-and-effect graph. 3. Limit words on your sketch to essential terminology and directional arrows. 4. Explain the concept out loud while tracing connections across your diagram with your finger. 5. Compare your diagram against the source text and add missing links in a contrasting color.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie twórz skomplikowanych dzieł sztuki — estetyka rysunku nie ma znaczenia, liczy się wyłącznie relacja logiczna między elementami. Unikaj ozdobników i ikon dekoracyjnych, które nie niosą informacji merytorycznej (tzw. uwodzące detale). Nie kopiuj gotowych infografik bez ich wcześniejszego samodzielnego przetrawienia i zrekonstruowania.',
+        pEn: 'Do not treat diagrams as artwork — aesthetic elegance is irrelevant; only logical relationships between nodes matter. Avoid decorative embellishments and illustrations that convey no conceptual meaning (seductive details). Never copy pre-made infographics passively without first attempting to reconstruct the relations independently.',
+      },
+    ],
+    sourcesPl: [
+      'Paivio, 1991 (Dual Coding Theory and Education, Oxford University Press)',
+      'Clark i Paivio, 1991 (Educational Psychology Review — Dual coding theory and education)',
+      'Mayer i Anderson, 1992 (Journal of Educational Psychology — Animation and constructive learning)',
+    ],
+    sourcesEn: [
+      'Paivio, 1991 (Dual Coding Theory and Education, Oxford University Press)',
+      'Clark & Paivio, 1991 (Educational Psychology Review — Dual coding theory and education)',
+      'Mayer & Anderson, 1992 (Journal of Educational Psychology — Animation and constructive learning)',
+    ],
+  },
+  'nsdr-recovery': {
+    id: 'nsdr-recovery',
+    topicId: 'break',
+    titlePl: 'Głęboki odpoczynek bez snu: protokół NSDR',
+    titleEn: 'Non-Sleep Deep Rest: the NSDR recovery protocol',
+    introPl: 'Stan hipnagogiczny pomiędzy czuwaniem a snem pozwala na szybkie odnowienie dopaminy i zresetowanie przeciążonych obwodów uwagi. 10 do 20 minut NSDR przywraca sprawność poznawczą bez rozbicia po drzemce.',
+    introEn: 'The hypnagogic state between waking and sleep accelerates dopamine replenishment and resets fatigued attentional circuits. 10 to 20 minutes of NSDR restores cognitive vigor without the grogginess of sleep inertia.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Protokół NSDR (Non-Sleep Deep Rest), wywodzący się z jogi nidry, sprowadza aktywność mózgu do fal alfa i teta przy zachowaniu pełnej świadomości sensorycznej. Badania obrazowe mózgu (PET) wykazały, że stan ten zwiększa uwalnianie dopaminy w prążkowiu nawet o 65%, regenerując zasoby neuroprzekaźnika odpowiedzialnego za motywację i utrzymanie wysiłku poznawczego. Obniża również poziom kortyzolu i przywraca równowagę autonomiczną.',
+        pEn: 'NSDR (Non-Sleep Deep Rest), derived from yoga nidra practices, guides cortical oscillations into alpha and theta rhythms while maintaining conscious awareness. PET neuroimaging confirms that this state boosts striatal dopamine release by up to 65%, replenishing neurochemical pools vital for motivation and cognitive control. Simultaneously, systemic cortisol decreases while parasympathetic tone stabilizes.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. W dłuższej przerwie pomodoro (15–20 minut) połóż się na plecach lub usiądź w wygodnym fotelu z podparciem karku. 2. Załóż opaskę na oczy lub zgaś ostre światło w pokoju. 3. Weź 3 głębokie podwójne wdechy nosem z wydłużonym wydechem ustami, aby spowolnić tętno. 4. Przeskanuj mentalnie ciało od czubka głowy do palców stóp, świadomie rozluźniając żuchwę, powieki i dłonie. 5. Utrzymuj bierną postawę obserwatora — jeśli pojawią się myśli, pozwól im odpłynąć bez angażowania uwagi.',
+        pEn: '1. In an extended pomodoro break (15–20 minutes), lie down flat or sit in a supportive reclining chair. 2. Cover your eyes with an eye mask or darken the room. 3. Take 3 slow double inhales through the nose followed by prolonged mouth exhales to decelerate heart rate. 4. Mentally scan through body regions from scalp to toes, releasing tension in your jaw, eyelids, and hands. 5. Maintain detached witness awareness — when thoughts surface, allow them to drift past without mental pursuit.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie staraj się zasnąć na siłę — celem NSDR jest relaksacja przy zachowanej świadomości, a nie sen wolnofalowy (NREM 3), który wywołuje inercję senną. Nie sprawdzaj powiadomień w trakcie ani bezpośrednio po zakończeniu sesji. Unikaj pozycji, które powodują drętwienie kończyn lub napięcie karku.',
+        pEn: 'Do not force yourself into sleep — the goal of NSDR is conscious relaxation rather than slow-wave delta sleep, which triggers post-nap grogginess. Do not inspect notifications during or immediately following the session. Avoid ergonomic postures that produce physical numbness or cervical spine tension.',
+      },
+    ],
+    sourcesPl: [
+      'Kjaer i in., 2002 (Cognitive Brain Research — Increased dopamine tone during altered consciousness)',
+      'Kumar i in., 2013 (Journal of Alternative and Complementary Medicine — Yoga Nidra and autonomic balance)',
+      'Huberman, 2021 (Stanford University School of Medicine — NSDR neurobiology protocols)',
+    ],
+    sourcesEn: [
+      'Kjaer et al., 2002 (Cognitive Brain Research — Increased dopamine tone during altered consciousness)',
+      'Kumar et al., 2013 (Journal of Alternative and Complementary Medicine — Yoga Nidra and autonomic balance)',
+      'Huberman, 2021 (Stanford University School of Medicine — NSDR neurobiology protocols)',
+    ],
+  },
+  'nature-microbreaks': {
+    id: 'nature-microbreaks',
+    topicId: 'break',
+    titlePl: 'Mikro-przerwy z naturą: 40 sekund, które resetuje uwagę',
+    titleEn: 'Nature micro-breaks: 40 seconds to reset attention',
+    introPl: 'Już 40 sekund spoglądania na zieleń wystarcza, by zredukować liczbę błędów w kolejnym zadaniu. Mikro-przerwy oparte na naturalnych krajobrazach regenerują korę przedczołową bez odrywania cię od rytmu pracy.',
+    introEn: 'Just 40 seconds of viewing green nature suffices to cut error rates in subsequent cognitive tasks. Micro-breaks centered on natural vistas restore the prefrontal cortex without disrupting your workflow cadence.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Koncentracja przy komputerze wymaga uwagi kierowanej (directed attention), kontrolowanej przez korę przedczołową, która ulega fizjologicznemu zmęczeniu. Według teorii odzyskiwania uwagi (ART), kontakt z elementami natury angażuje tzw. miękką fascynację (soft fascination) — mimowolne, bezwysiłkowe przetwarzanie bodźców. Badania Uniwersytetu w Melbourne wykazały, że 40-sekundowa pauza z widokiem na roślinność obniża wariancję czasu reakcji i drastycznie redukuje błędy pominięcia w testach czujności.',
+        pEn: 'Desk work relies on directed attention mediated by prefrontal cortical networks, which suffer rapid metabolic fatigue. Under Attention Restoration Theory (ART), natural scenery activates soft fascination — effortless, bottom-up sensory processing. University of Melbourne trials demonstrated that a mere 40-second gaze at a flowering green roof significantly decreased reaction time variability and omission errors on sustained attention tasks.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Gdy timer Focus Flow zasygnalizuje krótką przerwę, natychmiast odwróć wzrok od ekranu i monitora. 2. Podejdź do okna z widokiem na drzewa, park lub rośliny doniczkowe. 3. Skup wzrok na odległym naturalnym punkcie przez minimum 40 sekund, pozwalając spojrzeniu swobodnie dryfować. 4. Jeśli nie masz okna z zielenią, otwórz na biurku widok na żywą roślinę lub wysokiej rozdzielczości fotografię krajobrazu naturalnego. 5. Zwróć uwagę na detale fraktalne: liście, korę drzew lub ruch chmur na niebie.',
+        pEn: '1. When the Focus Flow timer announces a short pause, pivot immediately away from your digital displays. 2. Walk to a window facing trees, foliage, or a garden bed. 3. Fix your gaze into the distance for at least 40 seconds, letting your eyes relax and panoramic vision engage. 4. If an outdoor view is unavailable, focus on an indoor potted plant or high-resolution natural landscape photograph. 5. Attend gently to natural fractal patterns: leaf veining, tree canopy motion, or drifting clouds.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie łącz mikro-przerwy z przeglądaniem social mediów lub czytaniem nagłówków informacyjnych na telefonie — teksty natychmiast reaktywują uwagę kierowaną. Unikaj wpatrywania się w geometryczne, betonowe elementy miejskiej zabudowy pozbawione zieleni, które nie wywołują efektu regeneracji. Nie traktuj mikro-przerwy jako straconego czasu: 40 sekund z nawiązką zwraca się w czujności.',
+        pEn: 'Do not blend your nature micro-break with scrolling social feeds or reading news notifications — text instantly re-engages directed attention. Avoid staring at stark geometric concrete architecture lacking botanical presence, which fails to trigger restorative processing. Do not discard micro-breaks as unproductive: 40 seconds yields immediate returns in cognitive vigilance.',
+      },
+    ],
+    sourcesPl: [
+      'Lee i in., 2015 (Journal of Environmental Psychology — 40-second green roof views sustain attention)',
+      'Kaplan, 1995 (Journal of Environmental Psychology — The restorative benefits of nature)',
+      'Ulrich i in., 1991 (Journal of Environmental Psychology — Stress recovery during exposure to natural environments)',
+    ],
+    sourcesEn: [
+      'Lee et al., 2015 (Journal of Environmental Psychology — 40-second green roof views sustain attention)',
+      'Kaplan, 1995 (Journal of Environmental Psychology — The restorative benefits of nature)',
+      'Ulrich et al., 1991 (Journal of Environmental Psychology — Stress recovery during exposure to natural environments)',
+    ],
+  },
+  'adenosine-caffeine-timing': {
+    id: 'adenosine-caffeine-timing',
+    topicId: 'sleep',
+    titlePl: 'Okienko kofeinowe: fizjologia adenozyny i popołudniowy zjazd',
+    titleEn: 'The caffeine window: adenosine physiology and the afternoon crash',
+    introPl: 'Kofeina nie daje energii — pożycza ją z przyszłości, blokując receptory senności. Zrozumienie krzywej adenozyny pozwala wyeliminować popołudniowy zjazd i zabezpieczyć głęboki sen.',
+    introEn: 'Caffeine does not supply energy — it borrows it from the future by occupying fatigue receptors. Mastering your adenosine curve eliminates the afternoon crash and preserves deep restorative sleep.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'W każdej minucie czuwania neurony rozkładają ATP, uwalniając adenozynę, która gromadzi się w mózgu i generuje homeostatyczną presję snu. Kofeina jest antagonistą receptorów adenozynowych A1 i A2A: maskuje uczucie zmęczenia, lecz nie zatrzymuje produkcji cząsteczek adenozyny. Gdy kofeina ulega metabolizmowi w wątrobie przez cytochrom P450, nagromadzona adenozyna gwałtownie wiąże się z receptorami, wywołując nagły zjazd energii. Co więcej, jej okres półtrwania wynosi 5–7 godzin, co oznacza, że popołudniowa kawa niszczy strukturę snu wolnofalowego (faza N3), nawet jeśli zaśniesz bez problemu.',
+        pEn: 'During waking hours, neuronal metabolic breakdown of ATP accumulates extracellular adenosine, establishing homeostatic sleep pressure. Caffeine functions as a competitive antagonist at A1 and A2A adenosine receptors: it masks fatigue signals while adenosine molecules continue to build up unimpeded. Once hepatic cytochrome P450 enzymes clear the caffeine, the backed-up pool of adenosine rushes into unoccupied receptors, triggering a severe crash. Furthermore, caffeine’s 5 to 7 hour half-life disrupts slow-wave delta sleep architecture, even if you fall asleep promptly.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Odczekaj 90–120 minut od momentu przebudzenia przed wypiciem pierwszej kawy, pozwalając porannemu wyrzutowi kortyzolu na naturalne usunięcie resztek nocnej adenozyny. 2. Wypij pierwszą dawkę w oknie między 9:30 a 11:00, gdy naturalny poziom kortyzolu zaczyna opadać. 3. Ustal sztywną godzinę odcięcia: dokładnie 8–10 godzin przed planowanym snem (dla snu o 23:00 jest to godzina 13:00–14:00). 4. Gdy o 14:00 dopadnie cię senność, zamiast kolejnego espresso zrób 5-minutowy spacer lub 10 głębokich oddechów na świeżym powietrzu. 5. Ogranicz dobowe spożycie kofeiny do maksymalnie 300–400 mg (około 2–3 filiżanek kawy).',
+        pEn: '1. Delay your morning coffee by 90–120 minutes after waking, allowing the cortisol awakening response to clear residual overnight adenosine naturally. 2. Ingest your primary caffeine dose between 9:30 AM and 11:00 AM as baseline cortisol dips. 3. Establish a non-negotiable cutoff time 8–10 hours prior to bedtime (e.g., 1:00 PM to 2:00 PM for an 11:00 PM sleep target). 4. When afternoon lethargy emerges, substitute additional espresso with a 5-minute brisk walk and outdoor hydration. 5. Cap daily caffeine intake at 300–400 mg (approximately 2–3 cups of coffee).',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie sięgaj po kawę w pierwszych minutach po otwarciu oczu — to gwarancja gwałtownego popołudniowego załamania. Unikaj „przełamywania" zmęczenia kofeiną po godzinie 15:00: nawet jeśli subiektywnie zaśniesz, architektura twojego snu głębokiego zostanie zredukowana o 20–30%. Nie ignoruj zawartości kofeiny w przedtreningówkach, napojach typu cola czy ciemnej czekoladzie.',
+        pEn: 'Never grab caffeine within minutes of opening your eyes — doing so guarantees an intensified afternoon crash. Avoid powering through late fatigue with caffeine past 3:00 PM: even if you fall asleep, deep slow-wave sleep is truncated by 20–30%. Do not overlook hidden caffeine loads in pre-workout powders, dark chocolate, and sodas.',
+      },
+    ],
+    sourcesPl: [
+      'Fredholm i in., 1999 (Pharmacological Reviews — Actions of caffeine in the brain)',
+      'Landolt, 2008 (Biochemical Pharmacology — Sleep, adenosine, and caffeine)',
+      'Drake i in., 2013 (Journal of Clinical Sleep Medicine — Caffeine effects on sleep taken 0, 3, or 6 hours before bedtime)',
+    ],
+    sourcesEn: [
+      'Fredholm et al., 1999 (Pharmacological Reviews — Actions of caffeine in the brain)',
+      'Landolt, 2008 (Biochemical Pharmacology — Sleep, adenosine, and caffeine)',
+      'Drake et al., 2013 (Journal of Clinical Sleep Medicine — Caffeine effects on sleep taken 0, 3, or 6 hours before bedtime)',
+    ],
+  },
+  'circadian-light-entrainment': {
+    id: 'circadian-light-entrainment',
+    topicId: 'sleep',
+    titlePl: 'Światło i rytm dobowy: biologia synchronizacji jądra nadskrzyżowaniowego',
+    titleEn: 'Light and circadian rhythm: biology of suprachiasmatic entrainment',
+    introPl: 'Światło to najsilniejszy zewnętrzny dawca czasu (zeitgeber) dla ludzkiego mózgu. Precyzyjne zarządzanie ekspozycją na fotony rano i wieczorem decyduje o głębokości snu i porannej jasności umysłu.',
+    introEn: 'Light is the most potent environmental synchronizer (zeitgeber) for human physiology. Strategic photon exposure in the morning and darkness in the evening dictate sleep depth and morning cognitive clarity.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'W siatkówce oka znajdują się wyspecjalizowane fotoreceptory — wewnętrznie światłoczułe komórki zwojowe (ipRGC), zawierające barwnik melanopsynę. Reagują one najsilniej na niebieskie światło o długości fali ~480 nm i przesyłają bezpośredni sygnał do jądra nadskrzyżowaniowego (SCN) w podwzgórzu — głównego zegara biologicznego organizmu. Poranna dawka jasnego światła natychmiast zatrzymuje produkcję melatoniny, wyzwala zdrowy wyrzut kortyzolu i nastawia zegar na rozpoczęcie syntezy melatoniny około 14 godzin później. Wieczorne światło sztuczne opóźnia ten proces, przesuwając fazę rytmu dobowego i uniemożliwiając wejście w sen głęboki.',
+        pEn: 'The human retina houses intrinsically photosensitive retinal ganglion cells (ipRGCs) enriched with the photopigment melanopsin. These cells respond peak-sensitively to blue light (~480 nm) and project directly to the suprachiasmatic nucleus (SCN) in the hypothalamus — the master circadian pacemaker. Morning photon influx halts pineal melatonin release, stimulates the cortisol awakening peak, and starts a biological timer for melatonin resumption roughly 14 hours later. Conversely, evening artificial light delays phase timing and impairs deep sleep architecture.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. W ciągu 30–60 minut od pobudzenia wyjdź na zewnątrz na 10–15 minut bez okularów przeciwsłonecznych (w pochmurny dzień wydłuż ten czas do 20–30 minut). 2. Spoglądaj w stronę nieba (nie bezpośrednio w słońce), aby naświetlić dolną połowę siatkówki. 3. W ciągu dnia pracuj w dobrze doświetlonym pomieszczeniu, najlepiej blisko okna. 4. Po zachodzie słońca wyłącz oświetlenie sufitowe i przełącz się na ciepłe lampy stołowe umieszczone poniżej linii wzroku. 5. Na 60 minut przed snem zredukuj jasność wszystkich ekranów lub całkowicie odłóż urządzenia elektroniczne.',
+        pEn: '1. Within 30–60 minutes of waking, step outdoors for 10–15 minutes without sunglasses (extend to 20–30 minutes on overcast mornings). 2. Cast your gaze toward the horizon and sky (never look directly into the sun) to activate melanopsin-rich retinal zones. 3. Work in a brightly illuminated room during daytime hours, ideally proximate to natural daylight. 4. After dusk, switch off high overhead ceiling fixtures and rely on low-level, warm floor or desk lamps below eye level. 5. Dim digital displays to minimum luminosity or power them down 60 minutes prior to sleep.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie próbuj zastępować porannego wyjścia na zewnątrz patrzeniem przez szybę okienną lub samochodową — szkło filtruje kluczowe długości fal i drastycznie zmniejsza liczbę luksów. Unikaj jasnego, chłodnego światła LED w sypialni i łazience po godzinie 21:00. Nie noś okularów przeciwsłonecznych podczas porannego spaceru synchronizującego.',
+        pEn: 'Never attempt to substitute outdoor light by looking through window glass or car windshields — glass attenuates essential wavelengths and reduces lux levels multifold. Avoid stark cool-white LED lighting in bathrooms and bedrooms past 9:00 PM. Do not wear sunglasses during your morning circadian calibration walk.',
+      },
+    ],
+    sourcesPl: [
+      'Czeisler i in., 1989 (Science — Bright light resets the human circadian pacemaker)',
+      'Panda, 2016 (Cell Metabolism — Circadian physiology and metabolic homeostasis)',
+      'Duffy i Czeisler, 2009 (Sleep Medicine Clinics — Effect of light on human circadian rhythms)',
+    ],
+    sourcesEn: [
+      'Czeisler et al., 1989 (Science — Bright light resets the human circadian pacemaker)',
+      'Panda, 2016 (Cell Metabolism — Circadian physiology and metabolic homeostasis)',
+      'Duffy & Czeisler, 2009 (Sleep Medicine Clinics — Effect of light on human circadian rhythms)',
+    ],
+  },
+  'glucose-stability': {
+    id: 'glucose-stability',
+    topicId: 'food',
+    titlePl: 'Krzywa glukozy a uwaga: dlaczego skoki cukru niszczą skupienie',
+    titleEn: 'Glucose dynamics and focus: why blood sugar spikes ruin concentration',
+    introPl: 'Kora przedczołowa zużywa najwięcej glukozy spośród struktur mózgowych, lecz nie posiada własnych zapasów energii. Gwałtowne wahania cukru we krwi to najczęstsza ukryta przyczyna mgły umysłowej i spadków woli.',
+    introEn: 'The prefrontal cortex has the highest metabolic glucose turnover in the brain but possesses virtually zero glycogen storage. Unstable blood sugar spikes and crashes represent the leading hidden cause of brain fog and willpower depletion.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Neurony kory przedczołowej odpowiadające za hamowanie impulsów i pamięć roboczą polegają na stałym napływie glukozy przez barierę krew-mózg za pośrednictwem transporterów GLUT1 i GLUT3. Posiłek bogaty w cukry proste i rafinowaną skrobię powoduje gwałtowny pik glikemiczny, na który trzustka odpowiada masywnym wyrzutem insuliny. Prowadzi to do zjawiska reaktywnej hipoglikemii — poziom glukozy spada poniżej wartości wyjściowej w ciągu 90–120 minut. Mózg odbiera ten spadek jako stan zagrożenia energetycznego, co objawia się dekoncentracją, drażliwością i natrętną chęcią sięgnięcia po przekąskę.',
+        pEn: 'Prefrontal cortical neurons governing executive function and working memory depend on an uninterrupted supply of circulating glucose transported across the blood-brain barrier via GLUT1 and GLUT3 transporters. High-glycemic meals trigger rapid glycemic spikes, forcing an aggressive pancreatic insulin response. This prompts reactive hypoglycemia — blood glucose plunging below baseline within 90 to 120 minutes. The brain perceives this rapid drop as an energetic crisis, triggering brain fog, distractibility, and acute food cravings.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Komponuj posiłki przed blokami pracy w oparciu o triadę: białko, błonnik i zdrowe tłuszcze (np. jajka z warzywami lub twaróg z pestkami). 2. Zastosuj zasadę kolejności spożywania: najpierw zjedz warzywa (błonnik), potem białko i tłuszcz, a węglowodany na samym końcu — spłaszcza to krzywą cukrową nawet o 40%. 3. Po obiedzie zrób lekki 10-minutowy spacer: pracujące mięśnie wychwytują glukozę niezależnie od insuliny poprzez translokację transporterów GLUT4 do błony komórkowej. 4. Wyeliminuj słodzone napoje i soki owocowe w godzinach pracy — zastąp je wodą z cytryną lub herbatą zieloną. 5. Jako przekąskę w sesji wybieraj orzechy włoskie lub migdały zamiast batonów zbożowych.',
+        pEn: '1. Anchor pre-work meals around the metabolic triad: protein, dietary fiber, and healthy lipids (e.g., eggs with greens or greek yogurt with seeds). 2. Adopt targeted food sequencing: consume vegetables and fiber first, proteins and fats second, and starches or carbohydrates last to flatten the postprandial glucose spike by up to 40%. 3. Take a gentle 10-minute walk after meals: contracting skeletal muscle clears glucose non-insulin-dependently via GLUT4 translocation. 4. Eliminate sweetened drinks and fruit juices during study hours — drink water or unsweetened green tea. 5. Keep raw walnuts or almonds within reach as break snacks rather than processed cereal bars.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie zaczynaj dnia od słodkich śniadań (płatki śniadaniowe, croissanty, dżemy) — skazujesz się na falę zjazdów energetycznych przez cały poranek. Unikaj pracy bezpośrednio po obfitych, ciężkostrawnych obiadach: przekierowanie przepływu krwi do układu trawiennego wywołuje ospałość poposiłkową. Nie ratuj spadku cukru kolejnym ciastkiem — to napędza błędne koło reaktywnej hipoglikemii.',
+        pEn: 'Do not launch your morning with high-glycemic breakfasts (processed cereals, pastries, sweetened jams) — doing so locks you into repeated crashes across the day. Avoid tackling complex cognitive tasks right after heavy, carbohydrate-dense meals when splanchnic blood diversion causes postprandial somnolence. Never attempt to rescue an energy slump with sweets — it reinforces the reactive hypoglycemic cycle.',
+      },
+    ],
+    sourcesPl: [
+      'Daly i in., 1998 (The American Journal of Clinical Nutrition — Carbohydrates and cognitive function)',
+      'Mergenthaler i in., 2013 (Trends in Neurosciences — Sugar for the brain: the role of glucose)',
+      'Gailliot i in., 2007 (Journal of Personality and Social Psychology — Self-control and blood glucose)',
+    ],
+    sourcesEn: [
+      'Daly et al., 1998 (The American Journal of Clinical Nutrition — Carbohydrates and cognitive function)',
+      'Mergenthaler et al., 2013 (Trends in Neurosciences — Sugar for the brain: the role of glucose)',
+      'Gailliot et al., 2007 (Journal of Personality and Social Psychology — Self-control and blood glucose)',
+    ],
+  },
+  'neurotransmitter-nutrition': {
+    id: 'neurotransmitter-nutrition',
+    topicId: 'food',
+    titlePl: 'Paliwo dla neuroprzekaźników: cholina, kwasy omega-3 i magnez',
+    titleEn: 'Neurotransmitter precursors: choline, omega-3s, and magnesium',
+    introPl: 'Neuroprzekaźniki odpowiedzialne za uwagę, pamięć i spokój nie powstają z próżni — wymagają precyzyjnych prekursorów i kofaktorów dostarczanych z dietą. Odpowiednie składniki odżywcze stabilizują plastyczność synaptyczną.',
+    introEn: 'Neurotransmitters governing attention, memory, and calmness cannot form out of thin air — they require specific dietary precursors and enzymatic cofactors. Targeted micronutrition directly fortifies synaptic plasticity.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Acetylocholina, neuroprzekaźnik kluczowy dla skupienia wzroku i kodowania pamięciowego, jest syntetyzowana bezpośrednio z choliny dostarczanej w diecie. Z kolei kwas dokozaheksaenowy (DHA, z rodziny omega-3) stanowi ponad 30% fosfolipidów kory mózgowej — zapewnia płynność błon synaptycznych, niezbędną do sprawnego przesyłania impulsów nerwowych. Magnez natomiast pełni rolę fizjologicznego strażnika receptora NMDA: blokuje nadmierny napływ jonów wapnia do neuronów, chroniąc je przed ekscytotoksycznością i ułatwiając długotrwałe wzmocnienie synaptyczne (LTP), które jest biologiczną podstawą uczenia się.',
+        pEn: 'Acetylcholine, the primary neurotransmitter underpinning focal spotlighting and memory encoding, is synthesized directly from dietary choline. Docosahexaenoic acid (DHA, an omega-3 fatty acid) accounts for over 30% of cortical phospholipid architecture, regulating synaptic membrane fluidity and receptor mobility. Meanwhile, magnesium acts as an essential physiological gatekeeper of the NMDA receptor: preventing pathological calcium influx, protecting against excitotoxicity, and enabling long-term potentiation (LTP) — the cellular bedrock of learning.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Wprowadź do jadłospisu bogate źródła choliny: żółtka jaj (1–2 dziennie), soję, wątróbkę lub brokuły. 2. Zadbaj o podaż kwasów omega-3 (zwłaszcza EPA i DHA): jedz tłuste ryby morskie (dziki łosoś, makrela, sardynki) 2–3 razy w tygodniu lub stosuj sprawdzoną suplementację olejem z alg. 3. Uzupełniaj magnez organicznymi formami o wysokiej biodostępności (np. jabłczan lub glicynian magnezu), a także pestkami dyni, gorzkim kakao i szpinakiem. 4. Pij wodę bogatą w elektrolity w trakcie intensywnych bloków umysłowych. 5. Ogranicz tłuszcze trans i wysoko przetworzone oleje roślinne, które wypierają DHA z błon komórkowych.',
+        pEn: '1. Incorporate reliable choline sources into your regular diet: egg yolks (1–2 daily), soybeans, organ meats, or cruciferous vegetables. 2. Secure optimal EPA and DHA omega-3 intake: consume fatty cold-water fish (salmon, mackerel, sardines) 2–3 times weekly or utilize verified algal oil supplementation. 3. Replenish bioavailable magnesium via organic salts (such as magnesium glycinate or malate) alongside dietary pumpkin seeds, pure cacao, and dark leafy greens. 4. Sip mineral-rich water during demanding cognitive work to sustain membrane potentials. 5. Minimize industrial trans-fatty acids and oxidized seed oils that displace DHA from neuronal membranes.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie polegaj na suplementach jako substytucie zróżnicowanej diety — związki odżywcze w pełnowartościowej żywności działają synergistycznie z fitoskładnikami. Unikaj tlenku magnezu (posiada znikomą przyswajalność i wywołuje dolegliwości żołądkowe). Nie stosuj ekstremalnie niskotłuszczowych diet bez konsultacji, gdyż odcinają one mózg od podstawowych budulców osłonek mielinowych.',
+        pEn: 'Do not treat isolated synthetic pills as a replacement for whole-food nutrition — dietary micronutrients operate in synergistic food matrices. Avoid magnesium oxide (it has very low bioavailability and causes digestive distress). Steer clear of severe fat-free diets, which deprive the central nervous system of lipid substrates required for myelin and synaptic integrity.',
+      },
+    ],
+    sourcesPl: [
+      'Gómez-Pinilla, 2008 (Nature Reviews Neuroscience — Brain foods: the effects of nutrients on brain function)',
+      'Slutsky i in., 2010 (Neuron — Enhancement of learning and memory by elevating brain magnesium)',
+      'Wurtman i in., 2009 (Cambridge University Press — Nutritional precursors and neurotransmitter synthesis)',
+    ],
+    sourcesEn: [
+      'Gómez-Pinilla, 2008 (Nature Reviews Neuroscience — Brain foods: the effects of nutrients on brain function)',
+      'Slutsky et al., 2010 (Neuron — Enhancement of learning and memory by elevating brain magnesium)',
+      'Wurtman et al., 2009 (Cambridge University Press — Nutritional precursors and neurotransmitter synthesis)',
+    ],
+  },
+  'ultradian-rhythms': {
+    id: 'ultradian-rhythms',
+    topicId: 'productivity',
+    titlePl: 'Rytmy ultradialne: jak synchronizować pracę z falami 90 minut',
+    titleEn: 'Ultradian rhythms: riding the 90-minute energy waves',
+    introPl: 'Wydajność ludzkiego mózgu nie jest liniowa — porusza się w 90-minutowych cyklach aktywności i wygaszania. Praca zgodna z biologiczną falą chroni przed wyczerpaniem i maksymalizuje głębię skupienia.',
+    introEn: 'Human cognitive stamina does not run in a flat line — it oscillates in 90-minute cycles of cresting alertness and troughing fatigue. Aligning sessions with your biological wave prevents burnout and deepens mental flow.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Fizjolog Nathaniel Kleitman odkrył podstawowy cykl odpoczynku i aktywności (BRAC — Basic Rest-Activity Cycle), który rządzi nie tylko fazami snu REM i non-REM, lecz działa nieprzerwanie także w ciągu dnia. W mózgu człowieka fale czuwania narastają i opadają w oknach trwających około 90–120 minut. Pod koniec cyklu dochodzi do spadku neuroprzekaźników, spadku temperatury i wzrostu częstotliwości fal mózgowych alfa i teta. Zmuszanie się do kontynuowania intensywnej pracy intelektualnej w fazie dołka aktywuje awaryjny wyrzut hormonów stresu (kortyzolu i adrenaliny), co prowadzi do chronicznego zmęczenia i spadku jakości myślenia.',
+        pEn: 'Physiologist Nathaniel Kleitman discovered the Basic Rest-Activity Cycle (BRAC), which regulates not only nocturnal REM and non-REM architecture but dictates daytime vigilance as well. Human alertness surges and wanes across roughly 90 to 120 minute waves. At the cycle’s trough, neurotransmitter availability drops, peripheral temperature shifts, and slower alpha/theta oscillations intervene. Forcing cerebral exertion through this physiological trough triggers compensatory stress hormone discharge (cortisol and adrenaline), fostering chronic fatigue and degraded cognitive judgment.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Zaplanuj swój najważniejszy blok dnia na maksymalnie 75–90 minut (np. 3 sesje Focus Flow po 25 minut z 5-minutowymi przerwami). 2. Po zakończeniu 90-minutowego cyklu zrób dłuższą, nienegocjowalną przerwę regeneracyjną trwającą 15–20 minut. 3. W trakcie tej dłuższej pauzy całkowicie odetnij stymulację umysłową: wyjdź na krótki spacer, posłuchaj spokojnej muzyki lub wykonaj ćwiczenia oddechowe. 4. Obserwuj sygnały ostrzegawcze ciała sygnalizujące dołek ultradialny: wiercenie się, ziewanie, spadek koncentracji czy bezrefleksyjne sięganie po telefon. 5. Ogranicz liczbę pełnych bloków ultradialnych o wysokiej intensywności do 3–4 w ciągu dnia.',
+        pEn: '1. Cap your primary focus blocks at 75–90 minutes (e.g., three 25-minute Focus Flow sessions interspersed with 5-minute micro-breaks). 2. Conclude the 90-minute cycle with a mandatory, non-negotiable 15–20 minute restorative downtime. 3. During this extended break, disengage completely from cognitive input: walk outdoors, listen to instrumental sound, or breathe deeply. 4. Track somatic markers of the ultradian trough: physical restlessness, yawning, mental drifting, or impulsive reaching for your phone. 5. Limit intense, high-load ultradian work blocks to a maximum of 3–4 cycles per day.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie planuj maratonów 4–5 godzin ciągłej pracy przy biurku bez przerw — złudzenie produktywności okupione jest drastycznym wzrostem liczby błędów w kodzie czy tekście. Nie ignoruj fizjologicznych sygnałów zmęczenia, zagłuszając je kolejnymi napojami energetycznymi. Nie traktuj odpoczynku jako nagrody za wykonanie zadania — odpoczynek jest biologicznym warunkiem kolejnej fali skupienia.',
+        pEn: 'Never schedule 4–5 hour continuous desktop marathons — the illusion of stamina comes at the cost of compounding errors and cognitive fatigue. Do not silence natural fatigue signals by piling on artificial stimulants. Do not view rest as a luxury reward earned only upon finishing a task — systemic rest is an unbending biological prerequisite for your next wave of focus.',
+      },
+    ],
+    sourcesPl: [
+      'Kleitman, 1982 (Sleep — Basic rest-activity cycle—22 years later)',
+      'Rossi, 1991 (The Twenty-Minute Break: Using the New Science of Ultradian Rhythms)',
+      'Loehr i Schwartz, 2003 (The Power of Full Engagement — Managing energy, not time)',
+    ],
+    sourcesEn: [
+      'Kleitman, 1982 (Sleep — Basic rest-activity cycle—22 years later)',
+      'Rossi, 1991 (The Twenty-Minute Break: Using the New Science of Ultradian Rhythms)',
+      'Loehr & Schwartz, 2003 (The Power of Full Engagement — Managing energy, not time)',
+    ],
+  },
+  'implementation-intentions': {
+    id: 'implementation-intentions',
+    topicId: 'productivity',
+    titlePl: 'Intencje implementacyjne: automatyzacja nawyków formułą „jeśli… to…"',
+    titleEn: 'Implementation intentions: habit automation via "if-then" plans',
+    introPl: 'Sama siła woli i niejasne cele rzadko wystarczają w starciu z dystrakcjami. Formuła intencji implementacyjnych przenosi kontrolę nad działaniem z zawodnego wysiłku decyzyjnego na automatyczną reakcję na bodziec.',
+    introEn: 'Vague intentions and raw willpower routinely fold under friction and distraction. The implementation intentions formula shifts behavioral execution from fragile conscious deliberation to automated cue-response mechanisms.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Psycholog Peter Gollwitzer wykazał, że klasyczne intencje celu („chcę napisać raport") wymagają ciągłej, świadomej samokontroli i podejmowania decyzji w obliczu pokus. Intencje implementacyjne opierają się na warunkowej strukturze: „JEŚLI pojawi się sytuacja X, TO wykonam reakcję Y". Ta konstrukcja tworzy w pamięci silne, natychmiastowe powiązanie neuronalne pomiędzy mentalną reprezentacją bodźca a zaplanowanym zachowaniem. Gdy napotykasz określony kontekst, działanie wyzwalane jest automatycznie, z pominięciem powolnego, wyczerpującego procesu deliberacji w korze przedczołowej.',
+        pEn: 'Psychologist Peter Gollwitzer revealed that generic goal intentions ("I want to write this report") demand continuous conscious self-regulation in the presence of competing impulses. Implementation intentions recruit an explicit contingency structure: "IF situation X arises, THEN I will perform response Y." This conditional pairing anchors the cognitive representation of a situational trigger directly to the intended action. When the critical cue appears, execution fires automatically, bypassing slow and fatigue-prone prefrontal deliberation.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Przed rozpoczęciem dnia zidentyfikuj 1–2 kluczowe momenty tarcia lub dystrakcji (np. sięganie po telefon po zakończeniu sesji). 2. Sformułuj precyzyjną regułę: „JEŚLI [dokładny czas, miejsce lub sygnał], TO [konkretne, natychmiastowe działanie]". 3. Przykład pracy: „JEŚLI wybije godzina 9:00 i usiądę przy biurku, TO uruchomię 25-minutowy timer Focus Flow i otworzę dokument projektu". 4. Przykład anty-rozpraszacza: „JEŚLI podczas pracy poczuję pokusę sprawdzenia wiadomości, TO zapiszę tę myśl na kartce i wezmę jeden głęboki oddech". 5. Zapisz formułę ręcznie na kartce i umieść ją w polu widzenia.',
+        pEn: '1. Prior to starting your workday, pinpoint 1–2 recurring moments of friction or distraction (such as opening social apps when a session ends). 2. Draft an explicit formula: "IF [specific time, location, or sensory cue], THEN [concrete, immediate micro-action]". 3. Focus example: "IF the clock strikes 9:00 AM and I sit at my desk, THEN I will launch a 25-minute Focus Flow timer and open the project draft". 4. Distraction example: "IF I feel an impulse to browse news during a session, THEN I will scribble the thought on my scratchpad and take one slow breath". 5. Write the plan down physically and place it directly beside your keyboard.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie formułuj planów w sposób ogólnikowy („JEŚLI będę miał wolną chwilę, TO pouczę się") — mózg potrzebuje ostrego, jednoznacznego bodźca wyzwalającego. Unikaj tworzenia dziesiątek reguł na raz — zacznij od maksymalnie dwóch najważniejszych. Nie definiuj reakcji w formie negacji („JEŚLI zadzwoni telefon, TO NIE odbiorę") — formułuj zachowanie zastępcze pozytywnie („TO włączę tryb cichy").',
+        pEn: 'Do not construct vague conditional triggers ("IF I get some free time, THEN I will study") — executive networks require sharp, unmistakable cues. Avoid designing dozens of simultaneous rules — initiate with at most two core contingencies. Do not state responses as negative prohibitions ("IF my phone pings, THEN I will NOT look") — formulate the constructive alternative positively ("THEN I will keep my hands on the keyboard").',
+      },
+    ],
+    sourcesPl: [
+      'Gollwitzer i Sheeran, 2006 (Advances in Experimental Social Psychology — Implementation intentions and goal achievement)',
+      'Gollwitzer, 1999 (American Psychologist — Implementation intentions: Strong effects of simple plans)',
+      'Oettingen i in., 2001 (Journal of Personality and Social Psychology — Mental contrasting and goal commitment)',
+    ],
+    sourcesEn: [
+      'Gollwitzer & Sheeran, 2006 (Advances in Experimental Social Psychology — Implementation intentions and goal achievement)',
+      'Gollwitzer, 1999 (American Psychologist — Implementation intentions: Strong effects of simple plans)',
+      'Oettingen et al., 2001 (Journal of Personality and Social Psychology — Mental contrasting and goal commitment)',
+    ],
+  },
+  'physiological-sigh': {
+    id: 'physiological-sigh',
+    topicId: 'wellbeing',
+    titlePl: 'Westchnienie fizjologiczne: natychmiastowy reset autonomicznego układu nerwowego',
+    titleEn: 'The physiological sigh: rapid autonomic nervous system reset',
+    introPl: 'W stanach nagłego stresu i przeciążenia próba racjonalnego uspokojenia myśli często zawodzi. Westchnienie fizjologiczne wykorzystuje obwód nerwu błędnego, by obniżyć tętno i poziom pobudzenia w kilkadziesiąt sekund.',
+    introEn: 'During moments of acute stress and cognitive overwhelm, attempting to talk yourself into calmness frequently fails. The physiological sigh leverages vagal circuitry to decelerate heart rate and autonomic arousal in seconds.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Westchnienie fizjologiczne to naturalny odruch oddechowy kontrolowany przez neurony pnia mózgu w kompleksie pre-Bötzinger. Składa się z dwóch kolejnych wdechów z rzędu, po których następuje powolny, wydłużony wydech. Pierwszy wdech napełnia płuca, a drugi (mniejszy) gwałtownie otwiera zapadnięte pęcherzyki płucne (zwiększając powierzchnię wymiany gazowej i usuwając nadmiar dwutlenku węgla). Wydłużony wydech powoduje rozprężenie przepony, zmniejszenie objętości klatki piersiowej i zwolnienie przepływu krwi przez serce. W odpowiedzi węzeł zatokowo-przedsionkowy natychmiast wysyła sygnał za pośrednictwem nerwu błędnego do zwolnienia rytmu serca, wygaszając aktywność współczulną („walcz lub uciekaj").',
+        pEn: 'The physiological sigh is an innate respiratory pattern governed by brainstem rhythm generators in the pre-Bötzinger complex. It features two sequential inhales followed by a prolonged, unforced exhale. The first breath fills lung capacity, while the second quick "top-off" inhale re-inflates collapsed pulmonary alveoli, optimizing gas exchange surface area and purging accumulated carbon dioxide. The prolonged exhalation slows venous return through the heart; baroreceptors detect this change and the vagus nerve signals the sinoatrial node to immediately decelerate heart rate, downregulating sympathetic arousal.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Usiądź prosto z obiema stopami opartymi stabilnie na podłodze. 2. Weź głęboki wdech przez nos, napełniając dolną część brzucha i klatkę piersiową. 3. Bez wypuszczania powietrza weź natychmiast krótki, dynamiczny drugi dopompowujący wdech przez nos do pełnego rozszerzenia płuc. 4. Rozchyl usta i wykonaj bardzo powolny, płynny, długi wydech, aż klatka piersiowa całkowicie opadnie (powinien trwać 2–3 razy dłużej niż wdech). 5. Powtórz tę sekwencję 2–3 razy z rzędu tuż przed trudną sesją Focus Flow lub w momencie narastającej irytacji.',
+        pEn: '1. Sit comfortably upright with both feet planted firmly on the floor. 2. Take a deep, controlled inhalation through your nose, expanding your lower abdomen and ribcage. 3. Without releasing any air, take a sharp, secondary "top-up" inhale through your nose to achieve maximum lung inflation. 4. Softly part your lips and exhale slowly, smoothly, and completely through the mouth (the exhale should last 2–3 times longer than the inhale). 5. Repeat this exact two-breath sequence 2 to 3 times right before a demanding Focus Flow session or whenever cognitive tension peaks.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie forsuj wydechu gwałtownym dmuchaniem — wydech powinien być biernym, grawitacyjnym opadaniem klatki piersiowej. Unikaj wykonywania więcej niż 4–5 westchnień z rzędu, aby nie wywołać hiperwentylacji i lekkiego zawrotu głowy. Nie czekaj, aż panika lub frustracja całkowicie przejmie kontrolę — stosuj technikę profilaktycznie przy pierwszych somatycznych oznakach napięcia.',
+        pEn: 'Do not blow air out aggressively — the exhalation should feel like a passive, gravitational release of thoracic tension. Avoid chaining more than 4–5 sighs continuously to prevent mild hypocapnia or dizziness. Do not wait until overwhelming panic disables concentration — deploy the sigh proactively at the first somatic sensation of tightening tension.',
+      },
+    ],
+    sourcesPl: [
+      'Balban i in., 2023 (Cell Reports Medicine — Brief structured respiration practices enhance mood and reduce physiological arousal)',
+      'Feldman i in., 2003 (Annual Review of Physiology — Breathing rhythm generation and sigh regulation in mammals)',
+      'Vlemincx i in., 2013 (Biological Psychology — Sigh rate and respiratory variability during mental stress and relief)',
+    ],
+    sourcesEn: [
+      'Balban et al., 2023 (Cell Reports Medicine — Brief structured respiration practices enhance mood and reduce physiological arousal)',
+      'Feldman et al., 2003 (Annual Review of Physiology — Breathing rhythm generation and sigh regulation in mammals)',
+      'Vlemincx et al., 2013 (Biological Psychology — Sigh rate and respiratory variability during mental stress and relief)',
+    ],
+  },
+  'stress-reappraisal': {
+    id: 'stress-reappraisal',
+    topicId: 'wellbeing',
+    titlePl: 'Przeformułowanie stresu: jak przekształcić lęk w gotowość do działania',
+    titleEn: 'Stress reappraisal: turning anxiety into cognitive readiness',
+    introPl: 'Fizjologiczne pobudzenie przed trudnym wyzwaniem — szybsze bicie serca i przyspieszony oddech — to nie dowód na brak kompetencji, lecz przygotowanie ciała do wysiłku. Zmiana interpretacji tych sygnałów uwalnia zasoby poznawcze.',
+    introEn: 'Pre-performance physiological arousal — a racing heart and quickened breath — is not evidence of inadequacy, but the body preparing for effort. Reappraising somatic signals unchains working memory from threat monitoring.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Tradycyjny model postrzega stres jako destrukcyjny czynnik, który należy stłumić. Kiedy interpretujemy podwyższone tętno jako zagrożenie (threat mindset), naczynia krwionośne ulegają zwężeniu (wzrost oporu obwodowego), a ciało migdałowate przejmuje kontrolę nad korą przedczołową, drastycznie ograniczając pojemność pamięci roboczej. Badania prof. Wendy Berry Mendes i Alii Crum pokazują, że przeformułowanie stresu na nastawienie na wyzwanie (challenge mindset) zmienia profil hemodynamiczny: naczynia krwionośne pozostają rozszerzone, a serce pompuje więcej natlenionej krwi bezpośrednio do mózgu. Zamiast paraliżu pojawia się mobilizacja i podwyższona elastyczność poznawcza.',
+        pEn: 'Conventional beliefs frame stress as an intrinsically toxic state requiring suppression. When physiological arousal is categorized as threat (threat mindset), peripheral vasculature constricts, vascular resistance climbs, and the amygdala disrupts prefrontal processing, shrinking working memory capacity. Research by Wendy Berry Mendes and Alia Crum demonstrates that cognitive reappraisal toward a challenge mindset transforms the hemodynamic profile: arterial vessels dilate, cardiac efficiency increases, and oxygenated blood surges into cortical centers. Anxiety yields to physiological mobilization and cognitive flexibility.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Gdy przed trudnym zadaniem poczujesz ucisk w klatce piersiowej lub przyspieszone tętno, natychmiast zatrzymaj się i powstrzymaj próbę uspokojenia na siłę. 2. Nazwij fizyczne objawy: „Moje serce bije szybciej, a dłonie są ciepłe". 3. Przeformułuj ich znaczenie za pomocą wewnętrznego komunikatu: „Moje ciało nie panikuje — pompuje tlen i paliwo do mózgu, przygotowując mnie do maksymalnego skupienia". 4. Zapisz jedno zdanie: „To zadanie jest dla mnie ważne, a to pobudzenie jest moim zasobem". 5. Skieruj tę energię w pierwsze 3 minuty konkretnej pracy w Focus Flow.',
+        pEn: '1. When chest tightness or accelerated heart rate surfaces before a tough task, pause and halt any reflexive attempt to calm down forcefully. 2. Acknowledge somatic cues objectively: "My pulse is elevated, my alertness is sharpening". 3. Reappraise their physiological meaning with a targeted self-instruction: "My body is not failing — it is delivering oxygen and glucose to my brain to prime me for high performance". 4. Write down one declarative prompt: "This challenge matters, and this arousal is fuel". 5. Channel this physical surge into the first 3 minutes of focused work in your Focus Flow session.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie powtarzaj sobie na siłę: „muszę się wyluzować" — próba drastycznego zgaszenia silnego pobudzenia jest sprzeczna z biologią i potęguje frustrację. Unikaj uznawania niepokoju za znak, że nie jesteś gotowy do zadania. Nie uciekaj w prokrastynację jako sposób na obniżenie dyskomfortu — ucieczka tylko utrwala lękowe skojarzenie z pracą.',
+        pEn: 'Never repeat "I need to just relax" under high somatic activation — trying to forcefully extinguish arousal contradicts autonomic physiology and fuels frustration. Avoid interpreting autonomic arousal as a signal of incompetence or unreadiness. Do not run into avoidance procrastination to relieve temporary somatic discomfort — avoidance reinforces threat reactivity.',
+      },
+    ],
+    sourcesPl: [
+      'Crum, Salovey i Achor, 2013 (Journal of Personality and Social Psychology — Rethinking stress: the role of mindsets in determining the stress response)',
+      'Jamieson, Mendes i Nock, 2012 (Journal of Experimental Psychology: General — Improving acute stress responses through reappraisal)',
+      'Yeager i in., 2022 (Nature — A synergistic mindsets intervention protects adolescents against stress)',
+    ],
+    sourcesEn: [
+      'Crum, Salovey & Achor, 2013 (Journal of Personality and Social Psychology — Rethinking stress: the role of mindsets in determining the stress response)',
+      'Jamieson, Mendes & Nock, 2012 (Journal of Experimental Psychology: General — Improving acute stress responses through reappraisal)',
+      'Yeager et al., 2022 (Nature — A synergistic mindsets intervention protects adolescents against stress)',
+    ],
+  },
+  'open-monitoring-focus': {
+    id: 'open-monitoring-focus',
+    topicId: 'mindfulness',
+    titlePl: 'Trening uwagi: uwaga skupiona kontra otwarte monitorowanie',
+    titleEn: 'Attention training: focused attention versus open monitoring',
+    introPl: 'Trening uważności obejmuje dwa odmienne tryby kognitywne: laserowe skupienie na jednym obiekcie oraz panoramiczną świadomość wszystkich zjawisk. Dobór odpowiedniego trybu do zadania pozwala trenować różne sieci uwagowe.',
+    introEn: 'Mindfulness training comprises two fundamentally distinct cognitive modes: laser spotlighting on a single anchor versus panoramic awareness of all phenomena. Pairing the right mode with your workflow trains different neural attention networks.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Neurobiolog Antoine Lutz podzielił medytację na dwa główne style: Uwagę Skupioną (FA — Focused Attention) i Otwarte Monitorowanie (OM — Open Monitoring). FA aktywuje grzbietową sieć uwagi (dorsal attention network): ćwiczy utrzymywanie skupienia na jednej kotwicy (np. oddechu), rozpoznawanie dystrakcji i natychmiastowy powrót. Z kolei OM angażuje brzuszną sieć uwagi oraz sieć istotności (salience network): nie utrzymuje kotwicy, lecz trenuje bezstronną, panoramiczną obserwację myśli, dźwięków i odczuć bez chwytania się któregokolwiek z nich. FA buduje odporność na dekoncentrację przy zadaniach analitycznych, podczas gdy OM zwiększa elastyczność poznawczą i myślenie dywergencyjne (kreatywność).',
+        pEn: 'Neuroscientist Antoine Lutz classified mindfulness into two core operational modes: Focused Attention (FA) and Open Monitoring (OM). FA engages the dorsal frontoparietal attention network, training sustained focal adherence to a chosen anchor (such as breath flow), selective distraction detection, and rapid disengagement. Conversely, OM activates ventral attention and salience networks: relinquishing focal anchors to cultivate non-reactive, panoramic observation of thoughts, ambient audio, and sensations. FA builds deep resistance against distraction in analytical work, while OM enhances cognitive flexibility and divergent creative thinking.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Przed pracą analityczną wybierz trening Uwagi Skupionej (FA): usiądź wygodnie i przez 5 minut skup całą uwagę wyłącznie na odczuciu powietrza w nozdrzach. 2. Gdy uwaga odpłynie, zauważ to bez osądzania i spokojnie sprowadź wzrok mentalny z powrotem na oddech. 3. Przed sesją burzy mózgów lub planowania strategicznego wybierz Otwarte Monitorowanie (OM): usiądź, zamknij oczy i przez 5 minut pozwól wszystkim dźwiękom, myślom i wrażeniom przepływać przez świadomość jak chmury na niebie. 4. W trybie OM nie podążaj za żadną myślą ani jej nie odpychaj — rejestruj wyłącznie sam fakt jej pojawienia się i zniknięcia. 5. Po 5 minutach przejdź natychmiast do właściwej sesji pracy w Focus Flow.',
+        pEn: '1. Prior to analytical problem-solving, engage Focused Attention (FA): sit comfortably and anchor your entire perceptual field on the tactile passage of air at your nostrils for 5 minutes. 2. When your mind wanders, acknowledge the intrusion non-judgmentally and smoothly guide attention back to the breath anchor. 3. Prior to strategic ideation or creative brainstorming, employ Open Monitoring (OM): close your eyes and let auditory, mental, and somatic sensations drift across conscious awareness like passing clouds. 4. In OM, neither chase nor suppress thoughts — simply register the emergence and dissolution of each mental event. 5. Conclude the 5-minute warm-up and launch directly into your designated Focus Flow session.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie myl Otwartego Monitorowania ze zwykłym rozkojarzeniem lub marzeniami dziennymi — OM wymaga czujnej obecności i nieutożsamiania się z myślami. Nie oceniaj treningu Uwagi Skupionej miarą tego, jak często twój umysł uciekł: każde zauważenie rozproszenia to jedno powtórzenie mięśnia uwagi. Nie rezygnuj z krótkich form — nawet 5 minut celowej praktyki daje mierzalne efekty neuroplastyczne.',
+        pEn: 'Do not mistake Open Monitoring for passive mind-wandering or daydreaming — OM demands lucid vigilance and detached witnessing without conceptual absorption. Never evaluate Focused Attention by the frequency of mind-wandering: each noticed drift and conscious return constitutes one rep of attentional strengthening. Never dismiss brief intervals — even 5 minutes of disciplined daily practice produces measurable neuroplastic shifts.',
+      },
+    ],
+    sourcesPl: [
+      'Lutz i in., 2008 (Trends in Cognitive Sciences — Attention regulation and monitoring in meditation)',
+      'Slagter i in., 2007 (PLoS Biology — Mental training affects distribution of limited brain resources)',
+      'Colzato i in., 2012 (Frontiers in Psychology — Meditate to create: the impact of focused-attention and open-monitoring meditation on divergent thinking)',
+    ],
+    sourcesEn: [
+      'Lutz et al., 2008 (Trends in Cognitive Sciences — Attention regulation and monitoring in meditation)',
+      'Slagter et al., 2007 (PLoS Biology — Mental training affects distribution of limited brain resources)',
+      'Colzato et al., 2012 (Frontiers in Psychology — Meditate to create: the impact of focused-attention and open-monitoring meditation on divergent thinking)',
+    ],
+  },
+  'body-scan-awareness': {
+    id: 'body-scan-awareness',
+    topicId: 'mindfulness',
+    titlePl: 'Skanowanie ciała: somatosensoryczna kotwica przeciw gonitwie myśli',
+    titleEn: 'The body scan: somatosensory anchoring against rumination',
+    introPl: 'Kiedy umysł grzęźnie w pętli natrętnych myśli i niepokoju, próba uspokojenia go kolejnymi myślami tylko wzmacnia problem. Przeniesienie uwagi na doznania somatyczne wycisza sieć wzbudzeń spoczynkowych mózgu.',
+    introEn: 'When the mind gets caught in analytical rumination, attempting to reason your way out often intensifies the loop. Shifting focal attention to somatic sensations downregulates default mode network hyperactivity.',
+    sections: [
+      {
+        hPl: 'Dlaczego to działa',
+        hEn: 'Why it works',
+        pPl: 'Sieć wzbudzeń spoczynkowych (DMN — Default Mode Network), obejmująca przyśrodkową korę przedczołową i tylną korę zakrętu obręczy, odpowiada za gonitwę myśli, autodiagnostykę i zamartwianie się o przyszłość. Badania neurobiologiczne dr Catherine Kerr z Harvardu i Browna wykazały, że celowe kierowanie uwagi na konkretne partie ciała moduluje rytmy alfa w pierwotnej korze somatosensorycznej (S1). Działa to jak fizjologiczny filtr bramkujący: mózg aktywnie wycisza przetwarzanie abstrakcyjnych myśli w DMN na rzecz bezpośrednich sygnałów interoceptywnych i proprioceptywnych, przerywając spiralę stresu poznawczego.',
+        pEn: 'The Default Mode Network (DMN), encompassing medial prefrontal and posterior cingulate cortices, underpins internal rumination, self-referential narratives, and future-oriented anxiety. Neuroimaging investigations led by Catherine Kerr at Harvard and Brown revealed that directing granular attention toward physical body sites modulates alpha oscillations in the primary somatosensory cortex (S1). This functions as an attentional gating mechanism: cortical processing suppresses abstract DMN rumination in favor of immediate sensory and interoceptive inputs, halting runaway cognitive tension.',
+      },
+      {
+        hPl: 'Jak to zrobić krok po kroku',
+        hEn: 'Step by step',
+        pPl: '1. Usiądź prosto na krześle, oprzyj stopy o podłoże i zamknij oczy na 5–8 minut. 2. Skieruj całą uwagę na czubki palców lewej stopy — zarejestruj temperaturę, nacisk buta, pulsowanie lub brak jakichkolwiek wyraźnych doznań. 3. Powolnym, płynnym ruchem przesuwaj reflektor uwagi w górę: przez stopę, łydkę, kolano, aż do biodra. 4. Powtórz procedurę dla prawej nogi, a następnie przejdź przez brzuch, klatkę piersiową, dłonie, ramiona, szyję i mięśnie twarzy. 5. Zakończ ćwiczenie, obejmując świadomością całe ciało jednocześnie jako zintegrowaną całość, po czym otwórz oczy i rozpocznij sesję.',
+        pEn: '1. Sit comfortably upright on your chair, ground your feet against the floor, and close your eyes for 5–8 minutes. 2. Direct your spotlight of awareness toward the toes of your left foot — register temperature, shoe pressure, tingling, or the absence of sensation. 3. Slowly migrate attention upward through the sole, calf, knee, and thigh into your hip. 4. Mirror the scan across your right leg, then ascend through your abdomen, chest, hands, shoulders, neck, and facial muscles. 5. Conclude by holding your entire physical body simultaneously in unified panoramic awareness before opening your eyes to begin work.',
+      },
+      {
+        hPl: 'Czego unikać',
+        hEn: 'What to avoid',
+        pPl: 'Nie oceniaj doznań jako „dobrych" lub „złych" — napięcie czy chłód to po prostu neutralne dane sensoryczne do zarejestrowania. Unikaj próby zrelaksowania ciała na siłę: rozluźnienie jest naturalnym efektem ubocznym uważnej obserwacji, a nie celem samym w sobie. Nie wykonuj skanowania w łóżku, jeśli masz tendencję do natychmiastowego zasypiania — utrzymuj pozycję siedzącą z wyprostowanym kręgosłupem.',
+        pEn: 'Never categorize somatic signals as "good" or "bad" — tension, warmth, or coolness are simply neutral sensory coordinates to register. Avoid struggling to force muscles to relax: physical release is a natural byproduct of non-judgmental observation, not an enforced demand. Do not conduct the scan supine in bed if prone to dozing off — maintain an alert upright seated posture.',
+      },
+    ],
+    sourcesPl: [
+      'Kabat-Zinn, 1982 (General Hospital Psychiatry — An outpatient program in behavioral medicine for chronic pain patients using mindfulness meditation)',
+      'Kerr i in., 2013 (Frontiers in Human Neuroscience — Effects of mindfulness meditation on somatosensory alpha rhythm modulation)',
+      'Mirams i in., 2013 (Consciousness and Cognition — Brief mindfulness training and tactile acuity)',
+    ],
+    sourcesEn: [
+      'Kabat-Zinn, 1982 (General Hospital Psychiatry — An outpatient program in behavioral medicine for chronic pain patients using mindfulness meditation)',
+      'Kerr et al., 2013 (Frontiers in Human Neuroscience — Effects of mindfulness meditation on somatosensory alpha rhythm modulation)',
+      'Mirams et al., 2013 (Consciousness and Cognition — Brief mindfulness training and tactile acuity)',
+    ],
+  },
 }
 
 export function articlesForTopic(topicId: TopicId): Article[] {
@@ -422,10 +954,22 @@ export function articleById(topicId: TopicId, articleId: string): Article | null
 }
 
 export function readMinutes(article: Article, lang: 'pl' | 'en'): number {
-  const words = [article.introPl, ...article.sections.map((s) => s.pPl), ...article.sourcesPl].join(' ').split(/\s+/).length
+  const intro = lang === 'pl' ? article.introPl : article.introEn
+  const paragraphs = article.sections.map((s) => (lang === 'pl' ? s.pPl : s.pEn))
+  const sources = lang === 'pl' ? article.sourcesPl : article.sourcesEn
+  const words = [intro, ...paragraphs, ...sources].join(' ').trim().split(/\s+/).length
   return Math.max(1, Math.round(words / (lang === 'pl' ? 180 : 200)))
 }
 
 export function totalReadMinutesForTopic(topicId: TopicId, lang: 'pl' | 'en'): number {
   return articlesForTopic(topicId).reduce((acc, a) => acc + readMinutes(a, lang), 0)
 }
+
+/** Splits "1. … 2. … 3. …" paragraphs into numbered list items; prose stays a paragraph. */
+export function isStepList(text: string): string[] | null {
+  if (!/^\d+\.\s/.test(text.trim())) return null
+  const items = text.trim().split(/(?<=[.!?…:;")”’\]»\n\r])\s*(?=\d+\.\s)/).map((s) => s.replace(/^\d+\.\s*/, '').trim())
+  return items.every((s) => s.length > 0) && items.length > 1 ? items : null
+}
+
+

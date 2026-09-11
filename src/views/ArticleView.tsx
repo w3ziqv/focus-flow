@@ -1,16 +1,9 @@
 import { X } from 'lucide-react'
-import { articleById } from '../lib/articles'
+import { articleById, isStepList, readMinutes } from '../lib/articles'
 import { topicById } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
 import type { ArticleSection } from '../lib/articles'
-
-/** Splits "1. … 2. … 3. …" paragraphs into numbered list items; prose stays a paragraph. */
-function isStepList(text: string): string[] | null {
-  if (!/^\d+\.\s/.test(text.trim())) return null
-  const items = text.trim().split(/(?=\d+\.\s)/).map((s) => s.replace(/^\d+\.\s*/, '').trim())
-  return items.every((s) => s.length > 0) && items.length > 1 ? items : null
-}
 
 function SectionBody({ text }: { text: string }) {
   const items = isStepList(text)
@@ -53,12 +46,7 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
   const title = lang === 'pl' ? article.titlePl : article.titleEn
   const intro = lang === 'pl' ? article.introPl : article.introEn
   const sources = lang === 'pl' ? article.sourcesPl : article.sourcesEn
-  const readMin = Math.max(
-    1,
-    Math.round(
-      [intro, ...article.sections.map((s) => (lang === 'pl' ? s.pPl : s.pEn))].join(' ').split(/\s+/).length / 200,
-    ),
-  )
+  const readMin = readMinutes(article, lang)
 
   return (
     <div className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24" style={accentStyle(topic.accent)}>
