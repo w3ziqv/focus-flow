@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimerEngine } from './timer'
-import { DEFAULT_SETTINGS } from './storage'
+import { DEFAULT_SETTINGS, loadSessions } from './storage'
+import { audio } from './audio'
 import type { Settings } from '../types'
 
 const MIN = 60_000
@@ -147,4 +148,141 @@ describe('useTimerEngine', () => {
     expect(result.current.remainingMs).toBe(MIN)
     expect(result.current.taskDone).toBe(false)
   })
+
+  describe('Milestone 2: Ephemeral Micro-Steps & Daily Goal Sanctuary', () => {
+    it('manages active micro-steps checklist with max 3 items and 140 char clamp', () => {
+      const { result } = renderHook(() => useTimerEngine())
+      expect(result.current.checklist).toEqual([])
+
+      act(() => {
+        result.current.addChecklistItem('Step 1')
+        result.current.addChecklistItem('Step 2')
+        result.current.addChecklistItem('Step 3')
+        result.current.addChecklistItem('Step 4 should be ignored')
+      })
+      expect(result.current.checklist).toHaveLength(3)
+      expect(result.current.checklist[0].text).toBe('Step 1')
+      expect(result.current.checklist[1].text).toBe('Step 2')
+      expect(result.current.checklist[2].text).toBe('Step 3')
+
+      // Toggling step
+      const step1Id = result.current.checklist[0].id
+      act(() => {
+        result.current.toggleChecklistItem(step1Id)
+      })
+      expect(result.current.checklist[0].completed).toBe(true)
+
+      // Removing step
+      const step2Id = result.current.checklist[1].id
+      act(() => {
+        result.current.removeChecklistItem(step2Id)
+      })
+      expect(result.current.checklist).toHaveLength(2)
+      expect(result.current.checklist.some((i) => i.id === step2Id)).toBe(false)
+    })
+
+    it('clamps micro-step text to 140 characters', () => {
+      const { result } = renderHook(() => useTimerEngine())
+      const longText = 'a'.repeat(200)
+      act(() => {
+        result.current.addChecklistItem(longText)
+      })
+      expect(result.current.checklist[0].text).toBe('a'.repeat(140))
+    })
+
+    it('captures micro-steps into session record on completion and immediately resets checklist to empty', () => {
+      const { result } = renderHook(() => useTimerEngine())
+      act(() => result.current.updateSettings(fastSettings({ focus: 1 })))
+
+      act(() => {
+        result.current.setTask('Implement Sanctuary integration')
+        result.current.addChecklistItem('Micro-step A')
+        result.current.addChecklistItem('Micro-step B')
+      })
+
+      // Toggle first item completed
+      const itemAId = result.current.checklist[0].id
+      act(() => {
+        result.current.toggleChecklistItem(itemAId)
+      })
+
+      // Complete the focus session
+      act(() => {
+        result.current.start()
+      })
+      act(() => {
+        vi.advanceTimersByTime(MIN + 1_000)
+      })
+
+      // Active checklist must be reset immediately (ephemeral lifecycle: no backlog debt)
+      expect(result.current.checklist).toEqual([])
+
+      // The completed session must contain the captured micro-steps
+      const sessions = loadSessions()
+      expect(sessions.length).toBeGreaterThanOrEqual(1)
+      const lastSession = sessions[0]
+      expect(lastSession.task).toBe('Implement Sanctuary integration')
+      expect(lastSession.checklist).toHaveLength(2)
+      expect(lastSession.checklist?.[0].completed).toBe(true)
+      expect(lastSession.checklist?.[0].text).toBe('Micro-step A')
+      expect(lastSession.checklist?.[1].completed).toBe(false)
+      expect(lastSession.checklist?.[1].text).toBe('Micro-step B')
+    })
+
+    it('triggers calm 3-second goal celebration and chime when crossing dailyTargetMinutes', () => {
+      const chimeSpy = vi.spyOn(audio, 'playChime').mockImplementation(() => {})
+      const { result } = renderHook(() => useTimerEngine())
+      act(() => result.current.updateSettings(fastSettings({ focus: 25 })))
+      act(() => {
+        result.current.updateGoals({
+          enabled: true,
+          dailyTargetMinutes: 25,
+        })
+      })
+
+      expect(result.current.goalCelebration).toBe(false)
+
+      // Start and complete session (25 minutes)
+      act(() => {
+        result.current.start()
+      })
+      act(() => {
+        vi.advanceTimersByTime(25 * MIN + 1_000)
+      })
+
+      // Celebration triggered
+      expect(result.current.goalCelebration).toBe(true)
+      expect(chimeSpy).toHaveBeenCalled()
+
+      // After 3 seconds, celebration resets to false
+      act(() => {
+        vi.advanceTimersByTime(3_000)
+      })
+      expect(result.current.goalCelebration).toBe(false)
+      chimeSpy.mockRestore()
+    })
+
+    it('does not trigger goal celebration if daily focus goal is disabled', () => {
+      const chimeSpy = vi.spyOn(audio, 'playChime').mockImplementation(() => {})
+      const { result } = renderHook(() => useTimerEngine())
+      act(() => result.current.updateSettings(fastSettings({ focus: 25 })))
+      act(() => {
+        result.current.updateGoals({
+          enabled: false,
+          dailyTargetMinutes: 25,
+        })
+      })
+
+      act(() => {
+        result.current.start()
+      })
+      act(() => {
+        vi.advanceTimersByTime(25 * MIN + 1_000)
+      })
+
+      expect(result.current.goalCelebration).toBe(false)
+      chimeSpy.mockRestore()
+    })
+  })
 })
+

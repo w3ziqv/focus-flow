@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { InterfacePrefs, SessionLogEntry, SessionSnapshot, Stats } from '../types'
+import type { GoalSettings, InterfacePrefs, MilestoneRecord, SessionLogEntry, SessionLogEntryV2, SessionSnapshot, Stats } from '../types'
 import {
   addSession,
   DEFAULT_INTERFACE,
   DEFAULT_SETTINGS,
   DEFAULT_SOUND_PREFERENCES,
   DEFAULT_VOLUME,
+  deleteSession,
   isSessionEntry,
   loadCustomSounds,
+  loadGoals,
   loadInstallDismissed,
   loadInterface,
   loadLang,
+  loadMilestones,
   loadOnboardingDone,
   loadSession,
   loadSessions,
@@ -24,9 +27,11 @@ import {
   MIN_TONE_WARMTH,
   sanitizeSessionEntry,
   saveCustomSounds,
+  saveGoals,
   saveInstallDismissed,
   saveInterface,
   saveLang,
+  saveMilestones,
   saveOnboardingDone,
   saveSession,
   saveSessions,
@@ -36,6 +41,7 @@ import {
   saveTheme,
   saveVolume,
   systemTheme,
+  updateSessionTask,
   weekStartOf,
 } from './storage'
 
@@ -819,4 +825,351 @@ describe('loadSoundPreferences & saveSoundPreferences (Schema v1.2)', () => {
     expect(loadVolume()).toBe(0.45)
   })
 })
+
+// ============================================================================
+// Milestone 1 Additions: Storage Schema v1.3 Boundaries & Adapters
+// ============================================================================
+
+describe('isSessionEntry & sanitizeSessionEntry (Schema v1.3 Micro-steps & Boundaries)', () => {
+  it('validates and clamps micro-step checklist items to a maximum of 3 items', () => {
+    const dirty = {
+      id: 'sess_micro_1',
+      date: '2026-09-10T12:00:00.000Z',
+      minutes: 25,
+      task: 'Checklist task',
+      checklist: [
+        { id: 'c1', text: 'Step 1', completed: false },
+        { id: 'c2', text: 'Step 2', completed: true },
+        { id: 'c3', text: 'Step 3', completed: false },
+        { id: 'c4', text: 'Step 4 (excess)', completed: true },
+        { id: 'c5', text: 'Step 5 (excess)', completed: false },
+      ],
+    }
+
+    const sanitized = isSessionEntry(dirty)
+    expect(sanitized).not.toBeNull()
+    expect(sanitized?.checklist).toHaveLength(3)
+    expect(sanitized?.checklist?.[0].id).toBe('c1')
+    expect(sanitized?.checklist?.[1].id).toBe('c2')
+    expect(sanitized?.checklist?.[2].id).toBe('c3')
+  })
+
+  it('clamps checklist item text to 140 characters and id to 64 characters', () => {
+    const longId = 'id_'.repeat(30) // 90 chars
+    const longText = 'A'.repeat(250) // 250 chars
+    const dirty = {
+      id: 'sess_micro_clamp',
+      date: '2026-09-10T12:00:00.000Z',
+      minutes: 25,
+      task: 'Task',
+      checklist: [
+        { id: longId, text: longText, completed: true },
+      ],
+    }
+
+    const sanitized = isSessionEntry(dirty)
+    expect(sanitized).not.toBeNull()
+    const item = sanitized?.checklist?.[0]
+    expect(item?.id.length).toBe(64)
+    expect(item?.text.length).toBe(140)
+    expect(item?.text).toBe('A'.repeat(140))
+    expect(item?.completed).toBe(true)
+  })
+
+  it('normalizes checklist item completed flag to boolean', () => {
+    const dirty = {
+      id: 'sess_micro_bool',
+      date: '2026-09-10T12:00:00.000Z',
+      minutes: 25,
+      task: 'Task',
+      checklist: [
+        { id: 'c1', text: 'Step 1', completed: true },
+        { id: 'c2', text: 'Step 2', completed: false },
+        { id: 'c3', text: 'Step 3', completed: 1 as unknown as boolean },
+      ],
+    }
+
+    const sanitized = isSessionEntry(dirty)
+    expect(sanitized?.checklist?.[0].completed).toBe(true)
+    expect(sanitized?.checklist?.[1].completed).toBe(false)
+    expect(typeof sanitized?.checklist?.[2].completed).toBe('boolean')
+  })
+
+  it('filters out invalid, empty, or non-object checklist items', () => {
+    const dirty = {
+      id: 'sess_micro_invalid',
+      date: '2026-09-10T12:00:00.000Z',
+      minutes: 25,
+      task: 'Task',
+      checklist: [
+        null,
+        'not an object',
+        { id: '', text: 'No id', completed: false },
+        { id: 'c1', text: '', completed: false },
+        { id: 'c2', text: '   ', completed: false },
+        { id: 'c3', text: 12345 as unknown as string, completed: false },
+        { id: 'valid', text: 'Valid step', completed: true },
+      ],
+    }
+
+    const sanitized = isSessionEntry(dirty)
+    expect(sanitized?.checklist).toHaveLength(1)
+    expect(sanitized?.checklist?.[0].id).toBe('valid')
+    expect(sanitized?.checklist?.[0].text).toBe('Valid step')
+  })
+
+  it('strips prototype pollution payloads from checklist items without polluting Object.prototype', () => {
+    const dirty = JSON.parse(
+      '{"id":"s_pollute","date":"2026-09-10T12:00:00.000Z","minutes":25,"task":"Task","checklist":[{"id":"c1","text":"Clean","completed":false,"__proto__":{"polluted":true},"constructor":{"prototype":{"pwned":true}}}]}',
+    )
+
+    const sanitized = sanitizeSessionEntry(dirty)
+    expect(sanitized).not.toBeNull()
+    expect(sanitized?.checklist).toHaveLength(1)
+    expect(sanitized?.checklist?.[0].id).toBe('c1')
+
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+    expect(globalProto['pwned']).toBeUndefined()
+  })
+
+  it('clamps task string to 200 characters and normalizes empty string or whitespace to null', () => {
+    const longTask = 'T'.repeat(300)
+    const res1 = isSessionEntry({ id: 's1', date: '2026-09-10T12:00:00.000Z', minutes: 25, task: longTask })
+    expect(res1?.task?.length).toBe(200)
+    expect(res1?.task).toBe('T'.repeat(200))
+
+    const res2 = isSessionEntry({ id: 's2', date: '2026-09-10T12:00:00.000Z', minutes: 25, task: '' })
+    expect(res2?.task).toBeNull()
+
+    const res3 = isSessionEntry({ id: 's3', date: '2026-09-10T12:00:00.000Z', minutes: 25, task: '   \n  \t  ' })
+    expect(res3?.task).toBeNull()
+  })
+})
+
+describe('updateSessionTask', () => {
+  it('updates task of target session in-place and persists to storage', () => {
+    const initial: SessionLogEntryV2[] = [
+      { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'Old Task' },
+      { id: 's2', date: '2026-09-10T11:00:00.000Z', minutes: 50, task: 'Second Task' },
+    ]
+    saveSessions(initial)
+
+    const updated = updateSessionTask('s1', 'Refactored Task')
+    expect(updated).toHaveLength(2)
+    expect(updated[0].id).toBe('s1')
+    expect(updated[0].task).toBe('Refactored Task')
+    expect(updated[1].task).toBe('Second Task')
+
+    // Verify storage persistence
+    const loaded = loadSessions()
+    expect(loaded[0].task).toBe('Refactored Task')
+  })
+
+  it('clamps updated task string to 200 characters', () => {
+    const initial: SessionLogEntryV2[] = [
+      { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'Original' },
+    ]
+    saveSessions(initial)
+
+    const longTask = 'U'.repeat(300)
+    const updated = updateSessionTask('s1', longTask)
+    expect(updated[0].task?.length).toBe(200)
+    expect(updated[0].task).toBe('U'.repeat(200))
+  })
+
+  it('converts empty string or whitespace-only updated task to null', () => {
+    const initial: SessionLogEntryV2[] = [
+      { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'To be cleared' },
+    ]
+    saveSessions(initial)
+
+    const updated = updateSessionTask('s1', '    ')
+    expect(updated[0].task).toBeNull()
+    expect(loadSessions()[0].task).toBeNull()
+  })
+
+  it('preserves other session fields (id, date, minutes, checklist) when updating task', () => {
+    const initial: SessionLogEntryV2[] = [
+      {
+        id: 's_full',
+        date: '2026-09-10T12:00:00.000Z',
+        minutes: 45,
+        task: 'Initial Task',
+        checklist: [{ id: 'c1', text: 'Step 1', completed: true }],
+      },
+    ]
+    saveSessions(initial)
+
+    const updated = updateSessionTask('s_full', 'New Title')
+    expect(updated[0].id).toBe('s_full')
+    expect(updated[0].date).toBe('2026-09-10T12:00:00.000Z')
+    expect(updated[0].minutes).toBe(45)
+    expect(updated[0].checklist).toEqual([{ id: 'c1', text: 'Step 1', completed: true }])
+  })
+
+  it('returns sessions unchanged when target session id does not exist', () => {
+    const initial: SessionLogEntryV2[] = [
+      { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'Task' },
+    ]
+    saveSessions(initial)
+
+    const updated = updateSessionTask('non_existent', 'New Title')
+    expect(updated).toEqual(initial)
+  })
+})
+
+describe('deleteSession', () => {
+  it('deletes target session by id and returns deleted record with updated array', () => {
+    const s1: SessionLogEntryV2 = { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'Task 1' }
+    const s2: SessionLogEntryV2 = { id: 's2', date: '2026-09-10T11:00:00.000Z', minutes: 50, task: 'Task 2' }
+    saveSessions([s1, s2])
+
+    const result = deleteSession('s1')
+    expect(result.deleted).toEqual(s1)
+    expect(result.sessions).toHaveLength(1)
+    expect(result.sessions[0].id).toBe('s2')
+
+    // Verify storage persistence
+    expect(loadSessions()).toEqual([s2])
+  })
+
+  it('returns deleted: null and unmodified list when id is not found', () => {
+    const initial: SessionLogEntryV2[] = [
+      { id: 's1', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: 'Task 1' },
+    ]
+    saveSessions(initial)
+
+    const result = deleteSession('unknown_id')
+    expect(result.deleted).toBeNull()
+    expect(result.sessions).toEqual(initial)
+    expect(loadSessions()).toEqual(initial)
+  })
+
+  it('handles deletion from empty storage gracefully', () => {
+    const result = deleteSession('any_id')
+    expect(result.deleted).toBeNull()
+    expect(result.sessions).toEqual([])
+  })
+
+  it('correctly handles deleting the only existing session', () => {
+    const s1: SessionLogEntryV2 = { id: 'only_one', date: '2026-09-10T10:00:00.000Z', minutes: 25, task: null }
+    saveSessions([s1])
+
+    const result = deleteSession('only_one')
+    expect(result.deleted).toEqual(s1)
+    expect(result.sessions).toEqual([])
+    expect(loadSessions()).toEqual([])
+  })
+})
+
+describe('loadGoals & saveGoals (Schema v1.3)', () => {
+  it('returns default goal settings when storage is empty', () => {
+    const goals = loadGoals()
+    expect(goals).toEqual({ dailyTargetMinutes: 0, enabled: false })
+  })
+
+  it('saves and reloads valid custom goal settings', () => {
+    const custom: GoalSettings = { dailyTargetMinutes: 120, enabled: true }
+    saveGoals(custom)
+    expect(loadGoals()).toEqual(custom)
+  })
+
+  it('clamps dailyTargetMinutes to [0, 720]', () => {
+    saveGoals({ dailyTargetMinutes: 9999, enabled: true })
+    expect(loadGoals().dailyTargetMinutes).toBe(720)
+
+    saveGoals({ dailyTargetMinutes: -50, enabled: true })
+    expect(loadGoals().dailyTargetMinutes).toBe(0)
+  })
+
+  it('rounds floating-point minutes and clamps non-numeric values to 0', () => {
+    saveGoals({ dailyTargetMinutes: 45.7, enabled: true })
+    expect(loadGoals().dailyTargetMinutes).toBe(46)
+
+    localStorage.setItem('ff2_goals', JSON.stringify({ dailyTargetMinutes: 'invalid', enabled: true }))
+    expect(loadGoals().dailyTargetMinutes).toBe(0)
+  })
+
+  it('falls back to defaults when stored JSON is corrupted', () => {
+    localStorage.setItem('ff2_goals', '{corrupt json')
+    expect(loadGoals()).toEqual({ dailyTargetMinutes: 0, enabled: false })
+  })
+
+  it('resists prototype pollution payloads in stored goals', () => {
+    const malicious = JSON.stringify({
+      dailyTargetMinutes: 100,
+      enabled: true,
+      __proto__: { polluted: true },
+      constructor: { prototype: { injected: true } },
+    })
+    localStorage.setItem('ff2_goals', malicious)
+
+    const loaded = loadGoals()
+    expect(loaded.dailyTargetMinutes).toBe(100)
+    expect(loaded.enabled).toBe(true)
+
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+    expect(globalProto['injected']).toBeUndefined()
+  })
+})
+
+describe('loadMilestones & saveMilestones (Schema v1.3)', () => {
+  it('returns empty array when storage is empty or corrupt', () => {
+    expect(loadMilestones()).toEqual([])
+
+    localStorage.setItem('ff2_milestones', '{corrupt json')
+    expect(loadMilestones()).toEqual([])
+
+    localStorage.setItem('ff2_milestones', '{"not":"array"}')
+    expect(loadMilestones()).toEqual([])
+  })
+
+  it('saves and loads valid milestone records', () => {
+    const records: MilestoneRecord[] = [
+      { id: 'the_first_step', unlockedAt: '2026-09-10T12:00:00.000Z', seen: true },
+      { id: 'stone_of_stillness', unlockedAt: '2026-09-10T14:00:00.000Z', seen: false },
+    ]
+    saveMilestones(records)
+    expect(loadMilestones()).toEqual(records)
+  })
+
+  it('discards malformed milestone items in stored array', () => {
+    const mixed = [
+      { id: 'valid_1', unlockedAt: '2026-09-10T12:00:00.000Z', seen: true },
+      null,
+      'invalid string',
+      { id: '', unlockedAt: '2026-09-10T12:00:00.000Z', seen: false },
+      { id: 'bad_date', unlockedAt: 'not-a-date', seen: false },
+      { id: 'valid_2', unlockedAt: '2026-09-10T13:00:00.000Z', seen: false },
+    ]
+    localStorage.setItem('ff2_milestones', JSON.stringify(mixed))
+
+    const loaded = loadMilestones()
+    expect(loaded).toHaveLength(2)
+    expect(loaded[0].id).toBe('valid_1')
+    expect(loaded[1].id).toBe('valid_2')
+  })
+
+  it('strips prototype pollution attacks from stored milestones', () => {
+    const malicious = JSON.stringify([
+      {
+        id: 'the_first_step',
+        unlockedAt: '2026-09-10T12:00:00.000Z',
+        seen: true,
+        __proto__: { polluted: true },
+      },
+    ])
+    localStorage.setItem('ff2_milestones', malicious)
+
+    const loaded = loadMilestones()
+    expect(loaded).toHaveLength(1)
+    expect(loaded[0].id).toBe('the_first_step')
+
+    const globalProto = Object.prototype as Record<string, unknown>
+    expect(globalProto['polluted']).toBeUndefined()
+  })
+})
+
 

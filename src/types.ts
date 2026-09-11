@@ -42,12 +42,42 @@ export interface PlayableSound extends CustomSound {
 
 export type TopicId = 'learning' | 'break' | 'sleep' | 'food' | 'productivity' | 'wellbeing' | 'mindfulness'
 
-export interface SessionLogEntry {
+export interface ChecklistItem {
+  id: string
+  text: string
+  completed: boolean
+}
+
+export interface TaskPreset {
+  id: string
+  label: string
+}
+
+export interface SessionLogEntryV2 {
   id: string
   /** ISO timestamp of completion */
   date: string
   minutes: number
   task: string | null
+  checklist?: ChecklistItem[]
+}
+
+export type SessionLogEntry = SessionLogEntryV2
+
+export interface GoalSettings {
+  dailyTargetMinutes: number
+  enabled: boolean
+}
+
+export interface MilestoneRecord {
+  id: string
+  unlockedAt: string
+  seen: boolean
+}
+
+export interface StatsV2 extends Stats {
+  goals?: GoalSettings
+  milestones?: MilestoneRecord[]
 }
 
 export type BaseSoundTexture =
@@ -104,3 +134,8 @@ export interface SessionSnapshot {
   task: string
   taskDone: boolean
 }
+
+export interface SessionSnapshotV2 extends SessionSnapshot {
+  checklist?: ChecklistItem[]
+}
+

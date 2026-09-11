@@ -42,6 +42,9 @@ export function TimerView({
   const taskPhase = engine.running ? 'running' : engine.taskDone ? 'done' : 'draft'
   const StartIcon = engine.running ? Pause : Play
 
+  const todayKey = new Date().toDateString()
+  const todayMinutes = engine.stats.history[todayKey] ?? 0
+
   return (
     <div className="mx-auto w-full max-w-[560px] px-4 pt-12 pb-16 md:pt-24">
       <p aria-hidden="true" className="mb-8 text-center text-overline text-ink-3 max-sm:block sm:hidden">
@@ -49,7 +52,17 @@ export function TimerView({
       </p>
 
       <div className="fade-up" style={{ animationDelay: '0ms' }}>
-        <TaskField phase={taskPhase} value={engine.task} greeting={greeting ?? ''} onChange={engine.setTask} />
+        <TaskField
+          phase={taskPhase}
+          value={engine.task}
+          greeting={greeting ?? ''}
+          onChange={engine.setTask}
+          checklist={engine.checklist}
+          onChecklistChange={engine.setChecklist}
+          onAddChecklistItem={engine.addChecklistItem}
+          onToggleChecklistItem={engine.toggleChecklistItem}
+          onRemoveChecklistItem={engine.removeChecklistItem}
+        />
       </div>
 
       <div className="fade-up mt-8" style={{ animationDelay: '40ms' }}>
@@ -65,6 +78,10 @@ export function TimerView({
           round={engine.round}
           rounds={engine.settings.rounds}
           onToggle={engine.toggle}
+          goalEnabled={engine.goals.enabled}
+          todayMinutes={todayMinutes}
+          dailyTargetMinutes={engine.goals.dailyTargetMinutes}
+          goalCelebration={engine.goalCelebration}
         />
       </div>
 

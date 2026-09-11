@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Mode, Settings, Stats } from '../types'
-import { loadSession, loadSettings, loadStats, saveSession, saveSettings } from './storage'
+import type { ChecklistItem, GoalSettings, Mode, Settings, StatsV2 } from '../types'
+import { isChecklist, loadGoals, loadSession, loadSettings, loadStats, saveGoals, saveSession, saveSettings } from './storage'
 import { recordFocusSession } from './stats'
 import { addSession } from './sessions'
 import { audio } from './audio'
@@ -20,7 +20,7 @@ export interface TimerEngine {
   totalMs: number
   task: string
   taskDone: boolean
-  stats: Stats
+  stats: StatsV2
   lastEvent: TimerEvent | null
   start: () => void
   pause: () => void
@@ -28,6 +28,16 @@ export interface TimerEngine {
   reset: () => void
   switchMode: (mode: Mode) => void
   setTask: (task: string) => void
+  checklist: ChecklistItem[]
+  setChecklist: (items: ChecklistItem[]) => void
+  addChecklistItem: (text: string) => void
+  toggleChecklistItem: (id: string) => void
+  removeChecklistItem: (id: string) => void
+  goals: GoalSettings
+  updateGoals: (next: GoalSettings) => void
+  goalCelebration: boolean
+  refreshStats: () => void
+  setStats: (next: StatsV2) => void
 }
 
 const TICK_MS = 250
@@ -39,12 +49,15 @@ function durationOf(settings: Settings, mode: Mode): number {
 
 export function useTimerEngine(): TimerEngine {
   const [settings, setSettings] = useState<Settings>(loadSettings)
-  const [stats, setStats] = useState<Stats>(loadStats)
+  const [stats, setStats] = useState<StatsV2>(loadStats)
   const snapshot = useMemo(() => loadSession(), [])
   const [mode, setMode] = useState<Mode>(() => snapshot?.mode ?? 'focus')
   const [round, setRound] = useState<number>(() => snapshot?.round ?? 0)
   const [task, setTaskState] = useState<string>(() => snapshot?.task ?? '')
   const [taskDone, setTaskDone] = useState<boolean>(() => snapshot?.taskDone ?? false)
+  const [checklist, setChecklistState] = useState<ChecklistItem[]>(() => snapshot?.checklist ?? [])
+  const [goals, setGoals] = useState<GoalSettings>(loadGoals)
+  const [goalCelebration, setGoalCelebration] = useState<boolean>(false)
   const [lastEvent, setLastEvent] = useState<TimerEvent | null>(null)
 
   // `remainingMs` is the single source of truth while paused; while running it is
@@ -64,10 +77,13 @@ export function useTimerEngine(): TimerEngine {
   const modeRef = useRef<Mode>(mode)
   const roundRef = useRef<number>(round)
   const settingsRef = useRef<Settings>(settings)
-  const statsRef = useRef<Stats>(stats)
+  const statsRef = useRef<StatsV2>(stats)
   const taskRef = useRef<string>(task)
   const taskDoneRef = useRef<boolean>(taskDone)
+  const checklistRef = useRef<ChecklistItem[]>(checklist)
+  const goalsRef = useRef<GoalSettings>(goals)
   const autoStartTimer = useRef<number | null>(null)
+  const celebrationTimer = useRef<number | null>(null)
 
   const totalMs = useMemo(() => durationOf(settings, mode), [settings, mode])
 
@@ -81,6 +97,7 @@ export function useTimerEngine(): TimerEngine {
         remainingMs: next.remainingMs,
         task: taskRef.current,
         taskDone: taskDoneRef.current,
+        checklist: checklistRef.current,
       })
     },
     [],
@@ -123,19 +140,49 @@ export function useTimerEngine(): TimerEngine {
     }
 
     if (currentMode === 'focus') {
+      const todayKey = new Date().toDateString()
+      const prevTodayMinutes = statsRef.current.history[todayKey] ?? 0
       const nextStats = recordFocusSession(statsRef.current, currentSettings.focus)
       setStats(nextStats)
       statsRef.current = nextStats
+
+      // 1. Capture micro-steps into permanent session record
       addSession({
         id: `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
         date: new Date().toISOString(),
         minutes: currentSettings.focus,
         task: taskRef.current.trim() !== '' ? taskRef.current.trim() : null,
+        checklist: checklistRef.current.length > 0 ? [...checklistRef.current] : undefined,
       })
+
       if (taskRef.current.trim() !== '') {
         setTaskDone(true)
         taskDoneRef.current = true
       }
+
+      // 2. Goal tracking: detect when today's minutes cross dailyTargetMinutes
+      const currentGoals = goalsRef.current
+      const newTodayMinutes = nextStats.history[todayKey] ?? 0
+      if (
+        currentGoals.enabled &&
+        currentGoals.dailyTargetMinutes > 0 &&
+        prevTodayMinutes < currentGoals.dailyTargetMinutes &&
+        newTodayMinutes >= currentGoals.dailyTargetMinutes
+      ) {
+        setGoalCelebration(true)
+        audio.playChime()
+        if (celebrationTimer.current !== null) {
+          window.clearTimeout(celebrationTimer.current)
+        }
+        celebrationTimer.current = window.setTimeout(() => {
+          setGoalCelebration(false)
+          celebrationTimer.current = null
+        }, 3000)
+      }
+
+      // 3. Ephemeral reset: clean checklist for the next session so items do not carry forward
+      setChecklistState([])
+      checklistRef.current = []
     }
 
     const finishedKind: 'focus' | 'break' = currentMode === 'focus' ? 'focus' : 'break'
@@ -269,7 +316,87 @@ export function useTimerEngine(): TimerEngine {
       remainingMs: remainingRef.current,
       task: trimmed,
       taskDone: taskDoneRef.current,
+      checklist: checklistRef.current,
     })
+  }, [])
+
+  const setChecklist = useCallback((items: ChecklistItem[]) => {
+    const sanitized = (isChecklist(items) ?? []).slice(0, 3)
+    setChecklistState(sanitized)
+    checklistRef.current = sanitized
+    saveSession({
+      mode: modeRef.current,
+      round: roundRef.current,
+      running: runningRef.current,
+      endTs: endTsRef.current,
+      remainingMs: remainingRef.current,
+      task: taskRef.current,
+      taskDone: taskDoneRef.current,
+      checklist: sanitized,
+    })
+  }, [])
+
+  const addChecklistItem = useCallback((text: string) => {
+    const trimmed = text.trim().slice(0, 140)
+    if (!trimmed || checklistRef.current.length >= 3) return
+    const item: ChecklistItem = {
+      id: `chk_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+      text: trimmed,
+      completed: false,
+    }
+    const next = [...checklistRef.current, item]
+    checklistRef.current = next
+    setChecklistState(next)
+    saveSession({
+      mode: modeRef.current,
+      round: roundRef.current,
+      running: runningRef.current,
+      endTs: endTsRef.current,
+      remainingMs: remainingRef.current,
+      task: taskRef.current,
+      taskDone: taskDoneRef.current,
+      checklist: next,
+    })
+  }, [])
+
+  const toggleChecklistItem = useCallback((id: string) => {
+    const next = checklistRef.current.map((item) =>
+      item.id === id ? { ...item, completed: !item.completed } : item,
+    )
+    checklistRef.current = next
+    setChecklistState(next)
+    saveSession({
+      mode: modeRef.current,
+      round: roundRef.current,
+      running: runningRef.current,
+      endTs: endTsRef.current,
+      remainingMs: remainingRef.current,
+      task: taskRef.current,
+      taskDone: taskDoneRef.current,
+      checklist: next,
+    })
+  }, [])
+
+  const removeChecklistItem = useCallback((id: string) => {
+    const next = checklistRef.current.filter((item) => item.id !== id)
+    checklistRef.current = next
+    setChecklistState(next)
+    saveSession({
+      mode: modeRef.current,
+      round: roundRef.current,
+      running: runningRef.current,
+      endTs: endTsRef.current,
+      remainingMs: remainingRef.current,
+      task: taskRef.current,
+      taskDone: taskDoneRef.current,
+      checklist: next,
+    })
+  }, [])
+
+  const updateGoals = useCallback((next: GoalSettings) => {
+    setGoals(next)
+    goalsRef.current = next
+    saveGoals(next)
   }, [])
 
   const toggle = useCallback(() => {
@@ -280,8 +407,20 @@ export function useTimerEngine(): TimerEngine {
   useEffect(() => {
     return () => {
       if (autoStartTimer.current !== null) window.clearTimeout(autoStartTimer.current)
+      if (celebrationTimer.current !== null) window.clearTimeout(celebrationTimer.current)
       audio.dispose()
     }
+  }, [])
+
+  const refreshStats = useCallback(() => {
+    const loaded = loadStats()
+    setStats(loaded)
+    statsRef.current = loaded
+  }, [])
+
+  const setStatsCallback = useCallback((next: StatsV2) => {
+    setStats(next)
+    statsRef.current = next
   }, [])
 
   return {
@@ -302,5 +441,15 @@ export function useTimerEngine(): TimerEngine {
     reset,
     switchMode,
     setTask,
+    checklist,
+    setChecklist,
+    addChecklistItem,
+    toggleChecklistItem,
+    removeChecklistItem,
+    goals,
+    updateGoals,
+    goalCelebration,
+    refreshStats,
+    setStats: setStatsCallback,
   }
 }

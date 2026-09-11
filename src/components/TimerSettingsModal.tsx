@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
-import type { Settings } from '../types'
+import type { GoalSettings, Settings } from '../types'
+import { loadGoals, saveGoals } from '../lib/storage'
 import { useI18n } from '../lib/i18n'
 import { Modal } from './Modal'
 import { PillButton } from './PillButton'
 import { Switch } from './Switch'
 
-interface TimerSettingsModalProps {
+export interface TimerSettingsModalProps {
   open: boolean
   settings: Settings
-  onSave: (settings: Settings) => void
+  goals?: GoalSettings
+  onSave: (settings: Settings, goals?: GoalSettings) => void
+  onSaveGoals?: (goals: GoalSettings) => void
   onClose: () => void
 }
 
@@ -19,15 +22,24 @@ const fieldClass =
 const stepButtonClass =
   'flex size-9 shrink-0 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-30'
 
-export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSettingsModalProps): React.JSX.Element | null {
+export function TimerSettingsModal({
+  open,
+  settings,
+  goals,
+  onSave,
+  onSaveGoals,
+  onClose,
+}: TimerSettingsModalProps): React.JSX.Element | null {
   const { t } = useI18n()
   const [draft, setDraft] = useState<Settings>(settings)
-  const [wasOpen, setWasOpen] = useState(false)
+  const [goalDraft, setGoalDraft] = useState<GoalSettings>(goals ?? loadGoals)
+  const [wasOpen, setWasOpen] = useState<boolean>(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
   if (open && !wasOpen) {
     setWasOpen(true)
     setDraft(settings)
+    setGoalDraft(goals ?? loadGoals())
   }
   if (!open && wasOpen) {
     setWasOpen(false)
@@ -42,8 +54,8 @@ export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSet
 
   if (!open) return null
 
-  const numberField = (key: 'focus' | 'short' | 'long' | 'rounds', label: string, min: number, max: number) => {
-    const bump = (delta: number) => {
+  const numberField = (key: 'focus' | 'short' | 'long' | 'rounds', label: string, min: number, max: number): React.JSX.Element => {
+    const bump = (delta: number): void => {
       setDraft((prev) => ({ ...prev, [key]: Math.min(max, Math.max(min, prev[key] + delta)) }))
     }
     return (
@@ -88,6 +100,14 @@ export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSet
     )
   }
 
+  const bumpGoal = (delta: number): void => {
+    setGoalDraft((prev) => {
+      const current = prev.dailyTargetMinutes > 0 ? prev.dailyTargetMinutes : 100
+      const next = Math.min(720, Math.max(15, current + delta))
+      return { ...prev, dailyTargetMinutes: next }
+    })
+  }
+
   const clampDraft = (): Settings => ({
     focus: Math.min(120, Math.max(1, Math.round(draft.focus) || 1)),
     short: Math.min(60, Math.max(1, Math.round(draft.short) || 1)),
@@ -95,6 +115,22 @@ export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSet
     rounds: Math.min(20, Math.max(1, Math.round(draft.rounds) || 1)),
     autoStart: draft.autoStart,
   })
+
+  const clampGoal = (): GoalSettings => {
+    const target = Math.min(720, Math.max(15, Math.round(goalDraft.dailyTargetMinutes) || 100))
+    return {
+      enabled: goalDraft.enabled,
+      dailyTargetMinutes: target,
+    }
+  }
+
+  const handleSave = (): void => {
+    const finalSettings = clampDraft()
+    const finalGoals = clampGoal()
+    saveGoals(finalGoals)
+    onSaveGoals?.(finalGoals)
+    onSave(finalSettings, finalGoals)
+  }
 
   return (
     <Modal open={open} onClose={onClose} title={t('settings.timer')}>
@@ -108,12 +144,71 @@ export function TimerSettingsModal({ open, settings, onSave, onClose }: TimerSet
           onChange={(autoStart) => setDraft((prev) => ({ ...prev, autoStart }))}
           label={t('settings.autoStart')}
         />
+
+        <div className="mt-2 border-t border-line pt-4 flex flex-col gap-3">
+          <Switch
+            checked={goalDraft.enabled}
+            onChange={(enabled) =>
+              setGoalDraft((prev) => ({
+                ...prev,
+                enabled,
+                dailyTargetMinutes: prev.dailyTargetMinutes > 0 ? prev.dailyTargetMinutes : 100,
+              }))
+            }
+            label={t('goal.title')}
+          />
+
+          {goalDraft.enabled && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="timer-settings-goal" className="text-caption text-ink-2">
+                {t('goal.targetMinutes')}
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label={`${t('settings.decrease')} — ${t('goal.targetMinutes')}`}
+                  onClick={() => bumpGoal(-15)}
+                  disabled={goalDraft.dailyTargetMinutes <= 15}
+                  className={stepButtonClass}
+                >
+                  <Minus size={14} aria-hidden="true" />
+                </button>
+                <input
+                  id="timer-settings-goal"
+                  type="number"
+                  inputMode="numeric"
+                  min={15}
+                  max={720}
+                  step={15}
+                  value={goalDraft.dailyTargetMinutes}
+                  onChange={(event) => {
+                    const parsed = Number.parseInt(event.target.value, 10)
+                    setGoalDraft((prev) => ({
+                      ...prev,
+                      dailyTargetMinutes: Number.isFinite(parsed) ? parsed : 15,
+                    }))
+                  }}
+                  className={fieldClass}
+                />
+                <button
+                  type="button"
+                  aria-label={`${t('settings.increase')} — ${t('goal.targetMinutes')}`}
+                  onClick={() => bumpGoal(15)}
+                  disabled={goalDraft.dailyTargetMinutes >= 720}
+                  className={stepButtonClass}
+                >
+                  <Plus size={14} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="mt-6 flex items-center justify-end gap-2">
         <PillButton variant="secondary" onClick={onClose}>
           {t('settings.cancel')}
         </PillButton>
-        <PillButton variant="primary" onClick={() => onSave(clampDraft())}>
+        <PillButton variant="primary" onClick={handleSave}>
           {t('settings.save')}
         </PillButton>
       </div>

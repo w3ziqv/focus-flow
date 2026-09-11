@@ -292,6 +292,9 @@ function Shell() {
     },
   })
 
+  const todayKey = new Date().toDateString()
+  const todayMinutes = engine.stats.history[todayKey] ?? 0
+
   const dial = (
     <Dial
       mode={engine.mode}
@@ -301,6 +304,10 @@ function Shell() {
       round={engine.round}
       rounds={engine.settings.rounds}
       onToggle={engine.toggle}
+      goalEnabled={engine.goals.enabled}
+      todayMinutes={todayMinutes}
+      dailyTargetMinutes={engine.goals.dailyTargetMinutes}
+      goalCelebration={engine.goalCelebration}
     />
   )
 
@@ -327,6 +334,7 @@ function Shell() {
               lang={lang}
               chartDays={last7Days(engine.stats, lang)}
               totalMinutes={sumMinutes(last7Days(engine.stats, lang))}
+              onStatsChange={engine.setStats}
             />
           </Suspense>
         ) : tipsStack.length === 0 ? (
@@ -376,9 +384,11 @@ function Shell() {
       <TimerSettingsModal
         open={timerSettingsOpen}
         settings={engine.settings}
+        goals={engine.goals}
         onClose={() => setTimerSettingsOpen(false)}
-        onSave={(settings) => {
+        onSave={(settings, goals) => {
           engine.updateSettings(settings)
+          if (goals) engine.updateGoals(goals)
           setTimerSettingsOpen(false)
         }}
       />

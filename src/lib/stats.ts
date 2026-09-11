@@ -1,15 +1,31 @@
-import type { Lang, SessionLogEntry, Stats } from '../types'
-import { saveStats, weekStartOf } from './storage'
+import type { Lang, MilestoneRecord, SessionLogEntry, SessionLogEntryV2, Stats, StatsV2 } from '../types'
+import { deleteSession, loadStats, saveStats, weekStartOf } from './storage'
+
+export const ZEN_MILESTONES: readonly [
+  'the_first_step',
+  'pebble_of_rhythm',
+  'stone_of_stillness',
+  'garden_of_flow',
+  'century_of_craft',
+] = [
+  'the_first_step',
+  'pebble_of_rhythm',
+  'stone_of_stillness',
+  'garden_of_flow',
+  'century_of_craft',
+] as const
+
+export type ZenMilestoneId = (typeof ZEN_MILESTONES)[number]
 
 function dayKey(date = new Date()): string {
   return date.toDateString()
 }
 
 /** Adds one completed focus session to the stats and persists them. */
-export function recordFocusSession(stats: Stats, minutes: number): Stats {
+export function recordFocusSession(stats: StatsV2, minutes: number): StatsV2 {
   const today = dayKey()
   const currentWeekStart = weekStartOf()
-  const next: Stats = {
+  const next: StatsV2 = {
     ...stats,
     history: { ...stats.history },
   }
@@ -42,6 +58,177 @@ export function recordFocusSession(stats: Stats, minutes: number): Stats {
 
   saveStats(next)
   return next
+}
+
+/**
+ * Atomically decrements statistics for a deleted session.
+ * Clamps all aggregate metrics to 0 to prevent metric drift or negative totals.
+ */
+export function decrementStatsForSession(stats: StatsV2, session: SessionLogEntryV2): StatsV2 {
+  const sessionMinutes =
+    typeof session.minutes === 'number' && Number.isFinite(session.minutes) && session.minutes > 0
+      ? Math.round(session.minutes)
+      : 0
+
+  const next: StatsV2 = {
+    ...stats,
+    history: { ...stats.history },
+  }
+
+  next.minutes = Math.max(0, next.minutes - sessionMinutes)
+
+  const sessionDate = new Date(session.date)
+  if (!Number.isNaN(sessionDate.getTime())) {
+    const sessionDayKey = sessionDate.toDateString()
+    const todayKey = new Date().toDateString()
+
+    if (sessionDayKey === todayKey) {
+      next.today = Math.max(0, next.today - 1)
+    }
+
+    if (weekStartOf(sessionDate) === weekStartOf(new Date())) {
+      next.week = Math.max(0, next.week - 1)
+    }
+
+    const currentDayMinutes = stats.history[sessionDayKey] ?? sessionMinutes
+    next.history[sessionDayKey] = Math.max(0, currentDayMinutes - sessionMinutes)
+  }
+
+  return next
+}
+
+/**
+ * Coordinates atomic session deletion: removes session from storage
+ * and decrements aggregate statistics in a single transaction.
+ */
+export function deleteSessionWithStats(sessionId: string): {
+  sessions: SessionLogEntryV2[]
+  stats: StatsV2
+  deleted: SessionLogEntryV2 | null
+} {
+  const { sessions, deleted } = deleteSession(sessionId)
+  const currentStats = loadStats()
+
+  if (!deleted) {
+    return {
+      sessions,
+      stats: currentStats,
+      deleted: null,
+    }
+  }
+
+  const updatedStats = decrementStatsForSession(currentStats, deleted)
+  saveStats(updatedStats)
+
+  return {
+    sessions,
+    stats: updatedStats,
+    deleted,
+  }
+}
+
+/**
+ * Evaluates the 5 Zen seals deterministically and idempotently.
+ * Preserves existing unlock timestamps and seen statuses.
+ */
+export function evaluateMilestones(
+  current: MilestoneRecord[] | undefined,
+  stats: StatsV2,
+  sessions: SessionLogEntryV2[],
+): MilestoneRecord[] {
+  const existingMap = new Map<string, MilestoneRecord>()
+  if (Array.isArray(current)) {
+    for (const record of current) {
+      if (record && typeof record.id === 'string') {
+        existingMap.set(record.id, record)
+      }
+    }
+  }
+
+  const results: MilestoneRecord[] = []
+  const nowIso = new Date().toISOString()
+
+  // 1. The First Step: First completed session
+  const hasFirstStep = sessions.length > 0 || stats.minutes > 0 || existingMap.has('the_first_step')
+  if (hasFirstStep) {
+    results.push(
+      existingMap.get('the_first_step') ?? {
+        id: 'the_first_step',
+        unlockedAt: nowIso,
+        seen: false,
+      },
+    )
+  }
+
+  // 2. Pebble of Rhythm: 3 active focus days within a single calendar week
+  let hasPebbleOfRhythm = existingMap.has('pebble_of_rhythm')
+  if (!hasPebbleOfRhythm) {
+    const weekDaysMap = new Map<string, Set<string>>()
+    for (const s of sessions) {
+      const d = new Date(s.date)
+      if (!Number.isNaN(d.getTime()) && s.minutes > 0) {
+        const weekKey = weekStartOf(d)
+        let daySet = weekDaysMap.get(weekKey)
+        if (!daySet) {
+          daySet = new Set<string>()
+          weekDaysMap.set(weekKey, daySet)
+        }
+        daySet.add(d.toDateString())
+      }
+    }
+    for (const daysSet of weekDaysMap.values()) {
+      if (daysSet.size >= 3) {
+        hasPebbleOfRhythm = true
+        break
+      }
+    }
+  }
+  if (hasPebbleOfRhythm) {
+    results.push(
+      existingMap.get('pebble_of_rhythm') ?? {
+        id: 'pebble_of_rhythm',
+        unlockedAt: nowIso,
+        seen: false,
+      },
+    )
+  }
+
+  const totalMinutes = stats.minutes
+
+  // 3. Stone of Stillness: 10 cumulative hours (600 minutes)
+  if (totalMinutes >= 600 || existingMap.has('stone_of_stillness')) {
+    results.push(
+      existingMap.get('stone_of_stillness') ?? {
+        id: 'stone_of_stillness',
+        unlockedAt: nowIso,
+        seen: false,
+      },
+    )
+  }
+
+  // 4. Garden of Flow: 50 cumulative hours (3000 minutes)
+  if (totalMinutes >= 3000 || existingMap.has('garden_of_flow')) {
+    results.push(
+      existingMap.get('garden_of_flow') ?? {
+        id: 'garden_of_flow',
+        unlockedAt: nowIso,
+        seen: false,
+      },
+    )
+  }
+
+  // 5. Century of Craft: 100 cumulative hours (6000 minutes)
+  if (totalMinutes >= 6000 || existingMap.has('century_of_craft')) {
+    results.push(
+      existingMap.get('century_of_craft') ?? {
+        id: 'century_of_craft',
+        unlockedAt: nowIso,
+        seen: false,
+      },
+    )
+  }
+
+  return results
 }
 
 export interface ChartDay {

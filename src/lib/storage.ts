@@ -2,19 +2,35 @@ import {
   DEFAULT_SOUND_PREFERENCES,
   type BaseSoundTexture,
   type BinauralMode,
+  type ChecklistItem,
   type CustomSound,
+  type GoalSettings,
   type InterfacePrefs,
   type Lang,
+  type MilestoneRecord,
   type SessionLogEntry,
-  type SessionSnapshot,
+  type SessionLogEntryV2,
+  type SessionSnapshotV2,
   type Settings,
   type SoundPreferences,
   type Stats,
+  type StatsV2,
   type Theme,
 } from '../types'
 
 export const MAX_SOUND_SIZE: number = 200 * 1024 * 1024
 export const MAX_SESSIONS: number = 1000
+export const MAX_TASK_LENGTH: number = 200
+export const MAX_CHECKLIST_ITEMS: number = 3
+export const MAX_CHECKLIST_TEXT_LENGTH: number = 140
+export const MAX_CHECKLIST_ID_LENGTH: number = 64
+export const MIN_GOAL_MINUTES: number = 0
+export const MAX_GOAL_MINUTES: number = 720
+
+export const DEFAULT_GOAL_SETTINGS: GoalSettings = {
+  dailyTargetMinutes: 0,
+  enabled: false,
+}
 
 const PREFIX = 'ff2_'
 const LEGACY_PREFIX = 'ff_'
@@ -32,6 +48,8 @@ const KEYS = {
   migrated: `${PREFIX}migrated`,
   onboardingDone: `${PREFIX}onboardingDone`,
   installDismissed: `${PREFIX}installDismissed`,
+  goals: `${PREFIX}goals`,
+  milestones: `${PREFIX}milestones`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
@@ -87,12 +105,81 @@ export function weekStartOf(date: Date = new Date()): string {
   return d.toDateString()
 }
 
-function isStats(value: unknown): Stats | null {
-  if (typeof value !== 'object' || value === null) return null
+export function isChecklistItem(value: unknown): ChecklistItem | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+
+  if (typeof v.id !== 'string' || v.id.trim() === '') return null
+  const id: string = v.id.trim().slice(0, MAX_CHECKLIST_ID_LENGTH)
+
+  if (typeof v.text !== 'string' || v.text.trim() === '') return null
+  const text: string = v.text.trim().slice(0, MAX_CHECKLIST_TEXT_LENGTH)
+
+  const completed: boolean = v.completed === true
+
+  return { id, text, completed }
+}
+
+export function isChecklist(value: unknown): ChecklistItem[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  return value
+    .map(isChecklistItem)
+    .filter((item): item is ChecklistItem => item !== null)
+    .slice(0, MAX_CHECKLIST_ITEMS)
+}
+
+export function isGoalSettings(value: unknown): GoalSettings | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+
+  let dailyTargetMinutes: number = DEFAULT_GOAL_SETTINGS.dailyTargetMinutes
+  const rawTarget: unknown = v.dailyTargetMinutes ?? v.targetMinutes
+  if (typeof rawTarget === 'number' && Number.isFinite(rawTarget)) {
+    dailyTargetMinutes = Math.min(MAX_GOAL_MINUTES, Math.max(MIN_GOAL_MINUTES, Math.round(rawTarget)))
+  } else if (typeof rawTarget === 'string') {
+    const parsed = Number(rawTarget)
+    if (!Number.isNaN(parsed) && Number.isFinite(parsed)) {
+      dailyTargetMinutes = Math.min(MAX_GOAL_MINUTES, Math.max(MIN_GOAL_MINUTES, Math.round(parsed)))
+    }
+  }
+
+  const enabled: boolean = v.enabled === true
+
+  return { dailyTargetMinutes, enabled }
+}
+
+export function isMilestoneRecord(value: unknown): MilestoneRecord | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+
+  if (typeof v.id !== 'string' || v.id.trim() === '') return null
+  const id: string = v.id.trim().slice(0, 64)
+
+  const rawDate: unknown = v.unlockedAt ?? v.date
+  if (typeof rawDate !== 'string' || rawDate.trim() === '') return null
+  const parsedDate = Date.parse(rawDate.trim())
+  if (Number.isNaN(parsedDate)) return null
+  const unlockedAt: string = rawDate.trim()
+
+  const seen: boolean = v.seen === true
+
+  return { id, unlockedAt, seen }
+}
+
+export function isMilestones(value: unknown): MilestoneRecord[] | null {
+  if (!Array.isArray(value)) return null
+  return value
+    .map(isMilestoneRecord)
+    .filter((m): m is MilestoneRecord => m !== null)
+}
+
+export function isStats(value: unknown): StatsV2 | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const v = value as Record<string, unknown>
   const history: Record<string, number> = {}
-  if (typeof v.history === 'object' && v.history !== null) {
+  if (typeof v.history === 'object' && v.history !== null && !Array.isArray(v.history)) {
     for (const [k, n] of Object.entries(v.history as Record<string, unknown>)) {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue
       if (typeof n === 'number' && Number.isFinite(n) && n >= 0) history[k] = n
     }
   }
@@ -103,7 +190,7 @@ function isStats(value: unknown): Stats | null {
   // Roll day and week counters the way a fresh day demands.
   const rolledToday = date === today ? Number(v.today) || 0 : 0
   const rolledWeek = weekStart === ws ? Number(v.week) || 0 : 0
-  return {
+  const stats: StatsV2 = {
     today: rolledToday,
     week: rolledWeek,
     streak: Number(v.streak) || 0,
@@ -113,6 +200,21 @@ function isStats(value: unknown): Stats | null {
     lastDate: typeof v.lastDate === 'string' ? v.lastDate : null,
     history,
   }
+
+  if (v.goals !== undefined && typeof v.goals === 'object' && v.goals !== null) {
+    const goals = isGoalSettings(v.goals)
+    if (goals) {
+      stats.goals = goals
+    }
+  }
+
+  if (Array.isArray(v.milestones)) {
+    stats.milestones = v.milestones
+      .map(isMilestoneRecord)
+      .filter((m): m is MilestoneRecord => m !== null)
+  }
+
+  return stats
 }
 
 function isCustomSounds(value: unknown): CustomSound[] | null {
@@ -127,7 +229,7 @@ function isCustomSounds(value: unknown): CustomSound[] | null {
   return sounds
 }
 
-export function isSessionEntry(value: unknown): SessionLogEntry | null {
+export function isSessionEntry(value: unknown): SessionLogEntryV2 | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const v = value as Record<string, unknown>
 
@@ -148,9 +250,19 @@ export function isSessionEntry(value: unknown): SessionLogEntry | null {
   if (typeof rawMinutes !== 'number' || !Number.isFinite(rawMinutes) || rawMinutes < 0) return null
   const minutes: number = Math.round(rawMinutes)
 
-  const task: string | null = typeof v.task === 'string' && v.task.trim() !== '' ? v.task.trim().slice(0, 200) : null
+  const task: string | null =
+    typeof v.task === 'string' && v.task.trim() !== '' ? v.task.trim().slice(0, MAX_TASK_LENGTH) : null
 
-  return { id, date, minutes, task }
+  const entry: SessionLogEntryV2 = { id, date, minutes, task }
+
+  if (Array.isArray(v.checklist)) {
+    const checklist = isChecklist(v.checklist)
+    if (checklist && checklist.length > 0) {
+      entry.checklist = checklist
+    }
+  }
+
+  return entry
 }
 
 export { isSessionEntry as sanitizeSessionEntry }
@@ -188,9 +300,9 @@ export function saveSettings(settings: Settings): void {
   write(KEYS.settings, settings)
 }
 
-export function loadStats(): Stats {
+export function loadStats(): StatsV2 {
   migrateLegacy()
-  return read<Stats>(KEYS.stats, isStats) ?? {
+  const stats = read<StatsV2>(KEYS.stats, isStats) ?? {
     today: 0,
     week: 0,
     streak: 0,
@@ -200,37 +312,141 @@ export function loadStats(): Stats {
     lastDate: null,
     history: {},
   }
+  if (!stats.goals) {
+    const goals = read<GoalSettings>(KEYS.goals, isGoalSettings)
+    if (goals) stats.goals = goals
+  }
+  if (!stats.milestones) {
+    const milestones = read<MilestoneRecord[]>(KEYS.milestones, isMilestones)
+    if (milestones && milestones.length > 0) stats.milestones = milestones
+  }
+  return stats
 }
 
-export function saveStats(stats: Stats): void {
-  write(KEYS.stats, stats)
+export function saveStats(stats: StatsV2): void {
+  const sanitized = isStats(stats) ?? stats
+  write(KEYS.stats, sanitized)
+  if (sanitized.goals) {
+    write(KEYS.goals, sanitized.goals)
+  }
+  if (sanitized.milestones) {
+    write(KEYS.milestones, sanitized.milestones)
+  }
 }
 
-export function loadSessions(): SessionLogEntry[] {
+export function loadSessions(): SessionLogEntryV2[] {
   migrateLegacy()
   return (
-    read<SessionLogEntry[]>(KEYS.sessions, (value) => {
+    read<SessionLogEntryV2[]>(KEYS.sessions, (value) => {
       if (!Array.isArray(value)) return null
-      return value.map(isSessionEntry).filter((e): e is SessionLogEntry => e !== null).slice(0, MAX_SESSIONS)
+      return value.map(isSessionEntry).filter((e): e is SessionLogEntryV2 => e !== null).slice(0, MAX_SESSIONS)
     }) ?? []
   )
 }
 
-export function saveSessions(sessions: SessionLogEntry[]): boolean {
+export function saveSessions(sessions: SessionLogEntryV2[]): boolean {
   if (!Array.isArray(sessions)) return false
-  const sanitized: SessionLogEntry[] = sessions
+  const sanitized: SessionLogEntryV2[] = sessions
     .map(isSessionEntry)
-    .filter((e): e is SessionLogEntry => e !== null)
+    .filter((e): e is SessionLogEntryV2 => e !== null)
     .slice(0, MAX_SESSIONS)
   return write(KEYS.sessions, sanitized)
 }
 
-export function addSession(entry: SessionLogEntry): SessionLogEntry[] {
+export function addSession(entry: SessionLogEntryV2): SessionLogEntryV2[] {
   const sanitized = isSessionEntry(entry)
   const existing = loadSessions()
   const updated = sanitized ? [sanitized, ...existing].slice(0, MAX_SESSIONS) : existing.slice(0, MAX_SESSIONS)
   saveSessions(updated)
   return updated
+}
+
+export function updateSessionTask(id: string, task: string | null): SessionLogEntryV2[] {
+  if (typeof id !== 'string' || id.trim() === '') {
+    return loadSessions()
+  }
+  const targetId = id.trim()
+  const sanitizedTask: string | null =
+    typeof task === 'string' && task.trim() !== '' ? task.trim().slice(0, MAX_TASK_LENGTH) : null
+
+  const sessions = loadSessions()
+  let modified = false
+  const updated = sessions.map((entry) => {
+    if (entry.id === targetId) {
+      modified = true
+      return {
+        ...entry,
+        task: sanitizedTask,
+      }
+    }
+    return entry
+  })
+
+  if (modified) {
+    saveSessions(updated)
+  }
+  return updated
+}
+
+export function deleteSession(id: string): {
+  sessions: SessionLogEntryV2[]
+  deleted: SessionLogEntryV2 | null
+} {
+  if (typeof id !== 'string' || id.trim() === '') {
+    return { sessions: loadSessions(), deleted: null }
+  }
+  const targetId = id.trim()
+  const sessions = loadSessions()
+  const targetIndex = sessions.findIndex((s) => s.id === targetId)
+
+  if (targetIndex === -1) {
+    return { sessions, deleted: null }
+  }
+
+  const deleted = sessions[targetIndex]
+  const updated = sessions.filter((_, idx) => idx !== targetIndex)
+  saveSessions(updated)
+
+  return {
+    sessions: updated,
+    deleted,
+  }
+}
+
+export function loadGoals(): GoalSettings {
+  migrateLegacy()
+  const stored = read<GoalSettings>(KEYS.goals, isGoalSettings)
+  if (stored) return stored
+  const stats = read<StatsV2>(KEYS.stats, isStats)
+  if (stats?.goals) return stats.goals
+  return { ...DEFAULT_GOAL_SETTINGS }
+}
+
+export function saveGoals(goals: GoalSettings): void {
+  const sanitized = isGoalSettings(goals) ?? { ...DEFAULT_GOAL_SETTINGS }
+  write(KEYS.goals, sanitized)
+  const stats = read<StatsV2>(KEYS.stats, isStats)
+  if (stats) {
+    write(KEYS.stats, { ...stats, goals: sanitized })
+  }
+}
+
+export function loadMilestones(): MilestoneRecord[] {
+  migrateLegacy()
+  const stored = read<MilestoneRecord[]>(KEYS.milestones, isMilestones)
+  if (stored) return stored
+  const stats = read<StatsV2>(KEYS.stats, isStats)
+  if (stats?.milestones) return stats.milestones
+  return []
+}
+
+export function saveMilestones(milestones: MilestoneRecord[]): void {
+  const sanitized = isMilestones(milestones) ?? []
+  write(KEYS.milestones, sanitized)
+  const stats = read<StatsV2>(KEYS.stats, isStats)
+  if (stats) {
+    write(KEYS.stats, { ...stats, milestones: sanitized })
+  }
 }
 
 export function loadCustomSounds(): CustomSound[] {
@@ -409,11 +625,11 @@ export function systemTheme(): Theme {
 
 const SESSION_KEY = `${PREFIX}session`
 
-function isSnapshot(value: unknown): SessionSnapshot | null {
+function isSnapshot(value: unknown): SessionSnapshotV2 | null {
   if (typeof value !== 'object' || value === null) return null
   const v = value as Record<string, unknown>
   if (v.mode !== 'focus' && v.mode !== 'short' && v.mode !== 'long') return null
-  return {
+  const snapshot: SessionSnapshotV2 = {
     mode: v.mode,
     round: Number(v.round) || 0,
     running: v.running === true,
@@ -422,12 +638,19 @@ function isSnapshot(value: unknown): SessionSnapshot | null {
     task: typeof v.task === 'string' ? v.task.slice(0, 200) : '',
     taskDone: v.taskDone === true,
   }
+  if (Array.isArray(v.checklist)) {
+    const items = isChecklist(v.checklist)
+    if (items && items.length > 0) {
+      snapshot.checklist = items
+    }
+  }
+  return snapshot
 }
 
-export function loadSession(): SessionSnapshot | null {
-  return read<SessionSnapshot>(SESSION_KEY, isSnapshot)
+export function loadSession(): SessionSnapshotV2 | null {
+  return read<SessionSnapshotV2>(SESSION_KEY, isSnapshot)
 }
 
-export function saveSession(snapshot: SessionSnapshot): void {
+export function saveSession(snapshot: SessionSnapshotV2): void {
   write(SESSION_KEY, snapshot)
 }
