@@ -13,6 +13,8 @@ import {
   escapeMarkdownTableCell,
   foldIcsLine,
   formatHoursAndMinutes,
+  formatLocalDate,
+  formatLocalTime,
   serializeToCsv,
   serializeToICal,
   serializeToMarkdown,
@@ -507,7 +509,7 @@ describe('Adversarial Challenge Area 3: GFM Markdown Tables (src/lib/export.ts)'
       // Total = 25 + 25 + 50 + 60 + 120 = 280 minutes = 4 hours 40 minutes, 5 sessions
       const md = serializeToMarkdown(multiDaySessions, fixedNow)
 
-      expect(md).toContain('*Exported on 2026-09-16 16:30 · 5 sessions · 280 minutes*')
+      expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 5 sessions · 280 minutes*`)
       expect(md).toContain('> **Daily Summary**: 5 sessions completed · 4 hours 40 minutes of deep focus.')
     })
 

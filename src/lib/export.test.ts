@@ -266,7 +266,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     it('generates GFM table with header callout and metadata', () => {
       const md = serializeToMarkdown(sampleSessions, fixedNow)
       expect(md.startsWith('# Focus Flow — Session History\n')).toBe(true)
-      expect(md).toContain('*Exported on 2026-09-16 15:30 · 3 sessions · 100 minutes*\n\n')
+      expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 3 sessions · 100 minutes*\n\n`)
       expect(md).toContain('| Date | Time | Duration | Intention | Micro-Steps |\n')
       expect(md).toContain('|---|---|---|---|---|\n')
     })
@@ -420,7 +420,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
       )
 
       const md = serializeToMarkdown([], fixedNow)
-      expect(md).toContain('*Exported on 2026-09-16 15:30 · 0 sessions · 0 minutes*\n\n')
+      expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 0 sessions · 0 minutes*\n\n`)
       expect(md).toContain('> **Daily Summary**: 0 sessions completed · 0 minutes of deep focus.')
     })
 
@@ -538,7 +538,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
       }
 
       const md = serializeToMarkdown([singleMinSession], fixedNow)
-      expect(md).toContain('*Exported on 2026-09-16 15:30 · 1 session · 1 minute*\n\n')
+      expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 1 session · 1 minute*\n\n`)
       expect(md).toContain('> **Daily Summary**: 1 session completed · 1 minute of deep focus.')
     })
   })
