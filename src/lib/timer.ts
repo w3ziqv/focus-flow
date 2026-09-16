@@ -1,9 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ChecklistItem, GoalSettings, Mode, Settings, StatsV2 } from '../types'
-import { isChecklist, loadGoals, loadSession, loadSettings, loadStats, saveGoals, saveSession, saveSettings } from './storage'
+import type { ChecklistItem, GoalSettings, Mode, SessionSnapshotV2, Settings, StatsV2 } from '../types'
+import {
+  isChecklist,
+  loadGoals,
+  loadLang,
+  loadSession,
+  loadSettings,
+  loadStats,
+  loadWebhookSettings,
+  saveGoals,
+  saveSession,
+  saveSettings,
+} from './storage'
 import { recordFocusSession } from './stats'
 import { addSession } from './sessions'
 import { audio } from './audio'
+import { createTimerTicker } from './timerWorker'
+import { reconcileExpiredSession } from './wakeReconciliation'
+import { createWebhookPayload, dispatchWebhook } from './webhook'
 
 export interface TimerEvent {
   kind: 'focus' | 'break'
@@ -38,6 +52,8 @@ export interface TimerEngine {
   goalCelebration: boolean
   refreshStats: () => void
   setStats: (next: StatsV2) => void
+  wakeNotice: string | null
+  dismissWakeNotice: () => void
 }
 
 const TICK_MS = 250
@@ -47,10 +63,41 @@ function durationOf(settings: Settings, mode: Mode): number {
   return minutes * 60_000
 }
 
+function getInitialTimerData(): {
+  snapshot: SessionSnapshotV2 | null
+  stats: StatsV2
+  wakeNotice: string | null
+} {
+  const rawSnapshot = loadSession()
+  const currentSettings = loadSettings()
+  const currentStats = loadStats()
+  const now = Date.now()
+
+  if (rawSnapshot?.running === true && rawSnapshot.endTs !== null && rawSnapshot.endTs <= now) {
+    const lang = loadLang() ?? 'en'
+    const reconciliation = reconcileExpiredSession(rawSnapshot, currentSettings, currentStats, now, lang)
+    return {
+      snapshot: reconciliation.newSnapshot,
+      stats: reconciliation.newStats,
+      wakeNotice: reconciliation.notice,
+    }
+  }
+
+  return {
+    snapshot: rawSnapshot,
+    stats: currentStats,
+    wakeNotice: null,
+  }
+}
+
 export function useTimerEngine(): TimerEngine {
   const [settings, setSettings] = useState<Settings>(loadSettings)
-  const [stats, setStats] = useState<StatsV2>(loadStats)
-  const snapshot = useMemo(() => loadSession(), [])
+  const [initialData] = useState(getInitialTimerData)
+
+  const [stats, setStats] = useState<StatsV2>(() => initialData.stats)
+  const [wakeNotice, setWakeNotice] = useState<string | null>(() => initialData.wakeNotice)
+
+  const snapshot = initialData.snapshot
   const [mode, setMode] = useState<Mode>(() => snapshot?.mode ?? 'focus')
   const [round, setRound] = useState<number>(() => snapshot?.round ?? 0)
   const [task, setTaskState] = useState<string>(() => snapshot?.task ?? '')
@@ -84,6 +131,43 @@ export function useTimerEngine(): TimerEngine {
   const goalsRef = useRef<GoalSettings>(goals)
   const autoStartTimer = useRef<number | null>(null)
   const celebrationTimer = useRef<number | null>(null)
+  const sessionIdRef = useRef<string | null>(null)
+
+  const triggerWebhook = useCallback(
+    (event: 'start' | 'pause' | 'complete', overrideSessionId?: string, overrideMode?: Mode) => {
+      try {
+        const webhookSettings = loadWebhookSettings()
+        if (!webhookSettings.enabled || !webhookSettings.url) return
+
+        const activeMode = overrideMode ?? modeRef.current
+        const activeSettings = settingsRef.current
+        const durationMinutes =
+          activeMode === 'focus'
+            ? activeSettings.focus
+            : activeMode === 'short'
+              ? activeSettings.short
+              : activeSettings.long
+
+        const sid =
+          overrideSessionId ??
+          sessionIdRef.current ??
+          `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+
+        const payload = createWebhookPayload(event, {
+          id: sid,
+          mode: activeMode,
+          durationMinutes,
+          task: taskRef.current.trim() !== '' ? taskRef.current.trim() : null,
+          checklist: checklistRef.current.length > 0 ? [...checklistRef.current] : undefined,
+        })
+
+        void dispatchWebhook(webhookSettings, payload)
+      } catch {
+        // Non-blocking silent error handling
+      }
+    },
+    [],
+  )
 
   const totalMs = useMemo(() => durationOf(settings, mode), [settings, mode])
 
@@ -117,7 +201,12 @@ export function useTimerEngine(): TimerEngine {
     runningRef.current = true
     setRemainingMs(endTs - Date.now())
     persist({ running: true, remainingMs: endTs - Date.now(), endTs })
-  }, [persist])
+
+    if (!sessionIdRef.current) {
+      sessionIdRef.current = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+    }
+    triggerWebhook('start', sessionIdRef.current)
+  }, [persist, triggerWebhook])
 
   const pause = useCallback(() => {
     if (!runningRef.current) return
@@ -128,12 +217,16 @@ export function useTimerEngine(): TimerEngine {
     setRemainingMs(remaining)
     remainingRef.current = remaining
     persist({ running: false, remainingMs: remaining, endTs: null })
-  }, [persist])
+    triggerWebhook('pause', sessionIdRef.current ?? undefined)
+  }, [persist, triggerWebhook])
 
   /** Fires when the countdown reaches zero: chime, stats, phase advance. */
   const complete = useCallback(() => {
     const currentMode = modeRef.current
     const currentSettings = settingsRef.current
+    const currentSessionId =
+      sessionIdRef.current ?? `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+
     audio.chime()
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([120, 70, 120])
@@ -148,7 +241,7 @@ export function useTimerEngine(): TimerEngine {
 
       // 1. Capture micro-steps into permanent session record
       addSession({
-        id: `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
+        id: currentSessionId,
         date: new Date().toISOString(),
         minutes: currentSettings.focus,
         task: taskRef.current.trim() !== '' ? taskRef.current.trim() : null,
@@ -184,6 +277,10 @@ export function useTimerEngine(): TimerEngine {
       setChecklistState([])
       checklistRef.current = []
     }
+
+    // Trigger complete webhook before resetting sessionId
+    triggerWebhook('complete', currentSessionId, currentMode)
+    sessionIdRef.current = null
 
     const finishedKind: 'focus' | 'break' = currentMode === 'focus' ? 'focus' : 'break'
     setLastEvent({ kind: finishedKind, at: Date.now() })
@@ -221,12 +318,12 @@ export function useTimerEngine(): TimerEngine {
         if (!runningRef.current) start()
       }, 1200)
     }
-  }, [persist, start])
+  }, [persist, start, triggerWebhook])
 
-  // Ticker: derive remaining time from the wall clock, never by decrementing.
+  // Ticker: unthrottled Web Worker ticker with fallback
   useEffect(() => {
     if (!running) return
-    const tick = () => {
+    const ticker = createTimerTicker(() => {
       const endTs = endTsRef.current
       if (endTs === null) return
       const remaining = endTs - Date.now()
@@ -235,21 +332,112 @@ export function useTimerEngine(): TimerEngine {
         remainingRef.current = 0
         setRunning(false)
         runningRef.current = false
+        ticker.stop()
         complete()
         return
       }
       setRemainingMs(remaining)
       remainingRef.current = remaining
+    })
+
+    ticker.start(TICK_MS)
+    return () => {
+      ticker.stop()
     }
-    const id = window.setInterval(tick, TICK_MS)
-    return () => window.clearInterval(id)
   }, [running, complete])
+
+  // Sleep / Tab wake detection
+  useEffect(() => {
+    const handleWakeCheck = (): void => {
+      const now = Date.now()
+      // 1. If actively running in memory and deadline passed while tab was asleep/hidden
+      if (runningRef.current && endTsRef.current !== null && endTsRef.current <= now) {
+        if (modeRef.current === 'focus') {
+          const lang = loadLang() ?? 'en'
+          setWakeNotice(
+            lang === 'pl'
+              ? 'Sesja skupienia została ukończona podczas Twojej nieobecności.'
+              : 'Focus session completed while you were away.',
+          )
+        }
+        setRemainingMs(0)
+        remainingRef.current = 0
+        setRunning(false)
+        runningRef.current = false
+        complete()
+        return
+      }
+
+      // 2. Also inspect persisted storage snapshot in case tab woke with stale state
+      const snap = loadSession()
+      if (snap?.running === true && snap.endTs !== null && snap.endTs <= now) {
+        const lang = loadLang() ?? 'en'
+        const reconciliation = reconcileExpiredSession(
+          snap,
+          settingsRef.current,
+          statsRef.current,
+          now,
+          lang,
+        )
+        if (reconciliation.reconciled) {
+          setMode(reconciliation.newMode as Mode)
+          modeRef.current = reconciliation.newMode as Mode
+          setRound(reconciliation.newRound)
+          roundRef.current = reconciliation.newRound
+          setStats(reconciliation.newStats)
+          statsRef.current = reconciliation.newStats
+          setRunning(false)
+          runningRef.current = false
+          endTsRef.current = null
+          const nextRemaining = durationOf(settingsRef.current, reconciliation.newMode as Mode)
+          setRemainingMs(nextRemaining)
+          remainingRef.current = nextRemaining
+          if (reconciliation.notice) {
+            setWakeNotice(reconciliation.notice)
+          }
+        }
+      }
+    }
+
+    const onVisibilityChange = (): void => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        handleWakeCheck()
+      }
+    }
+
+    const onFocus = (): void => {
+      handleWakeCheck()
+    }
+
+    const onPageShow = (): void => {
+      handleWakeCheck()
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibilityChange)
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', onFocus)
+      window.addEventListener('pageshow', onPageShow)
+    }
+
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', onFocus)
+        window.removeEventListener('pageshow', onPageShow)
+      }
+    }
+  }, [complete])
 
   const reset = useCallback(() => {
     if (autoStartTimer.current !== null) {
       window.clearTimeout(autoStartTimer.current)
       autoStartTimer.current = null
     }
+    sessionIdRef.current = null
     const next = durationOf(settingsRef.current, modeRef.current)
     endTsRef.current = null
     setRunning(false)
@@ -423,6 +611,10 @@ export function useTimerEngine(): TimerEngine {
     statsRef.current = next
   }, [])
 
+  const dismissWakeNotice = useCallback((): void => {
+    setWakeNotice(null)
+  }, [])
+
   return {
     settings,
     updateSettings,
@@ -451,5 +643,7 @@ export function useTimerEngine(): TimerEngine {
     goalCelebration,
     refreshStats,
     setStats: setStatsCallback,
+    wakeNotice,
+    dismissWakeNotice,
   }
 }

@@ -1,93 +1,111 @@
 # Focus Flow
 
-A Pomodoro timer for people who want the timer to disappear while they work. It keeps one task in front of you, plays soft ambient sound if you ask for it, counts what you actually finished, and stays out of the way otherwise.
+A quiet, local-first Pomodoro companion designed to dissolve into the background while you work. It anchors your active intention, generates real-time procedural acoustic soundscapes, tracks authentic progress without surveillance, and stays out of your way.
 
-The interface is deliberately quiet: warm paper tones, a serif clock face, one accent color that shifts from terracotta during work to sage during breaks. Everything runs in the browser, offline included.
+The interface adheres to an intentional warm editorial aesthetic: paper tones, Fraunces serif typography, and an accent palette shifting calmly from terracotta during focus to sage during rest. Everything executes locally in your browser — zero backend, zero tracking, zero mandatory accounts.
 
-| Desktop | Mobile |
-| --- | --- |
-| ![Desktop](focus-flow.png?v=4) | ![Mobile](mobile.png?v=4) |
+| Desktop Viewport | Mobile Portrait |
+| :---: | :---: |
+| ![Focus Flow Desktop Interface](focus-flow.png) | ![Focus Flow Mobile Interface](mobile.png) |
 
-## What it does
+---
 
-- Three-phase timer (focus / short break / long break) with rounds and an optional long break every N rounds
-- Countdown survives a page reload — it is anchored to wall-clock time, so a throttled background tab does not drift
-- One-task session field: write what you are working on, the app holds you to it until the session ends
-- Ambient soundscapes from freely-licensed field recordings — rain, ocean waves, stream, campfire — plus synthesized brown noise, and your own audio files, all stored locally
-- A dedicated statistics section: today, this week, day streak, total focus minutes, a 7-day chart and a session log that remembers what you worked on each day
-- A topic library — seven topics with 14 methodical, source-cited guides (each a 3–5 minute read) in Polish and English
-- Fullscreen focus mode, keyboard shortcuts (Space, R, F, Esc), light and dark theme, reduced-motion option
-- Data backup: export and import everything as a single JSON file
-- Installable PWA; works offline after the first visit
-- Polish and English interface, switchable at runtime
+## Architectural Philosophy
 
-## Stack
+Focus Flow is built upon four foundational pillars that protect cognitive focus and user autonomy:
 
-- React 19, TypeScript (strict), Vite
-- Tailwind CSS v4 with design tokens in `src/index.css`; the full design contract lives in [DESIGN.md](DESIGN.md)
-- Web Audio API for the chime and soundscapes, hand-rolled SVG for the dial and chart
-- `vite-plugin-pwa` (Workbox) for the service worker and manifest
-- Self-hosted variable fonts (Fraunces, Instrument Sans) — no external requests at runtime
+1. **The Quiet Companion**: Focus Flow rejects notification spam, guilt-inducing streaks, and jarring modal takeovers. Interface feedback is subtle and grounded — tactile haptic cues, gentle chimes, and minimalist vector ink seals.
+2. **Local-First Data Sovereignty**: Zero backend dependencies, zero telemetry, and zero mandatory sign-in. Your focus history, intentions, and preferences reside exclusively on your physical device in validated local storage.
+3. **Procedural Web Audio Synthesis (0 KB Asset Footprint)**: Rather than streaming or bundling multi-megabyte audio loops, all ambient textures (Brown Noise, Pink Noise, Soft Rain, Ocean Waves) and the Tibetan singing bowl chime are synthesized mathematically in real-time via the Web Audio API with tone warmth filtration.
+4. **Wall-Clock Anchored Precision**: Timers never rely on fragile interval decrement loops that drift or freeze when backgrounded. Remaining durations derive from monotonic `Date.now()` differences against target timestamps, reinforced by a dedicated Web Worker ticker.
 
-Timers are easy to get wrong: this one never counts by decrementing a variable each second. It stores a deadline and derives the remaining time from `Date.now()`, which is why it stays accurate when the tab sleeps.
+---
 
-## Ambient sounds
+## Milestone v2.4 Capabilities
 
-The bundled soundscapes are freely-licensed field recordings from Wikimedia
-Commons, level-normalized and edited into seamless loops — author and license
-credits are in [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md). Brown noise
-is synthesized live with the Web Audio API instead of being shipped as a file.
+Focus Flow v2.4 (Stage 4: Data Portability, Integrations & Background Execution) introduces complete data independence and resilient background performance:
 
-## Docs
+- **RFC 5545 iCalendar (`.ics`) Export**: Exports focus blocks to universal calendar formats with strict UTC timestamps, summary metadata, and 75-octet line folding for seamless import into Google Calendar, Apple Calendar, and Outlook.
+- **RFC 4180 CSV (`.csv`) with UTF-8 BOM**: Exports historical sessions formatted with a UTF-8 Byte Order Mark (`\uFEFF`), ensuring instant, ungarbled character rendering in Microsoft Excel and spreadsheet suites with full RFC 4180 quote escaping.
+- **GitHub-Flavored Markdown (`.md`) Tables**: Generates publication-ready session history tables with dates, durations, tasks, micro-step checklist statuses, and daily total summaries.
+- **Schema v2 Full Backup & Restore**: Complete JSON archive snapshot capturing settings, stats, v2 sessions, micro-steps, task presets, sound preferences, theme, volume, and interface options. Features backward-compatible migration from Schema v1 and strict structural boundary validation.
+- **Direct Client-Side Webhooks**: Opt-in event dispatching (`start`, `pause`, `complete`) triggered directly from the browser via standard HTTP POST to user-configured endpoints (Home Assistant, Discord, n8n, Zapier) with silent, non-blocking error handling.
+- **Web Worker Background Ticker & Cold-Start Wake Reconciliation**: Dedicated Web Worker maintaining an unthrottled ~250ms heartbeat across inactive browser tabs, paired with pure wake reconciliation that credits sessions, increments stats, advances rounds, and displays an unobtrusive in-app wake toast upon resume from device sleep or lid close.
 
-- [`DESIGN.md`](DESIGN.md) — the design system: tokens, components, motion, accessibility
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture decisions (ADRs), including the desktop-packaging analysis (PWA vs Tauri vs Electron)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — product roadmap for future versions (v2.1 to v3.0)
-- [`public/sounds/SOUNDS.md`](public/sounds/SOUNDS.md) — sound credits and licenses
+---
 
-## Requirements
+## Core Capabilities
 
-- Node.js 20+ (recommended: Node 22)
+- **Three-Phase Interval Timer**: Focus, Short Break, and Long Break intervals with customizable round counts, auto-start options, and a concentric hairline daily goal ring.
+- **Intention Presets & Ephemeral Micro-Steps**: Single-tap intention presets (*Deep Work*, *Writing*, *Code Review*, *Reading*, *Inbox Zero*) and a 3-step ephemeral checklist tied strictly to the active session.
+- **Procedural Soundscapes & Entrainment**: Real-time synthesized pink noise, leaky brown noise, soft rain, ocean waves, tone warmth filter (200–1200 Hz), and binaural beat entrainment (10 Hz Alpha Focus, 6 Hz Theta Rest).
+- **Productivity Analytics & Zen Milestones**: Rolling 7-day focus chart, 30-day paper-toned activity mosaic, real-time searchable session log with inline editing, and 5 collectible Zen milestone ink stamps.
+- **Client-Side Canvas Card Generator**: Generates high-resolution 1200×630 weekly summary cards client-side using offscreen HTML5 `<canvas>` with Fraunces typography and film grain for instant PNG download or clipboard copy.
+- **Evidence-Based Guides Library**: 27 peer-reviewed articles across 7 categories (`learning`, `break`, `sleep`, `food`, `productivity`, `wellbeing`, `mindfulness`) with authentic scientific citations and complete Polish/English bilingual symmetry.
+- **Installable Progressive Web App (PWA)**: Full offline functionality via Service Worker, self-hosted variable typography, and responsive touch layout.
+
+---
+
+## Technical Stack
+
+- **Framework**: React 19, TypeScript (Strict Mode, `isolatedDeclarations`, `verbatimModuleSyntax`)
+- **Build Tool**: Vite 7 with `vite-plugin-pwa` (Workbox offline precaching)
+- **Styling**: Tailwind CSS v4 with custom semantic design tokens (`src/index.css`)
+- **Audio Engine**: Pure Web Audio API (procedural mathematical synthesis, biquad filtering, gain ramping)
+- **Typography**: Self-hosted variable fonts (`@fontsource-variable/fraunces`, `@fontsource-variable/instrument-sans`) — zero runtime CDN dependencies
+- **Test Infrastructure**: Vitest 4, Testing Library, JSDOM, Playwright
+
+---
+
+## Documentation & Architecture
+
+- [`DESIGN.md`](DESIGN.md) — Editorial design tokens, tactile animations, typography scale, and accessibility contracts.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009), including toolchain strictness, storage encapsulation, and opt-in synchronization.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — Evolution roadmap across all 7 development stages (v2.1 through v3.1).
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+ (recommended: Node 22 LTS)
 - npm 10+
 
-## Development
+### Development Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/w3ziqv/focus-flow.git
+cd focus-flow
+
+# Install dependencies
 npm install
-npm run dev        # local dev server
-npm run test:run   # run unit tests (Vitest)
-npm run lint       # ESLint check
-npm run typecheck  # TypeScript check
-npm run build      # typecheck + production build
-npm run preview    # serve the production build
+
+# Start local development server
+npm run dev
+
+# Run full test suite (582 tests across 33 test suites)
+npm run test:run
+
+# Static type checking
+npm run typecheck
+
+# Lint codebase
+npm run lint
+
+# Production build
+npm run build
+
+# Preview production build locally
+npm run preview
 ```
 
-The production build goes to `dist/`. Any static host works; the service worker is generated at build time.
-
-## Project structure
-
-```
-src/
-  lib/
-    timer.ts     timer engine (deadline-based, persisted session)
-    audio.ts     chime + ambient sound engine
-    storage.ts   typed localStorage wrapper, legacy data migration
-    dataPort.ts  backup export/import
-    sessions.ts  session log (per-day history)
-    platform.ts  runtime detection (browser / PWA / Tauri / Electron)
-    stats.ts     streak / week math, 7-day series
-    i18n.tsx     Polish and English dictionary
-    topics.ts, articles.ts   tips content
-  components/    dial, tabs, buttons, modals, topics, nav
-  views/         timer, stats, topics, topic, article views
-DESIGN.md         design system: tokens, components, motion, accessibility
-docs/ARCHITECTURE.md   architecture decisions (ADRs)
-```
+---
 
 ## Author
 
-Mateusz Szostak — [w3ziqv](https://github.com/w3ziqv)
+Mateusz Szostak — [@w3ziqv](https://github.com/w3ziqv)
 
 ## License
 
-MIT
+MIT License. See [LICENSE](LICENSE) for details.

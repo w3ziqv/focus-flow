@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { Download, Upload } from 'lucide-react'
-import type { InterfacePrefs, Theme } from '../types'
+import { Calendar, Download, FileText, Table, Upload } from 'lucide-react'
+import type { InterfacePrefs, Theme, WebhookSettings } from '../types'
 import { useI18n } from '../lib/i18n'
 import { detectPlatform } from '../lib/platform'
-import { exportData, importData } from '../lib/dataPort'
+import { exportDataString, importData } from '../lib/dataPort'
+import { downloadCsv, downloadICal, downloadMarkdown } from '../lib/export'
+import { triggerDownload } from '../lib/download'
+import { loadSessions, loadWebhookSettings, saveWebhookSettings } from '../lib/storage'
+import { testWebhook } from '../lib/webhook'
 import { Modal } from './Modal'
 import { PillButton } from './PillButton'
 import { SegmentedTabs } from './SegmentedTabs'
@@ -18,6 +22,7 @@ interface AppSettingsModalProps {
   interfacePrefs: InterfacePrefs
   onInterfaceChange: (patch: Partial<InterfacePrefs>) => void
   onClose: () => void
+  onImportSuccess?: () => void
 }
 
 const platformLabels = {
@@ -27,14 +32,35 @@ const platformLabels = {
   browser: 'platform.browser',
 } as const
 
-export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInterfaceChange, onClose }: AppSettingsModalProps): React.JSX.Element {
+export function AppSettingsModal({
+  open,
+  theme,
+  onTheme,
+  interfacePrefs,
+  onInterfaceChange,
+  onClose,
+  onImportSuccess,
+}: AppSettingsModalProps): React.JSX.Element {
   const { t, lang, setLang } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [importError, setImportError] = useState(false)
+  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [webhookSettings, setWebhookSettings] = useState<WebhookSettings>(() => loadWebhookSettings())
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [permission, setPermission] = useState<NotificationPermissionState>(() =>
     typeof Notification === 'undefined' ? 'unsupported' : (Notification.permission as NotificationPermissionState),
   )
   const platform = detectPlatform()
+
+  const [wasOpen, setWasOpen] = useState(false)
+
+  if (open && !wasOpen) {
+    setWasOpen(true)
+    setWebhookSettings(loadWebhookSettings())
+    setImportStatus('idle')
+    setTestStatus('idle')
+  } else if (!open && wasOpen) {
+    setWasOpen(false)
+  }
 
   const refreshPermission = () => {
     setPermission(typeof Notification === 'undefined' ? 'unsupported' : (Notification.permission as NotificationPermissionState))
@@ -55,6 +81,83 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
       // Browsers without the promise-based API throw — permission state stays as is.
     }
     refreshPermission()
+  }
+
+  const handleExportMarkdown = () => {
+    downloadMarkdown(loadSessions())
+  }
+
+  const handleExportCsv = () => {
+    downloadCsv(loadSessions())
+  }
+
+  const handleExportICal = () => {
+    downloadICal(loadSessions())
+  }
+
+  const handleExportJson = async () => {
+    const json = await exportDataString()
+    triggerDownload('focus-flow-backup-v2.json', json, 'application/json')
+  }
+
+  const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    // Guard against massive JSON files crashing the thread (max 250 MB)
+    if (file.size > 250 * 1024 * 1024) {
+      setImportStatus('error')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      try {
+        const text = String(reader.result ?? '')
+        const result = await importData(text)
+        if (result && result.success) {
+          setImportStatus('success')
+          onImportSuccess?.()
+        } else {
+          setImportStatus('error')
+        }
+      } catch {
+        setImportStatus('error')
+      }
+    }
+    reader.onerror = () => {
+      setImportStatus('error')
+    }
+    reader.readAsText(file)
+  }
+
+  const handleWebhookToggle = (enabled: boolean) => {
+    const next: WebhookSettings = { ...webhookSettings, enabled }
+    setWebhookSettings(next)
+    saveWebhookSettings(next)
+  }
+
+  const handleWebhookUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value
+    const next: WebhookSettings = { ...webhookSettings, url }
+    setWebhookSettings(next)
+    saveWebhookSettings(next)
+    setTestStatus('idle')
+  }
+
+  const handleTestWebhook = async () => {
+    setTestStatus('testing')
+    try {
+      const res = await testWebhook(webhookSettings.url)
+      if (res.success) {
+        setTestStatus('success')
+      } else {
+        setTestStatus('error')
+      }
+    } catch {
+      setTestStatus('error')
+    }
   }
 
   const permissionBadge: Partial<Record<NotificationPermissionState, { label: string; tone: 'ok' | 'bad' | 'muted' }>> = {
@@ -102,24 +205,39 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken"
-          onClick={async () => {
-            const backup = await exportData()
-            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
-            const url = URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.href = url
-            link.download = `focus-flow-backup-${new Date().toISOString().slice(0, 10)}.json`
-            link.click()
-            URL.revokeObjectURL(url)
-          }}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={handleExportMarkdown}
         >
-          <Download size={14} aria-hidden="true" />
-          {t('data.export')}
+          <FileText size={14} aria-hidden="true" />
+          {t('exportMarkdown')}
         </button>
         <button
           type="button"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={handleExportCsv}
+        >
+          <Table size={14} aria-hidden="true" />
+          {t('exportCsv')}
+        </button>
+        <button
+          type="button"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={handleExportICal}
+        >
+          <Calendar size={14} aria-hidden="true" />
+          {t('exportICal')}
+        </button>
+        <button
+          type="button"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          onClick={handleExportJson}
+        >
+          <Download size={14} aria-hidden="true" />
+          {t('exportJson')}
+        </button>
+        <button
+          type="button"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           onClick={() => fileRef.current?.click()}
         >
           <Upload size={14} aria-hidden="true" />
@@ -128,34 +246,77 @@ export function AppSettingsModal({ open, theme, onTheme, interfacePrefs, onInter
         <input
           ref={fileRef}
           type="file"
-          accept="application/json,.json"
+          accept=".json,application/json"
           className="sr-only"
           aria-hidden="true"
           tabIndex={-1}
-          onChange={async (event) => {
-            const file = event.target.files?.[0]
-            event.target.value = ''
-            if (!file) return
-            // Guard against massive JSON files crashing the thread (max 250 MB)
-            if (file.size > 250 * 1024 * 1024) {
-              setImportError(true)
-              return
-            }
-            try {
-              const text = await file.text()
-              const ok = await importData(text)
-              if (ok) {
-                location.reload()
-              } else {
-                setImportError(true)
-              }
-            } catch {
-              setImportError(true)
-            }
-          }}
+          data-testid="backup-file-input"
+          onChange={handleImportFileChange}
         />
       </div>
-      {importError && <p className="mt-2 text-[13px] text-danger">{t('data.importInvalid')}</p>}
+      {importStatus === 'success' && (
+        <div className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full bg-[var(--color-break-soft)] px-3 py-1 text-caption text-[var(--color-break-strong)]">
+          <span aria-hidden="true" className="size-2 rounded-full bg-[var(--color-break)]" />
+          <span>{t('importSuccess')}</span>
+        </div>
+      )}
+      {importStatus === 'error' && (
+        <div className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
+          <span aria-hidden="true" className="size-2 rounded-full bg-danger" />
+          <span>{t('importInvalid')}</span>
+        </div>
+      )}
+
+      <div className="my-5 h-px bg-line" />
+
+      <p className="text-overline text-ink-3">{t('webhookTitle')}</p>
+      <p className="mt-1 text-[13px] text-ink-2 leading-relaxed">{t('webhookDesc')}</p>
+
+      <div className="mt-4 flex flex-col gap-4">
+        <Switch
+          checked={webhookSettings.enabled}
+          onChange={handleWebhookToggle}
+          label={t('webhookEnabled')}
+        />
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="webhook-url-input" className="text-[13px] font-medium text-ink">
+            {t('webhookUrl')}
+          </label>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <input
+              id="webhook-url-input"
+              type="url"
+              value={webhookSettings.url}
+              onChange={handleWebhookUrlChange}
+              placeholder={t('webhookPlaceholder')}
+              className="min-h-11 flex-1 rounded-xl border border-line bg-sunken px-3 py-2 text-[14px] text-ink placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            <button
+              type="button"
+              disabled={testStatus === 'testing'}
+              onClick={handleTestWebhook}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line bg-card px-4 py-2 text-caption text-ink shadow-halo transition-colors duration-150 hover:bg-sunken disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              {testStatus === 'testing' ? t('webhookTesting') : t('webhookTest')}
+            </button>
+          </div>
+        </div>
+
+        {testStatus === 'success' && (
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-[var(--color-break-soft)] px-3 py-1 text-caption text-[var(--color-break-strong)]">
+            <span aria-hidden="true" className="size-2 rounded-full bg-[var(--color-break)]" />
+            <span>{t('webhookSuccess')}</span>
+          </div>
+        )}
+
+        {testStatus === 'error' && (
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
+            <span aria-hidden="true" className="size-2 rounded-full bg-danger" />
+            <span>{t('webhookError')}</span>
+          </div>
+        )}
+      </div>
 
         <div className="my-5 h-px bg-line" />
 

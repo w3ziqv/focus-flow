@@ -1,10 +1,10 @@
-# Focus Flow — Technical Product Roadmap Specification (v2.1 → v3.0)
+# Focus Flow — Technical Product Roadmap Specification (v2.1 → v3.1)
 
-**Document Version:** 2.1.0  
+**Document Version:** 2.2.0  
 **Author:** Lead Systems Architect & Core Platform Team  
 **Status:** Approved Engineering Specification  
 **Target Platform:** Web (PWA / Offline-First) & Native Desktop (Tauri 2)  
-**Verification Baseline:** TypeScript 7.0 Native Go (`tsc --noEmit`), Vitest 100% Green, ADR-001–ADR-008 Compliance  
+**Verification Baseline:** TypeScript 7.0 Native Go (`tsc --noEmit`), Vitest 100% Green, ADR-001–ADR-009 Compliance  
 
 ---
 
@@ -105,11 +105,11 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
 
 ---
 
-## 2. 6-Stage Release Progression & Architecture Decision Matrix
+## 2. 7-Stage Release Progression & Architecture Decision Matrix
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                       6-STAGE RESTRUCTURED PRODUCT ROADMAP                                     │
+│                                       7-STAGE RESTRUCTURED PRODUCT ROADMAP                                     │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
    Stage 1: v2.1 Infrastructure & Tooling (TS 7.0 Native Go / Corsa, Vitest 4+, Modern Toolchain)
@@ -121,13 +121,16 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
    Stage 3: v2.3 Task Management & Productivity Analytics (Micro-Steps, Zen Milestones, Heatmap, Canvas)
             │
             ▼
-   Stage 4: v2.4 Data Portability, Integrations & Offline Sync (RFC 5545, CSV BOM, Webhooks, Timer Worker)
+   Stage 4: v2.4 Data Portability, Integrations & Local Sync (RFC 5545, CSV BOM, Webhooks, Timer Worker)
             │
             ▼
    Stage 5: v2.5 Customization, Themes & Accessibility (WCAG AAA, Theming, Shortcuts Manager)
             │
             ▼
-   Stage 6: v3.0 Platform Expansion & Multi-Device Synchronization (Tauri 2 Desktop, Tray Dial, P2P Sync)
+   Stage 6: v3.0 Platform Expansion & Desktop Ecosystem (Tauri 2 Desktop, Tray Dial, Local P2P Sync)
+            │
+            ▼
+   Stage 7: v3.1 Opt-In Cloud Synchronization & Google Identity (Google Auth, Cloud Firestore, Multi-Device Sync)
 ```
 
 | Milestone | Target Version | Primary Scope Summary | Storage Schema | Audio Engine State | Local Export Formats | Target Platform | Primary Anti-Pattern Eliminated |
@@ -135,9 +138,10 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
 | **Stage 1** | **v2.1** | Infrastructure & Tooling Matrix | Schema v1.1 (`ff2_` unified adapter) | Baseline 2-note chime & brown noise | JSON Backup v1 | Web / CI | Slow V8 compilation, multi-second CI delays & type-check memory bloat |
 | **Stage 2** | **v2.2** | Enhanced Audio Engine & Sound Synthesis | Schema v1.2 (Mixer prefs & tone cutoff) | Pure Web Audio math synthesis (0 KB assets) | JSON Backup v1 | Web / PWA | Multi-MB audio downloads, audible loop clicks & audio thread stalling |
 | **Stage 3** | **v2.3** | Task Management & Productivity Analytics | Schema v1.3 (Tasks, goals & milestones) | Synthesized 5-partial modal singing bowl chime | Offline Canvas PNG Card | Web / PWA | Jira/Todoist backlog creep, broken-streak shame & toxic gamification |
-| **Stage 4** | **v2.4** | Data Portability, Integrations & Offline Sync | Schema v2.0 (`BackupFileV2` full archive) | Dual-layer mixer + binaural carriers | RFC 4180 CSV, GFM Markdown, RFC 5545 `.ics` | Web / PWA | Cloud database lock-in, OAuth server walls & background tab throttling |
+| **Stage 4** | **v2.4** | Data Portability, Integrations & Local Sync | Schema v2.0 (`BackupFileV2` full archive) | Dual-layer mixer + binaural carriers | RFC 4180 CSV, GFM Markdown, RFC 5545 `.ics` | Web / PWA | Cloud database lock-in, OAuth server walls & background tab throttling |
 | **Stage 5** | **v2.5** | Customization, Themes & Accessibility | Schema v2.1 (`InterfacePrefs` extensions) | Full dual-layer acoustic palette | All v2.4 formats | Web / PWA | Inaccessible low-contrast UI, rigid layouts & keyboard traps |
-| **Stage 6** | **v3.0** | Platform Expansion & Multi-Device Sync | Schema v3.0 (Atomic JSON + P2P CRDT sync) | OS-integrated audio engine | All v2.4 formats + Native File I/O | Windows, macOS, Linux | Bloated Electron runtime (150MB+ RAM), spyware daemons & cloud sync servers |
+| **Stage 6** | **v3.0** | Platform Expansion & Desktop Ecosystem | Schema v3.0 (Atomic JSON + Local P2P CRDT) | OS-integrated audio engine | All v2.4 formats + Native File I/O | Windows, macOS, Linux | Bloated Electron runtime (150MB+ RAM), spyware daemons & cloud sync servers |
+| **Stage 7** | **v3.1** | Opt-In Cloud Synchronization & Google Identity | Schema v3.1 (`CloudSyncAdapter` + Firestore `users/{uid}/*`) | Full acoustic engine with synced sound preferences | All v2.4 formats + Cloud JSON Snapshot | Web (PWA) & Desktop (Tauri 2) | Forced account creation, telemetry tracking, background battery drain & data lock-in |
 
 ---
 
@@ -491,7 +495,7 @@ export interface StatsV2 extends Stats {
 
 ---
 
-### 3.4 Stage 4: Milestone v2.4 — Data Portability, Integrations & Offline Sync (*Sovereign Ecosystem & Background Execution*)
+### 3.4 Stage 4: Milestone v2.4 — Data Portability, Integrations & Local Sync (*Sovereign Ecosystem & Background Execution*)
 
 #### 3.4.1 Core Theme & User Value
 Provide seamless interoperability with personal knowledge management (PKM) tools, spreadsheets, and calendar clients while maintaining strict zero-backend data sovereignty and unthrottled timer execution in background browser tabs.
@@ -741,6 +745,156 @@ Electron packages an entire Chromium browser and Node.js runtime, requiring ~100
 
 ---
 
+### 3.7 Stage 7: Milestone v3.1 — Opt-In Cloud Synchronization & Google Identity (*Zero-Friction Cross-Device Sync & Sovereign Identity*)
+
+#### 3.7.1 Core Theme & Architectural Mission
+Milestone v3.1 bridges Focus Flow’s serene local-first architecture with modern multi-device workflows. Users who divide deep work across a workstation, portable laptop, and mobile tablet can now synchronize their timer settings, daily targets, Zen milestone seals, sound preferences, and completed session history without friction.
+
+Stage 7 strictly preserves **ADR-005 (Local-First Data Sovereignty)** and establishes **ADR-009 (Opt-in Cloud Synchronization via Firebase & Storage Adapter)** under the unyielding **100% Opt-In Invariant**:
+- **Zero Cloud by Default**: Without explicit user authentication, Focus Flow operates with 0 network calls to cloud endpoints, 0 Firebase SDK modules loaded or initialized, and 100% local persistence.
+- **Zero Performance Penalty**: The core application bundle is not burdened by Firebase libraries (<300 kB uncompressed budget preserved via asynchronous dynamic imports).
+- **Sovereign Cloud Isolation**: When enabled, user data synchronizes strictly to an isolated private Cloud Firestore subcollection tree guarded by production security rules (`request.auth.uid == userId`).
+- **Zero Lock-In & Graceful Exit**: Users may sign out at any time without losing a single local session record, or purge all cloud documents permanently with a single click.
+
+#### 3.7.2 Authentication & Dataflow Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                           STAGE 7 OPT-IN CLOUD SYNCHRONIZATION DATAFLOW ARCHITECTURE                           │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+   [ 1. Unauthenticated State (Default — 100% Offline / Zero Network Calls) ]
+   ┌────────────────────────────────────────────────────────────────────────────────────────┐
+   │ React 19 Frontend  ◄──►  src/lib/storage.ts Adapter  ◄──►  Browser Local Storage       │
+   │ (Dial, TimerEngine, Stats, AudioEngine — completely self-contained on host device)     │
+   └────────────────────────────────────────────────────────────────────────────────────────┘
+
+   [ 2. User Authentication Gesture: Google Sign-In Trigger (CloudSyncModal / Settings) ]
+                                      │
+                                      ▼
+   ┌────────────────────────────────────────────────────────────────────────────────────────┐
+   │ Dynamic Import Boundary: Lazy-loads Firebase SDK on explicit user gesture              │
+   │ Promise.all([ import('firebase/app'), import('firebase/auth'), import('firestore') ])   │
+   │ (Keeps base bundle <300 kB uncompressed; zero network footprint during normal startup) │
+   └──────────────────────────────────┬─────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+   ┌────────────────────────────────────────────────────────────────────────────────────────┐
+   │ Google Identity Authentication (signInWithPopup / GoogleAuthProvider)                  │
+   │ • Issues short-lived OAuth token; establishes authenticated context (uid, email, name) │
+   │ • Configures Firestore offline persistent cache (persistentLocalCache / MultiTab)      │
+   └──────────────────────────────────┬─────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+   ┌────────────────────────────────────────────────────────────────────────────────────────┐
+   │ First-Login Deterministic Reconciliation Engine (src/lib/sync/merge.ts)                │
+   │ • Fetches remote documents: users/{uid}/sessions/* and users/{uid}/stats/summary       │
+   │ • Computes symmetrical, commutative union merge: mergeSessions(local, remote)          │
+   │ • Deduplicates by session ID, resolves conflicts, clamps to MAX_SESSIONS (1,000)       │
+   │ • Recalculates StatsV2 metrics from ground-truth session list to prevent metric drift  │
+   │ • Atomically writes unified state back to both local storage and remote Firestore      │
+   └──────────────────────────────────┬─────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+   ┌────────────────────────────────────────────────────────────────────────────────────────┐
+   │ Real-Time Bi-Directional Sync Bridge (src/lib/sync/adapter.ts)                         │
+   │ • Local state changes -> debounced batched setDoc writes to users/{uid}/*              │
+   │ • Remote onSnapshot listeners -> update local cache & broadcast reactive UI updates    │
+   │ • Network disconnection -> queues offline writes in IndexedDB; flushes on reconnect    │
+   └────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 3.7.3 User Experience & Progressive Disclosure (Tier 1 & Tier 2)
+
+Focus Flow’s visual serenity remains inviolable. Cloud capabilities introduce zero intrusive modals, banner ads, or blocking login screens.
+
+1. **Tier 1: Quiet Sync Status Indicator (Recessive Footer / Header Island)**:
+   - Placed discreetly in the interface periphery (e.g. adjacent to the keyboard shortcuts hint).
+   - Reflects four distinct ambient states without visual noise:
+     * **Unauthenticated / Local (Default)**: Faint cloud icon with hairline text: `Local Only`. Non-distracting, confirming local sovereignty.
+     * **Syncing**: Gentle breathing opacity pulse (200ms ease): `Syncing...`.
+     * **Authenticated & Synced**: Muted sage dot (`#6E7F5C`): `Synced · mateusz`. Hover reveals: `Last synced: 2 minutes ago`.
+     * **Offline / Reconnecting**: Warm amber indicator: `Offline (Saved locally)`. Reassures the user that data is safe.
+2. **Tier 2: Elevated Cloud Sync Modal (`CloudSyncModal.tsx`)**:
+   - Accessed from Settings or by tapping the Tier 1 sync status indicator.
+   - Designed with warm paper canvas, Fraunces serif headings, and subtle whisper shadows (`0 4px 24px rgba(20,20,19,0.06)`).
+   - **Disconnected State**:
+     * Editorial headline: *"Seamless Flow Across Your Devices"*.
+     * Body copy: *"Connect your Google account to synchronize timer settings, daily targets, and focus history between your devices. Focus Flow remains 100% functional offline, and your data is stored in your private cloud partition."*
+     * Clean Google Sign-In button with SVG Google icon, adhering to the calm terracotta/sage token palette. Zero password fields, security questions, or verification emails.
+   - **Connected State**:
+     * User identity card: User avatar, display name, and verified email.
+     * Real-time sync health: Green status pill, last successful sync timestamp (`Today, 14:32:05`), and pending offline write counter.
+     * Action Bar:
+       - **"Sync Now" Button**: Manually triggers reconciliation and pulls remote snapshot updates.
+       - **"Sign Out" Button**: Disconnects Google Auth and terminates Firestore snapshot listeners. **Local data is 100% retained**; app gracefully reverts to local-only mode.
+       - **"Delete Cloud Data & Disconnect" Link**: Danger zone action with confirmation prompt. Permanently purges all documents in `users/{uid}/*` on Firestore, signs out, and leaves local device storage intact.
+3. **Reconciliation & Non-Disruptive Feedback**:
+   - When a first-login merge completes, the application does not interrupt the user with modal dialogs or alert banners.
+   - A quiet 3-second status toast appears in the bottom corner: *"Synced 24 offline sessions with your cloud library."*
+
+#### 3.7.4 Technical Architecture & Firestore Document Schema
+
+To prevent hitting the 1 MB document size ceiling and allow efficient indexed queries, data is modeled as user-isolated subcollections rather than a single monolithic document:
+
+```
+users/
+  └── {uid}/
+        ├── settings/
+        │     └── current         --> CloudSettingsDocument { focus, shortBreak, longBreak, rounds, autoStart, updatedLocallyAt }
+        ├── stats/
+        │     └── summary         --> CloudStatsDocument { minutes, today, week, streak, history, milestones, updatedLocallyAt }
+        ├── sound_prefs/
+        │     └── current         --> CloudSoundPrefsDocument { baseTexture, binauralMode, toneWarmthCutoff, volume, updatedLocallyAt }
+        ├── interface/
+        │     └── current         --> CloudInterfaceDocument { theme, shortcuts, narration, dailyTargetMinutes, updatedLocallyAt }
+        ├── metadata/
+        │     └── sync            --> CloudSyncMetadataDocument { lastSyncedAt, schemaVersion, clientPlatform }
+        └── sessions/
+              ├── {sessionId_1}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
+              ├── {sessionId_2}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
+              └── {sessionId_N}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
+```
+
+**Subcollection Architectural Advantages**:
+- **Scalability**: Storing sessions as distinct documents in `users/{uid}/sessions` allows storing 10,000+ sessions without risking Firestore’s 1 MB per-document limit.
+- **Bandwidth Efficiency**: Updating a single session or changing timer settings transmits only that individual document (~200 bytes) rather than reserializing the entire application state.
+- **Atomic Concurrency**: Simultaneous writes from two devices (e.g. editing a task title on a laptop while a timer finishes on a phone) update discrete document paths without race conditions.
+
+#### 3.7.5 Storage Schema Evolution (Schema v3.1)
+
+- **Local Storage Key**: `ff2_cloud_sync`
+- **TypeScript Contract**:
+  ```typescript
+  export interface CloudSyncState {
+    status: 'disconnected' | 'idle' | 'syncing' | 'synced' | 'error'
+    uid: string | null
+    email: string | null
+    displayName: string | null
+    photoURL: string | null
+    lastSyncedAt: string | null
+    error: string | null
+  }
+  ```
+- **Reconciliation Protocol**:
+  - Symmetrical union merge `mergeSessions(local, remote)` is commutative (`merge(A, B) === merge(B, A)`), idempotent (`merge(A, A) === A`), and monotonic.
+  - Capped to `MAX_SESSIONS` (1,000 items) sorted newest-first by completion timestamp.
+  - Recomputes aggregate stats dynamically to prevent drift or duplicate counting.
+
+#### 3.7.6 Explicit Non-Goals Matrix for Stage 7
+
+| Feature / Pattern | Rejection Rationale |
+|---|---|
+| ❌ **Mandatory Account Creation / Auth Wall** | Destroys Focus Flow’s zero-friction ethos. The application must remain 100% usable without ever logging in. |
+| ❌ **Email / Password Authentication & Reset Flows** | Introduces credential theft attack surfaces, password reset emails, spam bots, and maintenance overhead. Strictly Google OAuth popup. |
+| ❌ **Server-Side Timer Execution & Push Alarms** | Timer countdowns remain client-side wall-clock anchored (`Date.now()`). No cloud worker or push daemon manages active countdowns. |
+| ❌ **Telemetry, Analytics & Tracking Beacons** | Firebase Analytics, Google Analytics, Crashlytics, and tracking pixels are strictly prohibited. Zero telemetry is collected. |
+| ❌ **Social Feeds, Leaderboards & Multi-User Sharing** | Focus Flow is a personal contemplative sanctuary, not a social network or competitive workplace tracker. |
+| ❌ **Automatic Local Wiping on Sign-Out** | Signing out disconnects the cloud link but preserves 100% of the local device session history. |
+| ❌ **Synchronous Firebase SDK Bundling** | Firebase libraries must never be imported statically into the main entry bundle; dynamic `import()` is strictly required. |
+
+---
+
 ## 4. Cross-Cutting Non-Goals & Architectural Invariants Matrix
 
 To protect Focus Flow’s soul across all iterations, every architectural proposal must be evaluated against this strict boundary matrix:
@@ -751,8 +905,9 @@ To protect Focus Flow’s soul across all iterations, every architectural propos
 ├────────────────────────────────┬───────────────────────────────────────────────────────┤
 │ Proposed Temptation            │ Architectural & Design Rejection Rationale            │
 ├────────────────────────────────┼───────────────────────────────────────────────────────┤
-│ Cloud Database Sync & Accounts │ Violates ADR-005. Introduces recurring server costs,  │
-│ (Firebase / Supabase / AWS)    │ privacy liabilities, auth token decay, and offline lag│
+│ Mandatory Cloud DBs & Forced   │ Violates ADR-005. Mandatory cloud servers introduce   │
+│ Accounts (Firebase / Supabase) │ recurring costs, privacy risk, and auth token decay.  │
+│ (Stage 7 adds 100% opt-in sync)│ Stage 7 opt-in sync (ADR-009) keeps zero-cloud default│
 ├────────────────────────────────┼───────────────────────────────────────────────────────┤
 │ Multi-tiered Project Backlogs  │ Morphs a quiet focus companion into a high-friction   │
 │ & Jira/Todoist Importers       │ task organizer; increases cognitive startup friction. │
@@ -779,7 +934,7 @@ To protect Focus Flow’s soul across all iterations, every architectural propos
 
 ---
 
-## 5. Storage Evolution & Migration Strategy Matrix (Schema v1.0 → v3.0)
+## 5. Storage Evolution & Migration Strategy Matrix (Schema v1.0 → v3.1)
 
 All persistence operations follow a deterministic, forward-compatible schema evolution path managed centrally by `src/lib/storage.ts`:
 
@@ -792,6 +947,8 @@ All persistence operations follow a deterministic, forward-compatible schema evo
 | **v2.0** | **v2.4** | `BackupFileV2` (JSON Export / Import) | Full application state archive with sound metadata | Validates export schema version; safely ignores unrecognized keys without throwing. |
 | **v2.1** | **v2.5** | `ff2_interface` | Theme tokens, shortcut mappings, narration verbosity | Falls back to default Warm Parchment theme if custom theme tokens fail contrast check. |
 | **v3.0** | **v3.0** | `$APPDATA/focus-flow/data.json` & P2P CRDT | Atomic local JSON file + CRDT vector clocks | Atomic write via temporary file swap to eliminate corruption during OS shutdown. |
+| **v3.1** | **v3.1** | `ff2_cloud_sync` & `users/{uid}/*` (Firestore) | Auth metadata, cloud mirror of Settings, Stats, SoundPrefs, and Session records | First-login deterministic reconciliation merge; runtime boundary validation on remote payloads; automatic fallback to local persistence. |
+
 
 ---
 

@@ -15,7 +15,9 @@ import {
   type SoundPreferences,
   type Stats,
   type StatsV2,
+  type TaskPreset,
   type Theme,
+  type WebhookSettings,
 } from '../types'
 
 export const MAX_SOUND_SIZE: number = 200 * 1024 * 1024
@@ -50,6 +52,8 @@ const KEYS = {
   installDismissed: `${PREFIX}installDismissed`,
   goals: `${PREFIX}goals`,
   milestones: `${PREFIX}milestones`,
+  presets: `${PREFIX}presets`,
+  webhook: `${PREFIX}webhook`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
@@ -84,7 +88,7 @@ function readString(key: string): string | null {
 
 export const DEFAULT_SETTINGS: Settings = { focus: 25, short: 5, long: 15, rounds: 4, autoStart: false }
 
-function isSettings(value: unknown): Settings | null {
+export function isSettings(value: unknown): Settings | null {
   if (typeof value !== 'object' || value === null) return null
   const v = value as Record<string, unknown>
   const num = (x: unknown, fallback: number, min: number, max: number) =>
@@ -458,6 +462,65 @@ export function saveCustomSounds(sounds: CustomSound[]): boolean {
   return write(KEYS.sounds, sounds)
 }
 
+export function isTaskPreset(value: unknown): TaskPreset | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+  if (typeof v.id !== 'string' || v.id.trim() === '') return null
+  const id: string = v.id.trim().slice(0, 64)
+  if (typeof v.label !== 'string' || v.label.trim() === '') return null
+  const label: string = v.label.trim().slice(0, MAX_TASK_LENGTH)
+  return { id, label }
+}
+
+export function isTaskPresets(value: unknown): TaskPreset[] | null {
+  if (!Array.isArray(value)) return null
+  const list: TaskPreset[] = []
+  for (const item of value) {
+    const preset = isTaskPreset(item)
+    if (!preset) return null
+    list.push(preset)
+  }
+  return list.slice(0, 50)
+}
+
+export const DEFAULT_TASK_PRESETS: TaskPreset[] = [
+  { id: 'deep-work', label: 'Deep Work' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'code-review', label: 'Code Review' },
+  { id: 'reading', label: 'Reading' },
+  { id: 'inbox-zero', label: 'Inbox Zero' },
+]
+
+export function loadPresets(): TaskPreset[] {
+  migrateLegacy()
+  const stored = read<TaskPreset[]>(KEYS.presets, (val) => {
+    if (!Array.isArray(val)) return null
+    return val.map(isTaskPreset).filter((p): p is TaskPreset => p !== null).slice(0, 50)
+  })
+  if (stored && stored.length > 0) return stored
+  const lang = loadLang()
+  if (lang === 'pl') {
+    return [
+      { id: 'deep-work', label: 'Głęboka praca' },
+      { id: 'writing', label: 'Pisanie' },
+      { id: 'code-review', label: 'Przegląd kodu' },
+      { id: 'reading', label: 'Czytanie' },
+      { id: 'inbox-zero', label: 'Inbox Zero' },
+    ]
+  }
+  return [...DEFAULT_TASK_PRESETS]
+}
+
+export function savePresets(presets: TaskPreset[]): boolean {
+  if (!Array.isArray(presets)) return false
+  const sanitized: TaskPreset[] = presets
+    .map(isTaskPreset)
+    .filter((p): p is TaskPreset => p !== null)
+    .slice(0, 50)
+  return write(KEYS.presets, sanitized)
+}
+
+
 export function loadLang(): Lang | null {
   migrateLegacy()
   const stored = read<Lang>(KEYS.lang, (v) => (v === 'pl' || v === 'en' ? v : null))
@@ -586,7 +649,7 @@ export const saveSoundPrefs: (prefs: SoundPreferences) => boolean = saveSoundPre
 
 export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showGreeting: true }
 
-function isInterface(value: unknown): InterfacePrefs | null {
+export function isInterface(value: unknown): InterfacePrefs | null {
   if (typeof value !== 'object' || value === null) return null
   const v = value as Record<string, unknown>
   return {
@@ -653,4 +716,38 @@ export function loadSession(): SessionSnapshotV2 | null {
 
 export function saveSession(snapshot: SessionSnapshotV2): void {
   write(SESSION_KEY, snapshot)
+}
+
+export const DEFAULT_WEBHOOK_SETTINGS: WebhookSettings = {
+  url: '',
+  enabled: false,
+}
+
+export function isWebhookSettings(val: unknown): val is WebhookSettings {
+  if (typeof val !== 'object' || val === null || Array.isArray(val)) return false
+  const v = val as Record<string, unknown>
+  return typeof v.url === 'string' && typeof v.enabled === 'boolean'
+}
+
+export function loadWebhookSettings(): WebhookSettings {
+  migrateLegacy()
+  const stored = read<WebhookSettings>(KEYS.webhook, (val) => {
+    if (!isWebhookSettings(val)) return null
+    return {
+      url: val.url.trim().slice(0, 2048),
+      enabled: val.enabled === true,
+    }
+  })
+  return stored ?? { ...DEFAULT_WEBHOOK_SETTINGS }
+}
+
+export function saveWebhookSettings(settings: WebhookSettings): void {
+  if (isWebhookSettings(settings)) {
+    write(KEYS.webhook, {
+      url: settings.url.trim().slice(0, 2048),
+      enabled: settings.enabled === true,
+    })
+  } else {
+    write(KEYS.webhook, { ...DEFAULT_WEBHOOK_SETTINGS })
+  }
 }

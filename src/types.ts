@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 
 export type Mode = 'focus' | 'short' | 'long'
+export type TimerMode = Mode
 export type Lang = 'pl' | 'en'
 export type Theme = 'light' | 'dark'
 
@@ -136,6 +137,79 @@ export interface SessionSnapshot {
 }
 
 export interface SessionSnapshotV2 extends SessionSnapshot {
+  id?: string
   checklist?: ChecklistItem[]
 }
 
+export interface BackupSound {
+  id: string
+  name: string
+  /** Audio as a data: URL. Present for every sound that could be read at export time. */
+  audio?: string
+}
+
+export interface BackupFile {
+  app: 'focus-flow'
+  version: 1
+  exportedAt: string
+  data: {
+    settings: Settings
+    stats: Stats
+    sounds: BackupSound[]
+    lang: Lang
+    theme: Theme
+    volume: number
+  }
+}
+
+export interface BackupFileV2 {
+  app: 'focus-flow'
+  version: 2
+  exportedAt: string
+  data: {
+    settings: Settings
+    stats: StatsV2
+    sessions: SessionLogEntryV2[]
+    presets: TaskPreset[]
+    sounds: BackupSound[]
+    lang: Lang
+    theme: Theme
+    volume: number
+    interface: InterfacePrefs
+  }
+}
+
+export type BackupFileAny = BackupFile | BackupFileV2
+
+export interface ImportSuccess {
+  success: true
+  count: number
+}
+
+export interface ImportError {
+  success: false
+  error: string
+}
+
+export type ImportResult = ImportSuccess | ImportError
+
+export type WebhookEvent = 'start' | 'complete' | 'pause'
+
+export interface WebhookSettings {
+  url: string
+  enabled: boolean
+}
+
+export interface WebhookPayload {
+  event: WebhookEvent
+  timestamp: string
+  app: 'focus-flow'
+  version: '2.4'
+  session: {
+    id: string
+    mode: TimerMode
+    durationMinutes: number
+    task: string | null
+    checklist?: ChecklistItem[]
+  }
+}

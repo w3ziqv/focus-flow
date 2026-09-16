@@ -313,6 +313,24 @@ function Shell() {
 
   return (
     <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="min-h-[100dvh]">
+      {engine.wakeNotice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-line bg-card/95 px-4 py-3 text-caption text-ink shadow-elevated backdrop-blur-sm"
+        >
+          <p className="text-[13px] leading-snug">{engine.wakeNotice}</p>
+          <button
+            type="button"
+            onClick={engine.dismissWakeNotice}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl px-3 text-[13px] font-medium text-ink-2 hover:text-ink hover:bg-sunken transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label={t('wakeDismiss')}
+          >
+            {t('wakeDismiss')}
+          </button>
+        </div>
+      )}
+
       <NavPill view={view} onView={changeView} onOpenSettings={() => setAppSettingsOpen(true)} />
 
       <main>
@@ -377,6 +395,13 @@ function Shell() {
             saveInterface(next)
             return next
           })
+        }}
+        onImportSuccess={() => {
+          setTheme(loadTheme() ?? systemTheme())
+          setInterfacePrefs(loadInterface())
+          setSounds(loadCustomSounds())
+          setSoundPrefs(loadSoundPreferences())
+          engine.refreshStats()
         }}
         onClose={() => setAppSettingsOpen(false)}
       />

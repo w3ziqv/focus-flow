@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Focus Flow — Production Cloud Firestore Security Rules (Stage 7 / v3.1)
+    // Architecture: ADR-005 (Local-First) & ADR-009 (Opt-in Cloud Sync)
+    // Invariant: 100% user-isolated subcollections with explicit default deny.
+    // =========================================================================
+
+    // Authentication and ownership validation helpers
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Boundary data integrity validators
+    function isValidSettings(data) {
+      return data.focus is number && data.focus >= 1 && data.focus <= 120 &&
+             ((data.short is number && data.short >= 1 && data.short <= 60) ||
+              (data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
+             ((data.long is number && data.long >= 1 && data.long <= 120) ||
+              (data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
+             data.rounds is number && data.rounds >= 1 && data.rounds <= 20 &&
+             data.autoStart is bool;
+    }
+
+    function isValidStats(data) {
+      return data.minutes is number && data.minutes >= 0 &&
+             data.today is number && data.today >= 0 &&
+             data.week is number && data.week >= 0 &&
+             data.streak is number && data.streak >= 0;
+    }
+
+    function isValidSession(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 64 &&
+             data.minutes is number && data.minutes >= 1 && data.minutes <= 120 &&
+             data.date is string && data.date.size() <= 40;
+    }
+
+    // -------------------------------------------------------------------------
+    // User Document Hierarchy: /users/{userId}
+    // All read/write access is strictly scoped to request.auth.uid == userId.
+    // Cross-user reads and writes are forbidden.
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      // Disallow direct reads/writes to the root user container document
+      allow read, write: if false;
+
+      // Settings subcollection (/users/{userId}/settings/{docId})
+      match /settings/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSettings(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      // Stats summary subcollection (/users/{userId}/stats/{docId})
+      match /stats/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidStats(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      // Sound preferences subcollection (/users/{userId}/sound_prefs/{docId})
+      match /sound_prefs/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Interface preferences & daily goals subcollection (/users/{userId}/interface/{docId})
+      match /interface/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Metadata & sync status subcollection (/users/{userId}/metadata/{docId})
+      match /metadata/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Session records subcollection (/users/{userId}/sessions/{sessionId})
+      match /sessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSession(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Default Deny
+    // Any document path outside of /users/{userId} is strictly denied.
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
