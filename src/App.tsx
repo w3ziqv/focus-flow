@@ -5,6 +5,7 @@ import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
 import { useWakeLock } from './lib/useWakeLock'
 import { audio } from './lib/audio'
+import { dispatchNotification, triggerHapticFeedback } from './lib/notifications'
 import { accentStyle } from './lib/accent'
 import {
   loadCustomSounds,
@@ -260,24 +261,36 @@ function Shell() {
     [updateSoundPrefs],
   )
 
-  const notify = useCallback(
-    (kind: 'focus' | 'break') => {
-      if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  const lastHandledEventRef = useRef<number | null>(null)
+
+  const handleCompletion = useCallback(
+    (kind: 'focus' | 'break', taskTitle: string) => {
       const title = t(kind === 'focus' ? 'session.complete' : 'break.complete')
-      const body = kind === 'focus' && engine.task.trim() !== '' ? engine.task : undefined
+      const currentTask = taskTitle.trim()
+      const body = kind === 'focus' && currentTask !== '' ? currentTask : undefined
+
+      // Procedural completion chime invoked promptly upon focus session or break end
       try {
-        new Notification(title, { body })
+        audio.playChime()
       } catch {
-        // Some browsers reject constructors outside secure contexts.
+        // Stay silent if browser blocks audio autoplay
       }
+
+      // Native haptic feedback triggered upon session completion
+      triggerHapticFeedback()
+
+      // Unified mobile ServiceWorker and desktop notification dispatcher
+      void dispatchNotification(title, { body, hapticFeedback: false })
     },
-    [engine.task, t],
+    [t],
   )
 
   useEffect(() => {
     if (engine.lastEvent === null) return
-    notify(engine.lastEvent.kind)
-  }, [engine.lastEvent, notify])
+    if (lastHandledEventRef.current === engine.lastEvent.at) return
+    lastHandledEventRef.current = engine.lastEvent.at
+    handleCompletion(engine.lastEvent.kind, engine.task)
+  }, [engine.lastEvent, engine.task, handleCompletion])
 
   useShortcuts({
     toggle: engine.toggle,

@@ -7,6 +7,7 @@ import * as downloadModule from '../lib/download'
 import * as dataPortModule from '../lib/dataPort'
 import * as webhookModule from '../lib/webhook'
 import * as storageModule from '../lib/storage'
+import * as notificationsModule from '../lib/notifications'
 import type { InterfacePrefs, Theme, WebhookSettings } from '../types'
 
 describe('AppSettingsModal Component', () => {
@@ -264,6 +265,30 @@ describe('AppSettingsModal Component', () => {
       await waitFor(() => {
         expect(screen.getByText(/Pomyślnie wysłano \(status 200\)|Dispatched successfully \(status 200\)/i)).toBeDefined()
       })
+    })
+  })
+
+  describe('Notification Permissions', () => {
+    it('displays prompt state and requests permission when button clicked', async () => {
+      vi.spyOn(notificationsModule, 'getNotificationPermission').mockReturnValue('default')
+      const requestSpy = vi.spyOn(notificationsModule, 'requestNotificationPermission').mockResolvedValue('granted')
+
+      renderModal()
+      const reqBtn = screen.getByRole('button', { name: /Zezwól na powiadomienia|Allow notifications/i })
+      fireEvent.click(reqBtn)
+
+      expect(requestSpy).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(screen.getByText(/Włączone|Allowed/i)).toBeDefined()
+      })
+    })
+
+    it('displays denied instructions and recheck button when permission is denied', () => {
+      vi.spyOn(notificationsModule, 'getNotificationPermission').mockReturnValue('denied')
+
+      renderModal()
+      expect(screen.getAllByText(/Zablokowane|Blocked/i).length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByRole('button', { name: /Sprawdź ponownie|Check again/i })).toBeDefined()
     })
   })
 })

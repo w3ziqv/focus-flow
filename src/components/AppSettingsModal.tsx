@@ -8,12 +8,15 @@ import { downloadCsv, downloadICal, downloadMarkdown } from '../lib/export'
 import { triggerDownload } from '../lib/download'
 import { loadSessions, loadWebhookSettings, saveWebhookSettings } from '../lib/storage'
 import { testWebhook } from '../lib/webhook'
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  type NotificationPermissionState,
+} from '../lib/notifications'
 import { Modal } from './Modal'
 import { PillButton } from './PillButton'
 import { SegmentedTabs } from './SegmentedTabs'
 import { Switch } from './Switch'
-
-type NotificationPermissionState = 'granted' | 'denied' | 'default' | 'unsupported'
 
 interface AppSettingsModalProps {
   open: boolean
@@ -46,9 +49,7 @@ export function AppSettingsModal({
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [webhookSettings, setWebhookSettings] = useState<WebhookSettings>(() => loadWebhookSettings())
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
-  const [permission, setPermission] = useState<NotificationPermissionState>(() =>
-    typeof Notification === 'undefined' ? 'unsupported' : (Notification.permission as NotificationPermissionState),
-  )
+  const [permission, setPermission] = useState<NotificationPermissionState>(getNotificationPermission)
   const platform = detectPlatform()
 
   const [wasOpen, setWasOpen] = useState(false)
@@ -63,7 +64,7 @@ export function AppSettingsModal({
   }
 
   const refreshPermission = () => {
-    setPermission(typeof Notification === 'undefined' ? 'unsupported' : (Notification.permission as NotificationPermissionState))
+    setPermission(getNotificationPermission())
   }
 
   useEffect(() => {
@@ -74,13 +75,8 @@ export function AppSettingsModal({
   }, [open])
 
   const requestNotifications = async () => {
-    if (typeof Notification === 'undefined') return
-    try {
-      await Notification.requestPermission()
-    } catch {
-      // Browsers without the promise-based API throw — permission state stays as is.
-    }
-    refreshPermission()
+    const next = await requestNotificationPermission()
+    setPermission(next)
   }
 
   const handleExportMarkdown = () => {

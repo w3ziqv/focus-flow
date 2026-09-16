@@ -15,6 +15,7 @@ import {
 import { recordFocusSession } from './stats'
 import { addSession } from './sessions'
 import { audio } from './audio'
+import { getNotificationPermission, requestNotificationPermission } from './notifications'
 import { createTimerTicker } from './timerWorker'
 import { reconcileExpiredSession } from './wakeReconciliation'
 import { createWebhookPayload, dispatchWebhook } from './webhook'
@@ -189,8 +190,8 @@ export function useTimerEngine(): TimerEngine {
 
   const start = useCallback(() => {
     if (runningRef.current) return
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      void Notification.requestPermission()
+    if (getNotificationPermission() === 'default') {
+      void requestNotificationPermission()
     }
     const endTs = Date.now() + Math.max(1000, remainingRef.current)
     endTsRef.current = endTs
@@ -226,11 +227,6 @@ export function useTimerEngine(): TimerEngine {
     const currentSettings = settingsRef.current
     const currentSessionId =
       sessionIdRef.current ?? `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
-
-    audio.chime()
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate([120, 70, 120])
-    }
 
     if (currentMode === 'focus') {
       const todayKey = new Date().toDateString()
