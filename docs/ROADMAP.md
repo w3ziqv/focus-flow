@@ -1,4 +1,4 @@
-# Focus Flow — Technical Product Roadmap Specification (v2.1 → v3.1)
+# Focus Flow — Technical Product Roadmap Specification (v2.1 → v3.0)
 
 **Document Version:** 2.2.0  
 **Author:** Lead Systems Architect & Core Platform Team  
@@ -127,10 +127,10 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
    Stage 5: v2.5 Customization, Themes & Accessibility (WCAG AAA, Theming, Shortcuts Manager)
             │
             ▼
-   Stage 6: v3.0 Platform Expansion & Desktop Ecosystem (Tauri 2 Desktop, Tray Dial, Local P2P Sync)
+   Stage 6: v2.6 Opt-In Cloud Synchronization & Google Identity (Google Auth, Cloud Firestore, Multi-Device Sync)
             │
             ▼
-   Stage 7: v3.1 Opt-In Cloud Synchronization & Google Identity (Google Auth, Cloud Firestore, Multi-Device Sync)
+   Stage 7: v3.0 Platform Expansion & Desktop Ecosystem (Tauri 2 Desktop, Tray Dial, Local P2P Sync)
 ```
 
 | Milestone | Target Version | Primary Scope Summary | Storage Schema | Audio Engine State | Local Export Formats | Target Platform | Primary Anti-Pattern Eliminated |
@@ -140,8 +140,8 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
 | **Stage 3** | **v2.3** | Task Management & Productivity Analytics | Schema v1.3 (Tasks, goals & milestones) | Synthesized 5-partial modal singing bowl chime | Offline Canvas PNG Card | Web / PWA | Jira/Todoist backlog creep, broken-streak shame & toxic gamification |
 | **Stage 4** | **v2.4** | Data Portability, Integrations & Local Sync | Schema v2.0 (`BackupFileV2` full archive) | Dual-layer mixer + binaural carriers | RFC 4180 CSV, GFM Markdown, RFC 5545 `.ics` | Web / PWA | Cloud database lock-in, OAuth server walls & background tab throttling |
 | **Stage 5** | **v2.5** | Customization, Themes & Accessibility | Schema v2.1 (`InterfacePrefs` extensions) | Full dual-layer acoustic palette | All v2.4 formats | Web / PWA | Inaccessible low-contrast UI, rigid layouts & keyboard traps |
-| **Stage 6** | **v3.0** | Platform Expansion & Desktop Ecosystem | Schema v3.0 (Atomic JSON + Local P2P CRDT) | OS-integrated audio engine | All v2.4 formats + Native File I/O | Windows, macOS, Linux | Bloated Electron runtime (150MB+ RAM), spyware daemons & cloud sync servers |
-| **Stage 7** | **v3.1** | Opt-In Cloud Synchronization & Google Identity | Schema v3.1 (`CloudSyncAdapter` + Firestore `users/{uid}/*`) | Full acoustic engine with synced sound preferences | All v2.4 formats + Cloud JSON Snapshot | Web (PWA) & Desktop (Tauri 2) | Forced account creation, telemetry tracking, background battery drain & data lock-in |
+| **Stage 6** | **v2.6** | Opt-In Cloud Synchronization & Google Identity | Schema v2.6 (`CloudSyncAdapter` + Firestore `users/{uid}/*`) | Full acoustic engine with synced sound preferences | All v2.4 formats + Cloud JSON Snapshot | Web (PWA) & Desktop (Tauri 2) | Forced account creation, telemetry tracking, background battery drain & data lock-in |
+| **Stage 7** | **v3.0** | Platform Expansion & Desktop Ecosystem | Schema v3.0 (Atomic JSON + Local P2P CRDT) | OS-integrated audio engine | All v2.4 formats + Native File I/O | Windows, macOS, Linux | Bloated Electron runtime (150MB+ RAM), spyware daemons & cloud sync servers |
 
 ---
 
@@ -671,96 +671,22 @@ export interface ThemeTokens {
 
 ---
 
-### 3.6 Stage 6: Milestone v3.0 — Platform Expansion & Multi-Device Synchronization (*Tauri 2 Desktop & Local-First P2P Sync*)
+### 3.6 Stage 6: Milestone v2.6 — Opt-In Cloud Synchronization & Google Identity (*Zero-Friction Cross-Device Sync & Sovereign Identity*)
 
-#### 3.6.1 Core Theme & User Value
-Transform Focus Flow into a first-class native desktop application (Windows, macOS, Linux) with dynamic system tray countdowns, global operating system hotkeys, an always-on-top floating Picture-in-Picture (PiP) mini-dial, and zero-server peer-to-peer data synchronization across local devices.
+#### 3.6.1 Core Theme & Architectural Mission
+Milestone v2.6 bridges Focus Flow’s serene local-first architecture with modern multi-device workflows. Users who divide deep work across a workstation, portable laptop, and mobile tablet can now synchronize their timer settings, daily targets, Zen milestone seals, sound preferences, and completed session history without friction.
 
-#### 3.6.2 Why Tauri 2 Over Electron (ADR-006)
-Electron packages an entire Chromium browser and Node.js runtime, requiring ~100 MB downloads and 150–300 MB of idle RAM. Tauri 2 binds directly to the OS webview (WebView2 on Windows, WebKit on macOS, WebKitGTK on Linux) via a compiled Rust core:
-
-| Metric | Web PWA | Tauri 2 Desktop (Target) | Electron (Rejected) |
-|---|---|---|---|
-| **Installer Size** | 0 MB (Cached) | **~3–8 MB** | ~85–110 MB |
-| **Idle Memory (RAM)** | Browser Tab (~60 MB) | **~25–40 MB** | 150–300 MB |
-| **System Tray Dial** | Not supported | **Supported (Dynamic SVG)** | Supported |
-| **Global OS Hotkeys** | Not supported | **Supported (System-wide)** | Supported |
-| **Local Storage Backend** | `localStorage` (Quota Risk) | **Atomic JSON Filesystem** | Filesystem |
-| **Idle CPU Utilization** | < 0.1% | **< 0.05%** | ~0.5–2.0% |
-
-#### 3.6.3 Native Desktop Technical Architecture
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                      TAURI 2 DESKTOP ARCHITECTURE                      │
-└────────────────────────────────────────────────────────────────────────┘
-
-  ┌───────────────────────────────────────────────────────────────────┐
-  │                    React 19 Frontend Webview                      │
-  │  (Dial, AudioEngine, Keyboard Navigation, Storage Bridge)         │
-  └──────────────────┬────────────────────────────────────────────▲───┘
-                     │ Tauri IPC Invoke                           │ Tauri Event Bus
-                     ▼                                            │
-  ┌───────────────────────────────────────────────────────────────┴───┐
-  │                     Rust Native Core (Tauri 2)                    │
-  ├───────────────────────────────────────────────────────────────────┤
-  │ • Tray Manager: Dynamic SVG rendering into OS tray canvas         │
-  │ • Global Shortcuts Plugin: Intercepts OS keys (Ctrl+Alt+Space)    │
-  │ • Window Manager: Spawns frameless, floating PiP mini-window      │
-  │ • Power & WakeLock: Prevents OS sleep during running sessions     │
-  │ • Native File Storage Adapter: Atomic writes to ~/.focusflow.json │
-  │ • Local P2P Sync Engine: WebRTC / CRDT local peer exchange        │
-  └───────────────────────────────────────────────────────────────────┘
-```
-
-#### 3.6.4 Desktop & Sync Feature Specifications
-1. **Dynamic SVG System Tray Dial**:
-   - The OS system tray icon updates dynamically each minute, rendering a miniature circular countdown dial and remaining minutes.
-   - Dynamic rasterizer renders with native OS DPI scaling: macOS Retina (44px), Windows 100% (16px), Windows 150% (24px), Windows 200% (32px), Linux GNOME (22px).
-   - Tray Tooltip: Shows `Mode • MM:SS remaining • Active Task`.
-   - Left-click toggles timer play/pause; right-click opens native context menu (*Start/Pause*, *Skip Phase*, *Reset*, *Show Main Window*, *Preferences*, *Quit*).
-2. **Always-on-Top Floating Mini-Dial (Picture-in-Picture)**:
-   - A dedicated frameless, transparent window (220×80px) displaying mode, serif countdown digits, and a subtle play/pause control.
-   - Recedes to 70% opacity when unfocused so it floats peacefully above code editors and writing tools.
-3. **Global Operating System Hotkeys**:
-   - `Ctrl + Alt + Space` (Windows/Linux) / `Cmd + Option + Space` (macOS): Toggle timer.
-   - `Ctrl + Alt + R` / `Cmd + Option + R`: Reset phase.
-   - `Ctrl + Alt + F` / `Cmd + Option + F`: Toggle floating PiP window.
-4. **Native Filesystem Storage Adapter**:
-   - In Tauri mode (`detectPlatform() === 'tauri'`), `src/lib/storage.ts` transparently redirects persistence to an atomic local file (`$APPDATA/focus-flow/data.json`) via `@tauri-apps/plugin-fs`, completely eliminating browser cache eviction risks.
-5. **Build Flag Isolation**:
-   - The desktop production build passes `--mode desktop`, disabling `vite-plugin-pwa` service worker generation to prevent asset protocol collisions with Tauri's custom URL scheme.
-6. **Zero-Server Local-First P2P Multi-Device Sync**:
-   - Local network encrypted synchronization using WebRTC and Conflict-Free Replicated Data Types (CRDTs).
-   - Devices on the same Wi-Fi discover each other via mDNS / local broadcast and reconcile session histories without routing data through an external server or cloud database.
-
-#### 3.6.5 Storage Schema
-- Schema v3.0: File-backed atomic JSON storage model with CRDT vector clocks for local P2P multi-device sync.
-
-#### 3.6.6 Explicit Non-Goals
-- ❌ Invasive desktop activity monitoring, keystroke loggers, or window surveillance spyware.
-- ❌ Heavy persistent background daemons after exiting the application tray.
-- ❌ Multi-window window management bloat.
-- ❌ Centralized telemetry, tracking servers, or user profiling SDKs.
-
----
-
-### 3.7 Stage 7: Milestone v3.1 — Opt-In Cloud Synchronization & Google Identity (*Zero-Friction Cross-Device Sync & Sovereign Identity*)
-
-#### 3.7.1 Core Theme & Architectural Mission
-Milestone v3.1 bridges Focus Flow’s serene local-first architecture with modern multi-device workflows. Users who divide deep work across a workstation, portable laptop, and mobile tablet can now synchronize their timer settings, daily targets, Zen milestone seals, sound preferences, and completed session history without friction.
-
-Stage 7 strictly preserves **ADR-005 (Local-First Data Sovereignty)** and establishes **ADR-009 (Opt-in Cloud Synchronization via Firebase & Storage Adapter)** under the unyielding **100% Opt-In Invariant**:
+Stage 6 strictly preserves **ADR-005 (Local-First Data Sovereignty)** and establishes **ADR-009 (Opt-in Cloud Synchronization via Firebase & Storage Adapter)** under the unyielding **100% Opt-In Invariant**:
 - **Zero Cloud by Default**: Without explicit user authentication, Focus Flow operates with 0 network calls to cloud endpoints, 0 Firebase SDK modules loaded or initialized, and 100% local persistence.
 - **Zero Performance Penalty**: The core application bundle is not burdened by Firebase libraries (<300 kB uncompressed budget preserved via asynchronous dynamic imports).
 - **Sovereign Cloud Isolation**: When enabled, user data synchronizes strictly to an isolated private Cloud Firestore subcollection tree guarded by production security rules (`request.auth.uid == userId`).
 - **Zero Lock-In & Graceful Exit**: Users may sign out at any time without losing a single local session record, or purge all cloud documents permanently with a single click.
 
-#### 3.7.2 Authentication & Dataflow Architecture
+#### 3.6.2 Authentication & Dataflow Architecture
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                           STAGE 7 OPT-IN CLOUD SYNCHRONIZATION DATAFLOW ARCHITECTURE                           │
+│                           STAGE 6 OPT-IN CLOUD SYNCHRONIZATION DATAFLOW ARCHITECTURE                           │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
    [ 1. Unauthenticated State (Default — 100% Offline / Zero Network Calls) ]
@@ -804,7 +730,7 @@ Stage 7 strictly preserves **ADR-005 (Local-First Data Sovereignty)** and establ
    └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 3.7.3 User Experience & Progressive Disclosure (Tier 1 & Tier 2)
+#### 3.6.3 User Experience & Progressive Disclosure (Tier 1 & Tier 2)
 
 Focus Flow’s visual serenity remains inviolable. Cloud capabilities introduce zero intrusive modals, banner ads, or blocking login screens.
 
@@ -833,7 +759,7 @@ Focus Flow’s visual serenity remains inviolable. Cloud capabilities introduce 
    - When a first-login merge completes, the application does not interrupt the user with modal dialogs or alert banners.
    - A quiet 3-second status toast appears in the bottom corner: *"Synced 24 offline sessions with your cloud library."*
 
-#### 3.7.4 Technical Architecture & Firestore Document Schema
+#### 3.6.4 Technical Architecture & Firestore Document Schema
 
 To prevent hitting the 1 MB document size ceiling and allow efficient indexed queries, data is modeled as user-isolated subcollections rather than a single monolithic document:
 
@@ -861,7 +787,7 @@ users/
 - **Bandwidth Efficiency**: Updating a single session or changing timer settings transmits only that individual document (~200 bytes) rather than reserializing the entire application state.
 - **Atomic Concurrency**: Simultaneous writes from two devices (e.g. editing a task title on a laptop while a timer finishes on a phone) update discrete document paths without race conditions.
 
-#### 3.7.5 Storage Schema Evolution (Schema v3.1)
+#### 3.6.5 Storage Schema Evolution (Schema v2.6)
 
 - **Local Storage Key**: `ff2_cloud_sync`
 - **TypeScript Contract**:
@@ -881,7 +807,7 @@ users/
   - Capped to `MAX_SESSIONS` (1,000 items) sorted newest-first by completion timestamp.
   - Recomputes aggregate stats dynamically to prevent drift or duplicate counting.
 
-#### 3.7.6 Explicit Non-Goals Matrix for Stage 7
+#### 3.6.6 Explicit Non-Goals Matrix for Stage 6
 
 | Feature / Pattern | Rejection Rationale |
 |---|---|
@@ -892,6 +818,80 @@ users/
 | ❌ **Social Feeds, Leaderboards & Multi-User Sharing** | Focus Flow is a personal contemplative sanctuary, not a social network or competitive workplace tracker. |
 | ❌ **Automatic Local Wiping on Sign-Out** | Signing out disconnects the cloud link but preserves 100% of the local device session history. |
 | ❌ **Synchronous Firebase SDK Bundling** | Firebase libraries must never be imported statically into the main entry bundle; dynamic `import()` is strictly required. |
+
+---
+
+### 3.7 Stage 7: Milestone v3.0 — Platform Expansion & Multi-Device Synchronization (*Tauri 2 Desktop & Local-First P2P Sync*)
+
+#### 3.7.1 Core Theme & User Value
+Transform Focus Flow into a first-class native desktop application (Windows, macOS, Linux) with dynamic system tray countdowns, global operating system hotkeys, an always-on-top floating Picture-in-Picture (PiP) mini-dial, and zero-server peer-to-peer data synchronization across local devices.
+
+#### 3.7.2 Why Tauri 2 Over Electron (ADR-006)
+Electron packages an entire Chromium browser and Node.js runtime, requiring ~100 MB downloads and 150–300 MB of idle RAM. Tauri 2 binds directly to the OS webview (WebView2 on Windows, WebKit on macOS, WebKitGTK on Linux) via a compiled Rust core:
+
+| Metric | Web PWA | Tauri 2 Desktop (Target) | Electron (Rejected) |
+|---|---|---|---|
+| **Installer Size** | 0 MB (Cached) | **~3–8 MB** | ~85–110 MB |
+| **Idle Memory (RAM)** | Browser Tab (~60 MB) | **~25–40 MB** | 150–300 MB |
+| **System Tray Dial** | Not supported | **Supported (Dynamic SVG)** | Supported |
+| **Global OS Hotkeys** | Not supported | **Supported (System-wide)** | Supported |
+| **Local Storage Backend** | `localStorage` (Quota Risk) | **Atomic JSON Filesystem** | Filesystem |
+| **Idle CPU Utilization** | < 0.1% | **< 0.05%** | ~0.5–2.0% |
+
+#### 3.7.3 Native Desktop Technical Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                      TAURI 2 DESKTOP ARCHITECTURE                      │
+└────────────────────────────────────────────────────────────────────────┘
+
+  ┌───────────────────────────────────────────────────────────────────┐
+  │                    React 19 Frontend Webview                      │
+  │  (Dial, AudioEngine, Keyboard Navigation, Storage Bridge)         │
+  └──────────────────┬────────────────────────────────────────────▲───┘
+                     │ Tauri IPC Invoke                           │ Tauri Event Bus
+                     ▼                                            │
+  ┌───────────────────────────────────────────────────────────────┴───┐
+  │                     Rust Native Core (Tauri 2)                    │
+  ├───────────────────────────────────────────────────────────────────┤
+  │ • Tray Manager: Dynamic SVG rendering into OS tray canvas         │
+  │ • Global Shortcuts Plugin: Intercepts OS keys (Ctrl+Alt+Space)    │
+  │ • Window Manager: Spawns frameless, floating PiP mini-window      │
+  │ • Power & WakeLock: Prevents OS sleep during running sessions     │
+  │ • Native File Storage Adapter: Atomic writes to ~/.focusflow.json │
+  │ • Local P2P Sync Engine: WebRTC / CRDT local peer exchange        │
+  └───────────────────────────────────────────────────────────────────┘
+```
+
+#### 3.7.4 Desktop & Sync Feature Specifications
+1. **Dynamic SVG System Tray Dial**:
+   - The OS system tray icon updates dynamically each minute, rendering a miniature circular countdown dial and remaining minutes.
+   - Dynamic rasterizer renders with native OS DPI scaling: macOS Retina (44px), Windows 100% (16px), Windows 150% (24px), Windows 200% (32px), Linux GNOME (22px).
+   - Tray Tooltip: Shows `Mode • MM:SS remaining • Active Task`.
+   - Left-click toggles timer play/pause; right-click opens native context menu (*Start/Pause*, *Skip Phase*, *Reset*, *Show Main Window*, *Preferences*, *Quit*).
+2. **Always-on-Top Floating Mini-Dial (Picture-in-Picture)**:
+   - A dedicated frameless, transparent window (220×80px) displaying mode, serif countdown digits, and a subtle play/pause control.
+   - Recedes to 70% opacity when unfocused so it floats peacefully above code editors and writing tools.
+3. **Global Operating System Hotkeys**:
+   - `Ctrl + Alt + Space` (Windows/Linux) / `Cmd + Option + Space` (macOS): Toggle timer.
+   - `Ctrl + Alt + R` / `Cmd + Option + R`: Reset phase.
+   - `Ctrl + Alt + F` / `Cmd + Option + F`: Toggle floating PiP window.
+4. **Native Filesystem Storage Adapter**:
+   - In Tauri mode (`detectPlatform() === 'tauri'`), `src/lib/storage.ts` transparently redirects persistence to an atomic local file (`$APPDATA/focus-flow/data.json`) via `@tauri-apps/plugin-fs`, completely eliminating browser cache eviction risks.
+5. **Build Flag Isolation**:
+   - The desktop production build passes `--mode desktop`, disabling `vite-plugin-pwa` service worker generation to prevent asset protocol collisions with Tauri's custom URL scheme.
+6. **Zero-Server Local-First P2P Multi-Device Sync**:
+   - Local network encrypted synchronization using WebRTC and Conflict-Free Replicated Data Types (CRDTs).
+   - Devices on the same Wi-Fi discover each other via mDNS / local broadcast and reconcile session histories without routing data through an external server or cloud database.
+
+#### 3.7.5 Storage Schema
+- Schema v3.0: File-backed atomic JSON storage model with CRDT vector clocks for local P2P multi-device sync.
+
+#### 3.7.6 Explicit Non-Goals
+- ❌ Invasive desktop activity monitoring, keystroke loggers, or window surveillance spyware.
+- ❌ Heavy persistent background daemons after exiting the application tray.
+- ❌ Multi-window window management bloat.
+- ❌ Centralized telemetry, tracking servers, or user profiling SDKs.
 
 ---
 
@@ -907,7 +907,7 @@ To protect Focus Flow’s soul across all iterations, every architectural propos
 ├────────────────────────────────┼───────────────────────────────────────────────────────┤
 │ Mandatory Cloud DBs & Forced   │ Violates ADR-005. Mandatory cloud servers introduce   │
 │ Accounts (Firebase / Supabase) │ recurring costs, privacy risk, and auth token decay.  │
-│ (Stage 7 adds 100% opt-in sync)│ Stage 7 opt-in sync (ADR-009) keeps zero-cloud default│
+│ (Stage 6 adds 100% opt-in sync)│ Stage 6 opt-in sync (ADR-009) keeps zero-cloud default│
 ├────────────────────────────────┼───────────────────────────────────────────────────────┤
 │ Multi-tiered Project Backlogs  │ Morphs a quiet focus companion into a high-friction   │
 │ & Jira/Todoist Importers       │ task organizer; increases cognitive startup friction. │
@@ -946,8 +946,8 @@ All persistence operations follow a deterministic, forward-compatible schema evo
 | **v1.3** | **v2.3** | `ff2_sessions`, `ff2_presets`, `ff2_milestones` | Ephemeral micro-steps (max 3), Presets (max 200 chars), Zen Pebble unlock timestamps | Caps sessions at 1,000 records (~382 KB); validates micro-step text length (max 140 chars). |
 | **v2.0** | **v2.4** | `BackupFileV2` (JSON Export / Import) | Full application state archive with sound metadata | Validates export schema version; safely ignores unrecognized keys without throwing. |
 | **v2.1** | **v2.5** | `ff2_interface` | Theme tokens, shortcut mappings, narration verbosity | Falls back to default Warm Parchment theme if custom theme tokens fail contrast check. |
+| **v2.6** | **v2.6** | `ff2_cloud_sync` & `users/{uid}/*` (Firestore) | Auth metadata, cloud mirror of Settings, Stats, SoundPrefs, and Session records | First-login deterministic reconciliation merge; runtime boundary validation on remote payloads; automatic fallback to local persistence. |
 | **v3.0** | **v3.0** | `$APPDATA/focus-flow/data.json` & P2P CRDT | Atomic local JSON file + CRDT vector clocks | Atomic write via temporary file swap to eliminate corruption during OS shutdown. |
-| **v3.1** | **v3.1** | `ff2_cloud_sync` & `users/{uid}/*` (Firestore) | Auth metadata, cloud mirror of Settings, Stats, SoundPrefs, and Session records | First-login deterministic reconciliation merge; runtime boundary validation on remote payloads; automatic fallback to local persistence. |
 
 
 ---

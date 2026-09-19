@@ -121,7 +121,15 @@ export function isBackupFile(val: unknown): val is BackupFileAny {
     if (typeof data.stats !== 'object' || data.stats === null) return false
     if (data.sounds !== undefined && !Array.isArray(data.sounds)) return false
     if (data.lang !== undefined && data.lang !== 'pl' && data.lang !== 'en') return false
-    if (data.theme !== undefined && data.theme !== 'light' && data.theme !== 'dark') return false
+    if (
+      data.theme !== undefined &&
+      data.theme !== 'light' &&
+      data.theme !== 'dark' &&
+      data.theme !== 'obsidian' &&
+      data.theme !== 'sage' &&
+      data.theme !== 'eink'
+    )
+      return false
     if (data.volume !== undefined && (typeof data.volume !== 'number' || data.volume < 0 || data.volume > 1)) return false
     return true
   }
@@ -133,7 +141,14 @@ export function isBackupFile(val: unknown): val is BackupFileAny {
     if (!Array.isArray(data.presets)) return false
     if (!Array.isArray(data.sounds)) return false
     if (data.lang !== 'pl' && data.lang !== 'en') return false
-    if (data.theme !== 'light' && data.theme !== 'dark') return false
+    if (
+      data.theme !== 'light' &&
+      data.theme !== 'dark' &&
+      data.theme !== 'obsidian' &&
+      data.theme !== 'sage' &&
+      data.theme !== 'eink'
+    )
+      return false
     if (typeof data.volume !== 'number' || data.volume < 0 || data.volume > 1) return false
     if (typeof data.interface !== 'object' || data.interface === null) return false
     return true
@@ -248,7 +263,13 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
       saveLang(data.lang)
     }
 
-    if (data.theme === 'dark' || data.theme === 'light') {
+    if (
+      data.theme === 'dark' ||
+      data.theme === 'light' ||
+      data.theme === 'obsidian' ||
+      data.theme === 'sage' ||
+      data.theme === 'eink'
+    ) {
       saveTheme(data.theme)
     }
 
@@ -323,8 +344,14 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: false, error: 'Invalid backup file: lang must be "pl" or "en"' }
   }
 
-  if (data.theme !== 'light' && data.theme !== 'dark') {
-    return { success: false, error: 'Invalid backup file: theme must be "light" or "dark"' }
+  if (
+    data.theme !== 'light' &&
+    data.theme !== 'dark' &&
+    data.theme !== 'obsidian' &&
+    data.theme !== 'sage' &&
+    data.theme !== 'eink'
+  ) {
+    return { success: false, error: 'Invalid backup file: theme must be "light" or "dark" (or obsidian, sage, eink)' }
   }
 
   if (typeof data.volume !== 'number' || !Number.isFinite(data.volume) || data.volume < 0 || data.volume > 1) {

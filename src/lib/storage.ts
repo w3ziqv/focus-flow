@@ -1,4 +1,6 @@
 import {
+  DEFAULT_NARRATION,
+  DEFAULT_SHORTCUTS,
   DEFAULT_SOUND_PREFERENCES,
   type BaseSoundTexture,
   type BinauralMode,
@@ -8,10 +10,12 @@ import {
   type InterfacePrefs,
   type Lang,
   type MilestoneRecord,
+  type NarrationSettings,
   type SessionLogEntry,
   type SessionLogEntryV2,
   type SessionSnapshotV2,
   type Settings,
+  type ShortcutKeymap,
   type SoundPreferences,
   type Stats,
   type StatsV2,
@@ -535,7 +539,10 @@ export function saveLang(lang: Lang): void {
 
 export function loadTheme(): Theme | null {
   migrateLegacy()
-  return read<Theme>(KEYS.theme, (v) => (v === 'dark' || v === 'light' ? v : null))
+  return read<Theme>(
+    KEYS.theme,
+    (v) => (v === 'dark' || v === 'light' || v === 'obsidian' || v === 'sage' || v === 'eink' ? v : null),
+  )
 }
 
 export function saveTheme(theme: Theme): void {
@@ -647,15 +654,55 @@ export const isSoundPrefs: (value: unknown) => SoundPreferences | null = isSound
 export const loadSoundPrefs: () => SoundPreferences = loadSoundPreferences
 export const saveSoundPrefs: (prefs: SoundPreferences) => boolean = saveSoundPreferences
 
-export const DEFAULT_INTERFACE: InterfacePrefs = { reduceMotion: false, showGreeting: true }
+export const DEFAULT_INTERFACE: InterfacePrefs = {
+  reduceMotion: false,
+  showGreeting: true,
+  shortcuts: { ...DEFAULT_SHORTCUTS },
+  narration: { ...DEFAULT_NARRATION },
+}
+
+export function isShortcutKeymap(val: unknown): ShortcutKeymap | null {
+  if (typeof val !== 'object' || val === null || Array.isArray(val)) return null
+  const v = val as Record<string, unknown>
+  if (typeof v.toggleTimer !== 'string' || !v.toggleTimer) return null
+  if (typeof v.resetTimer !== 'string' || !v.resetTimer) return null
+  if (typeof v.toggleFullscreen !== 'string' || !v.toggleFullscreen) return null
+  if (typeof v.openSettings !== 'string' || !v.openSettings) return null
+  return {
+    toggleTimer: v.toggleTimer,
+    resetTimer: v.resetTimer,
+    toggleFullscreen: v.toggleFullscreen,
+    openSettings: v.openSettings,
+  }
+}
+
+export function isNarrationSettings(val: unknown): NarrationSettings | null {
+  if (typeof val !== 'object' || val === null || Array.isArray(val)) return null
+  const v = val as Record<string, unknown>
+  const verbosity = v.verbosity
+  if (verbosity !== 'minimal' && verbosity !== 'standard' && verbosity !== 'detailed') return null
+  return {
+    verbosity,
+    voiceAlertsEnabled: v.voiceAlertsEnabled === true,
+  }
+}
 
 export function isInterface(value: unknown): InterfacePrefs | null {
-  if (typeof value !== 'object' || value === null) return null
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const v = value as Record<string, unknown>
-  return {
+  const res: InterfacePrefs = {
     reduceMotion: v.reduceMotion === true,
     showGreeting: v.showGreeting !== false,
   }
+  if (v.shortcuts !== undefined) {
+    const shortcuts = isShortcutKeymap(v.shortcuts)
+    if (shortcuts) res.shortcuts = shortcuts
+  }
+  if (v.narration !== undefined) {
+    const narration = isNarrationSettings(v.narration)
+    if (narration) res.narration = narration
+  }
+  return res
 }
 
 export function loadInterface(): InterfacePrefs {

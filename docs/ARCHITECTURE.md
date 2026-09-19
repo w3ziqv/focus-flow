@@ -270,10 +270,10 @@ clamped dial digits). This trades away WCAG 1.4.4 (Resize Text) — a deliberate
 product decision, not an oversight. iOS ignores the lock anyway; revisit only
 if a real accessibility need surfaces.
 
-### ADR-009 — Opt-in Cloud Synchronization via Firebase & Storage Adapter — Accepted for Stage 7
+### ADR-009 — Opt-in Cloud Synchronization via Firebase & Storage Adapter — Accepted for Stage 6 (Milestone v2.6)
 
 #### 1. Context & Problem Statement
-Focus Flow operates under ADR-005 ("Local-first, no backend"), guaranteeing that every feature functions 100% offline and all data remains sovereignly stored on the user's host device. In Stages 1 through 3, persistence relies on `localStorage` encapsulated behind a typed adapter (`src/lib/storage.ts`). In Stage 4, data portability is achieved via standard local file exports (RFC 4180 CSV, Markdown, RFC 5545 iCalendar, Backup JSON v2) and client-side webhooks. In Stage 6, desktop packaging (Tauri 2) introduces local-network P2P sync.
+Focus Flow operates under ADR-005 ("Local-first, no backend"), guaranteeing that every feature functions 100% offline and all data remains sovereignly stored on the user's host device. In Stages 1 through 3, persistence relies on `localStorage` encapsulated behind a typed adapter (`src/lib/storage.ts`). In Stage 4, data portability is achieved via standard local file exports (RFC 4180 CSV, Markdown, RFC 5545 iCalendar, Backup JSON v2) and client-side webhooks. In Stage 6 (v2.6), opt-in cloud synchronization connects split workflows across devices. In Stage 7 (v3.0), desktop packaging (Tauri 2) introduces local-network P2P sync.
 
 However, users regularly navigate split workflows across heterogeneous environments (work desktop, home laptop, mobile phone, tablet) operating on different network subnets. Local P2P sync requires devices to be concurrently active and reachable on the same physical Wi-Fi/LAN, failing to support asynchronous cross-network synchronization.
 
@@ -285,7 +285,7 @@ We require a cloud synchronization architecture that fulfills five uncompromisin
 5. **Deterministic First-Login Reconciliation:** Connecting an existing local history to a newly created cloud account must never overwrite or wipe local data; conversely, logging in on a new device must seamlessly pull remote history.
 
 #### 2. Decision Summary
-We adopt **Firebase (Google Identity via OAuth Popup and Cloud Firestore with IndexedDB Persistence)** as the optional cloud synchronization provider for Focus Flow Stage 7 (Milestone v3.1), formally supplementing ADR-005.
+We adopt **Firebase (Google Identity via OAuth Popup and Cloud Firestore with IndexedDB Persistence)** as the optional cloud synchronization provider for Focus Flow Stage 6 (Milestone v2.6), formally supplementing ADR-005.
 
 - **Authentication Provider:** Google Identity via `signInWithPopup(auth, new GoogleAuthProvider())`. Zero password storage, email verification dances, or authentication walls.
 - **Cloud Database:** Google Cloud Firestore configured with offline persistence (`initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })`).
@@ -418,8 +418,8 @@ Access is governed by `firestore.rules`, enforcing that unauthenticated requests
    Self-sovereign data vault, full JSON export/import schema v2.0 (`BackupFileV2`), standard formats (CSV, iCalendar).
 5. **Stage 5: v2.5 — Atmospheric Immersion, Fluid Theming & Sensory Polish**:
    Dynamic ambient themes (Warm Parchment, Muted Moss, Deep Ochre), tactile micro-interactions, responsive typography.
-6. **Stage 6: v3.0 — Native Desktop Ecosystem & P2P Synchronicity**:
-   Tauri 2 native desktop wrappers (tray, global shortcuts, autostart), local-first file persistence, zero-server local P2P CRDT sync.
-7. **Stage 7: v3.1 — Opt-In Cloud Synchronization & Google Identity**:
+6. **Stage 6: v2.6 — Opt-In Cloud Synchronization & Google Identity**:
    Secure, zero-maintenance multi-device sync via Firebase (Google Auth, Cloud Firestore with IndexedDB multi-tab cache), 100% opt-in architecture, zero bundle penalty on cold start (<300 kB base bundle), first-login reconciliation protocol, and scoped security rules.
+7. **Stage 7: v3.0 — Native Desktop Ecosystem & P2P Synchronicity**:
+   Tauri 2 native desktop wrappers (tray, global shortcuts, autostart), local-first file persistence, zero-server local P2P CRDT sync.
 

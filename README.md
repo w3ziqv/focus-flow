@@ -61,7 +61,7 @@ Focus Flow v2.4 (Stage 4: Data Portability, Integrations & Background Execution)
 
 - [`DESIGN.md`](DESIGN.md) — Editorial design tokens, tactile animations, typography scale, and accessibility contracts.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009), including toolchain strictness, storage encapsulation, and opt-in synchronization.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — Evolution roadmap across all 7 development stages (v2.1 through v3.1).
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — Evolution roadmap across all 7 development stages (v2.1 through v3.0).
 
 ---
 

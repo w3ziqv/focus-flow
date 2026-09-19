@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // =========================================================================
-    // Focus Flow — Production Cloud Firestore Security Rules (Stage 7 / v3.1)
+    // Focus Flow — Production Cloud Firestore Security Rules (Stage 6 / v2.6)
     // Architecture: ADR-005 (Local-First) & ADR-009 (Opt-in Cloud Sync)
     // Invariant: 100% user-isolated subcollections with explicit default deny.
     // =========================================================================

@@ -2,7 +2,7 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "2.4.1",
+  "version": "2.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

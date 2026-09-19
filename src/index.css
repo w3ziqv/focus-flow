@@ -75,6 +75,90 @@
   --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
 
+/* Sensory Themes: High-Contrast Obsidian (WCAG 2.2 AAA Pure Black) */
+.obsidian {
+  color-scheme: dark;
+  --color-page: #000000;
+  --color-card: #0d0d0d;
+  --color-elevated: #1a1a1a;
+  --color-sunken: #080808;
+  --color-ink: #ffffff;
+  --color-ink-2: #d4d4d4;
+  --color-ink-3: #a3a3a3;
+  --color-line: #333333;
+  --color-line-subtle: #222222;
+  --color-accent: #ff8c66;
+  --color-accent-strong: #ffa385;
+  --color-accent-soft: rgba(255, 140, 102, 0.2);
+  --color-accent-fill: #ff8c66;
+  --color-on-accent: #000000;
+  --color-break: #9fd884;
+  --color-break-strong: #b5e3a0;
+  --color-break-soft: rgba(159, 216, 132, 0.2);
+  --color-break-fill: #9fd884;
+  --color-success: #88e070;
+  --color-danger: #ff5555;
+  --color-ring: #4da6ff;
+  --shadow-halo: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.8);
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Sensory Themes: Botanical Sage (Calming Earthy Palette) */
+.sage {
+  color-scheme: light;
+  --color-page: #edf2eb;
+  --color-card: #f5f8f3;
+  --color-elevated: #ffffff;
+  --color-sunken: #e2e8df;
+  --color-ink: #1b2a18;
+  --color-ink-2: #3f523b;
+  --color-ink-3: #586e53;
+  --color-line: #d1dcd0;
+  --color-line-subtle: #e1ebe0;
+  --color-accent: #4a6b3e;
+  --color-accent-strong: #35502a;
+  --color-accent-soft: rgba(74, 107, 62, 0.14);
+  --color-accent-fill: #4a6b3e;
+  --color-on-accent: #ffffff;
+  --color-break: #758b68;
+  --color-break-strong: #596e4d;
+  --color-break-soft: rgba(117, 139, 104, 0.16);
+  --color-break-fill: #758b68;
+  --color-success: #3f6e32;
+  --color-danger: #b33939;
+  --color-ring: #2e7bb8;
+  --shadow-halo: 0 0 0 1px rgba(209, 220, 208, 0.7), 0 1px 2px rgba(27, 42, 24, 0.04);
+  --shadow-whisper: 0 4px 24px rgba(27, 42, 24, 0.06);
+}
+
+/* Sensory Themes: E-Ink Monochrome (High-Contrast Zero-Color Grayscale) */
+.eink {
+  color-scheme: light;
+  --color-page: #ffffff;
+  --color-card: #fafafa;
+  --color-elevated: #ffffff;
+  --color-sunken: #f0f0f0;
+  --color-ink: #000000;
+  --color-ink-2: #2b2b2b;
+  --color-ink-3: #4a4a4a;
+  --color-line: #cccccc;
+  --color-line-subtle: #e5e5e5;
+  --color-accent: #000000;
+  --color-accent-strong: #1a1a1a;
+  --color-accent-soft: rgba(0, 0, 0, 0.1);
+  --color-accent-fill: #000000;
+  --color-on-accent: #ffffff;
+  --color-break: #333333;
+  --color-break-strong: #111111;
+  --color-break-soft: rgba(0, 0, 0, 0.12);
+  --color-break-fill: #333333;
+  --color-success: #000000;
+  --color-danger: #000000;
+  --color-ring: #000000;
+  --shadow-halo: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-whisper: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
 /* Section 3 — base typography */
 html {
   font-family: var(--font-sans);
@@ -152,6 +236,12 @@ a,
 }
 .dark.grain::before {
   opacity: 0.02;
+}
+.obsidian.grain::before {
+  opacity: 0.015;
+}
+.eink.grain::before {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -236,6 +326,38 @@ a,
 
 .modal-in {
   animation: modal-pop 200ms var(--ease-standard) backwards;
+}
+
+@keyframes slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slide-enter-right {
+  animation: slide-in-from-right 220ms var(--ease-standard) backwards;
+  will-change: transform, opacity;
+}
+
+.slide-enter-left {
+  animation: slide-in-from-left 220ms var(--ease-standard) backwards;
+  will-change: transform, opacity;
 }
 
 @keyframes chart-grow {

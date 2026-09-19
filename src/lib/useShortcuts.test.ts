@@ -44,4 +44,34 @@ describe('useShortcuts', () => {
     expect(handlers.reset).toHaveBeenCalledTimes(1)
     expect(handlers.focusMode).toHaveBeenCalledTimes(1)
   })
+
+  it('triggers openShortcuts when ? is pressed', () => {
+    const openShortcuts = vi.fn()
+    renderHook(() => useShortcuts({ ...handlers, openShortcuts }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))
+    expect(openShortcuts).toHaveBeenCalledTimes(1)
+  })
+
+  it('respects custom keymap configurations', () => {
+    const customKeymap = {
+      toggleTimer: 'p',
+      resetTimer: 'x',
+      toggleFullscreen: 'z',
+      openSettings: 'h',
+    }
+    const openShortcuts = vi.fn()
+    renderHook(() => useShortcuts({ ...handlers, openShortcuts }, customKeymap))
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p' }))
+    expect(handlers.toggle).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }))
+    expect(handlers.reset).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z' }))
+    expect(handlers.focusMode).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'h' }))
+    expect(openShortcuts).toHaveBeenCalledTimes(1)
+  })
 })

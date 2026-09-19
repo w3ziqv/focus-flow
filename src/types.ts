@@ -3,7 +3,48 @@ import type { LucideIcon } from 'lucide-react'
 export type Mode = 'focus' | 'short' | 'long'
 export type TimerMode = Mode
 export type Lang = 'pl' | 'en'
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'obsidian' | 'sage' | 'eink'
+export type ThemeId = Theme
+
+export interface ThemeTokens {
+  id: Theme
+  nameKey: string
+  descKey: string
+  surfacePage: string
+  surfaceCard: string
+  textPrimary: string
+  textSecondary: string
+  accentFocus: string
+  accentBreak: string
+  focusRing: string
+  isDark: boolean
+}
+
+export type NarrationVerbosity = 'minimal' | 'standard' | 'detailed'
+
+export interface NarrationSettings {
+  verbosity: NarrationVerbosity
+  voiceAlertsEnabled: boolean
+}
+
+export interface ShortcutKeymap {
+  toggleTimer: string
+  resetTimer: string
+  toggleFullscreen: string
+  openSettings: string
+}
+
+export const DEFAULT_SHORTCUTS: ShortcutKeymap = {
+  toggleTimer: ' ',
+  resetTimer: 'r',
+  toggleFullscreen: 'f',
+  openSettings: '?',
+}
+
+export const DEFAULT_NARRATION: NarrationSettings = {
+  verbosity: 'standard',
+  voiceAlertsEnabled: false,
+}
 
 export interface Settings {
   focus: number
@@ -27,6 +68,8 @@ export interface Stats {
 export interface InterfacePrefs {
   reduceMotion: boolean
   showGreeting: boolean
+  shortcuts?: ShortcutKeymap
+  narration?: NarrationSettings
 }
 
 export interface CustomSound {

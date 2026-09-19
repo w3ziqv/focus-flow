@@ -4,7 +4,7 @@ import path from 'node:path'
 
 /**
  * Empirical Adversarial Evaluation of firestore.rules
- * Focus Flow Stage 7 (Milestone v3.1)
+ * Focus Flow Stage 6 (Milestone v2.6)
  *
  * Simulates Firestore Security Rules evaluation semantics (v2) based on the official specification.
  */

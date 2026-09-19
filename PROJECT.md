@@ -1,147 +1,137 @@
-# Project: Focus Flow Stage 4 (Milestone v2.4) — Data Portability, Integrations & Background Execution
+# Project: Focus Flow Stage 5 (Milestone v2.5) — Customization, Themes & Accessibility
 
 ## Architecture
-Focus Flow operates with 100% client-side data sovereignty, zero mandatory server dependencies, and unthrottled background execution.
-Stage 4 introduces:
-1. **Multi-Format Serializers (`src/lib/export.ts`)**: Pure transformation functions converting `SessionLogEntryV2[]` into RFC 5545 iCalendar (`.ics`), RFC 4180 CSV with UTF-8 BOM (`\uFEFF`), and GitHub-Flavored Markdown (`.md`) tables with daily summaries. Accompanied by zero-network client-side Blob download trigger (`src/lib/download.ts`).
-2. **Data Portability & Schema v2 (`src/lib/dataPort.ts`)**: Upgrades backup format to `BackupFileV2`, capturing complete user state (settings, stats v2, sessions with micro-steps, presets, sounds, language, theme, volume, interface preferences). Provides non-destructive migration for Schema v1 backups and strict schema validation.
-3. **Client-Side Webhook Trigger (`src/lib/webhook.ts`)**: Opt-in direct HTTP POST dispatch on timer lifecycle events (`start`, `complete`, `pause`) with 5s timeout, silent non-blocking error handling, and manual test trigger.
-4. **Web Worker Ticker & Cold-Start Wake Reconciliation (`src/lib/timerWorker.ts`, `src/lib/wakeReconciliation.ts`, `src/lib/timer.ts`)**: Dedicated Web Worker ticker maintaining 250ms ticks across inactive browser tabs with fallback to `window.setInterval` in headless/JSDOM environments. Pure reconciliation engine detecting elapsed sessions upon waking from device sleep/lid close, crediting stats and session logs, advancing rounds, and notifying the user.
-5. **UI & Settings Management (`src/components/AppSettingsModal.tsx`, `src/lib/translations.ts`)**: One-click export buttons, backup file picker with confirmation feedback, webhook configuration controls, and 100% Polish/English translation symmetry adhering to warm paper / soot dark editorial design tokens.
+Focus Flow operates with 100% client-side data sovereignty, zero mandatory server dependencies, universal WCAG 2.2 AAA accessibility compliance, and sensory-friendly personalization.
+Stage 5 introduces:
+1. **Sensory-Friendly Themes Palette (`src/lib/theme.ts`, `src/index.css`)**:
+   - 5 meticulously tuned themes satisfying strict WCAG 2.2 AAA contrast ratios (≥ 7:1 for normal body text, ≥ 4.5:1 for large display text):
+     * **Warm Parchment** (`light`): Tactile paper background (`#F5F4ED`) with charcoal ink (`#141413`).
+     * **Warm Soot Dark** (`dark`): Low-glare dark canvas (`#141413`) with muted bone typography (`#FAF9F5`).
+     * **High-Contrast Obsidian** (`obsidian`): Pure black (`#000000`) with ultra-crisp white text (`#FFFFFF`) and electric blue focus rings (`#4DA6FF`) delivering 21:1 contrast.
+     * **Botanical Sage** (`sage`): Calming earthy olive/sage palette (`#EDF2EB` / `#1B2A18`) for prolonged visual calm without eye strain (13.5:1 contrast).
+     * **E-Ink Monochrome** (`eink`): Zero-color high-contrast grayscale (`#FFFFFF` / `#000000`) optimized for e-paper displays and maximum distraction reduction (21:1 contrast).
+2. **Keyboard Shortcuts Manager Modal (`src/components/ShortcutsModal.tsx`, `src/lib/useShortcuts.ts`)**:
+   - Interactive cheat sheet and configuration panel accessible via `?` key or settings.
+   - Global shortcuts: `Space` (Toggle Start/Pause), `R` (Reset phase), `F` (Focus Mode overlay), `Esc` (Close modals), `↑ / ↓` (Stepper adjustments).
+   - Rebindable keymap with safe conflict handling, input-focus isolation, and one-click "Reset to defaults" restoration.
+3. **Screen Reader Narration & Web Speech Engine (`src/lib/speech.ts`, `src/components/A11yLiveAnnouncer.tsx`)**:
+   - Granular screen reader narration verbosity: *Minimal* (completion alerts only), *Standard* (phase transitions & round advance), *Detailed* (all events including pauses, resumes, and task titles).
+   - Optional Web Speech API synthesis (`voiceAlertsEnabled`) reading statuses aloud in Polish and English without blocking the timer audio thread.
+   - Screen reader polite live region (`role="status" aria-live="polite"`) delivering seamless non-visual announcements.
+4. **Hardware-Accelerated Accessibility & Touch Ergonomics**:
+   - Strict **44×44px** minimum touch target bounding boxes across all interactive controls.
+   - High-contrast focus indicator ring (`--color-ring`, 2px solid with 2px offset) enabled on keyboard navigation.
+   - Dual-layer reduced motion support (`prefers-reduced-motion: reduce` + manual toggle in Interface preferences).
+5. **Storage Schema v2.1 & Full Data Portability (`src/types.ts`, `src/lib/storage.ts`, `src/lib/dataPort.ts`)**:
+   - Extends `InterfacePrefs` with `shortcuts` (`ShortcutKeymap`) and `narration` (`NarrationSettings`).
+   - Backup v2 import/export validates and restores all 5 sensory themes and extended interface preferences safely.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
-|---|---------|-------------|-----------|--------|
-| F1 | RFC 5545 iCalendar Serializer | Serializes focus sessions to RFC 5545 `.ics` with accurate UTC timestamps (DTSTART/DTEND), task name, micro-steps in description, STATUS:CONFIRMED, TRANSP:OPAQUE, CATEGORIES | M1 | ROADMAP § 3.4.3.1 |
-| F2 | RFC 4180 CSV with UTF-8 BOM | Serializes sessions to RFC 4180 `.csv` with `\uFEFF` prefix, 8 headers, proper quoting of commas, quotes, and newlines | M1 | ROADMAP § 3.4.3.2 |
-| F3 | GFM Markdown Table Serializer | Serializes sessions to GitHub-Flavored Markdown table with date, time, duration, task, checklist ratio, and daily summaries | M1 | ROADMAP § 3.4.3.3 |
-| F4 | Client-Side Download Trigger | Triggers instant browser Blob download via ephemeral anchor without external network requests | M1 | ROADMAP § 3.4.3 |
-| F5 | Backup Schema v2 (`BackupFileV2`) | Exports full snapshot capturing settings, stats v2, sessions with micro-steps, presets, sounds, lang, theme, volume, interface preferences | M2 | ROADMAP § 3.4.3.4 |
-| F6 | Schema v1 to v2 Non-Destructive Migration | Imports and migrates Schema v1 backups safely with default values, without data loss or exceptions | M2 | ROADMAP § 3.4.3.4 |
-| F7 | Strict Schema Validation | Validates backup JSON structure and sanitizes entries; safely rejects corrupt or malicious payloads with informative errors | M2 | ORIGINAL_REQUEST R2 |
-| F8 | Webhook Configuration Storage | Stores webhook URL and enabled flag in storage layer with boundary sanitization | M3 | ROADMAP § 3.4.2.2 |
-| F9 | Direct Lifecycle Webhook Dispatch | Sends direct HTTP POST JSON payloads from browser on timer start, complete, and pause | M3 | ROADMAP § 3.4.2.2 |
-| F10 | Non-Blocking Silent Webhook Errors | Dispatches fire-and-forget with 5s timeout, silently suppressing network/CORS errors without disrupting timer | M3 | ORIGINAL_REQUEST R3 |
-| F11 | Interactive Webhook Test Trigger | UI-accessible diagnostic trigger sending test payload and reporting success/error status | M3 | ORIGINAL_REQUEST R5 |
-| F12 | Web Worker 250ms Ticker Heartbeat | Dedicated Web Worker maintaining unthrottled 250ms ticks for inactive/background tabs, with JSDOM fallback | M4 | ROADMAP § 3.4.3.5 |
-| F13 | Pure Wake Reconciliation Engine | Evaluates elapsed sessions when `snapshot.running && snapshot.endTs <= Date.now()`, atomically crediting stats and session log | M4 | ROADMAP § 3.4.3.5 |
-| F14 | Timer Engine Wake Integration | Multi-trigger wake detection (boot mount, visibilitychange, focus/pageshow, ticker drift) updating timer state | M4 | ROADMAP § 3.4.3.5 |
-| F15 | Tranquil In-App Wake Notification | Emits gentle in-app notification announcement when a focus session completed while away | M4 | ROADMAP § 3.4.3.5 |
-| F16 | UI Export Action Controls | One-click export buttons (Markdown, CSV, iCal, Backup JSON) in AppSettingsModal Data section | M5 | ROADMAP § 3.4.2.1 |
-| F17 | UI Backup File Picker & Feedback | File picker for JSON backup import with confirmation status, error toasts, and state refresh | M5 | ROADMAP § 3.4.2.1 |
-| F18 | UI Webhook Settings Panel | Webhook URL input, toggle switch, and test button with editorial design tokens and 44x44px touch targets | M5 | ROADMAP § 3.4.2.2 |
-| F19 | Bilingual Translation Symmetry | 100% key and content symmetry between Polish (`pl`) and English (`en`) for all Stage 4 terms | M5 | content.test.ts |
-| F20 | E2E Opaque-Box Test Verification | Full opaque-box test suite covering Tiers 1-4 for all Stage 4 features | M6 | ORIGINAL_REQUEST § Quality Gates |
-| F21 | Adversarial Hardening & Forensic Audit | White-box stress tests, boundary conditions, and binary forensic audit verification | M6 | Project Pattern |
+| - | - | - | - | - |
+| F1 | Sensory Themes Engine | 5 tactile themes (Parchment, Soot, Obsidian, Sage, E-Ink) with dynamic root class application | M1 | ROADMAP § 3.5.2 |
+| F2 | WCAG 2.2 AAA Contrast Ratios | Minimum 7.0:1 body text contrast and 4.5:1 large text contrast across all 5 themes | M1 | ROADMAP § 3.5.2 |
+| F3 | High-Contrast Focus Ring | High-contrast focus indicator ring (2px solid, 2px offset) active during keyboard navigation | M1 | ROADMAP § 3.5.2 |
+| F4 | 44×44px Touch Target Minimum | All interactive elements enforce minimum 44×44px touch bounding boxes | M1 | ROADMAP § 3.5.2 |
+| F5 | Interactive Shortcuts Modal | Visual cheat sheet displaying all keyboard shortcuts with clean editorial kbd tags | M2 | ROADMAP § 3.5.2 |
+| F6 | Global '?' Shortcuts Trigger | Pressing '?' globally outside input fields opens the shortcuts cheat sheet | M2 | ROADMAP § 3.5.2 |
+| F7 | Key Rebinding Engine | Interactive remapping of timer shortcuts with reserved-key protection | M2 | ROADMAP § 3.5.2 |
+| F8 | Reset Shortcuts to Defaults | One-click button restoring default keybindings safely | M2 | ROADMAP § 3.5.2 |
+| F9 | Web Speech Narration Engine | Web Speech API synthesis reading timer transitions aloud in Polish and English | M3 | ROADMAP § 3.5.2 |
+| F10 | Granular Narration Verbosity | 3 verbosity tiers: Minimal (completions), Standard (phases & rounds), Detailed (all events) | M3 | ROADMAP § 3.5.2 |
+| F11 | A11y Polite Live Region | Dedicated sr-only live region (`role="status" aria-live="polite"`) for screen readers | M3 | ROADMAP § 3.5.2 |
+| F12 | UI Sensory Themes Picker | Visual swatch cards in AppSettingsModal displaying background and accent colors | M4 | ROADMAP § 3.5.2 |
+| F13 | UI Accessibility Settings Panel | Narration verbosity segmented tabs and voice alerts toggle switch | M4 | ROADMAP § 3.5.2 |
+| F14 | UI Shortcuts Modal Trigger | Button with '?' kbd chip in settings opening the shortcuts manager | M4 | ROADMAP § 3.5.2 |
+| F15 | Schema v2.1 Storage Adaptation | Persistent storage and sanitization for shortcuts keymap and narration settings | M5 | ROADMAP § 3.5.4 |
+| F16 | Backup v2.1 Import & Export | Full data snapshot export/import supporting all 5 themes and extended interface options | M5 | ROADMAP § 3.5.4 |
+| F17 | Bilingual Translation Symmetry | 100% key and text parity between Polish and English for all Stage 5 features | M5 | content.test.ts |
+| F18 | Automated Verification Suite | 39 test suites and 664 automated tests covering themes, speech, shortcuts, and storage | M6 | Quality Gates |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
-|---|------|-------|-------------|--------|
-| M1 | Multi-Format Session Export Serializers | F1, F2, F3, F4 | none | DONE |
-| M2 | Backup & Restore Schema v2 | F5, F6, F7 | none | DONE |
-| M3 | Direct Client-Side Webhook Trigger | F8, F9, F10, F11 | none | DONE |
-| M4 | Web Worker Heartbeat & Wake Reconciliation | F12, F13, F14, F15 | none | DONE |
-| M5 | UI Integration & Bilingual Settings | F16, F17, F18, F19 | M1, M2, M3 | DONE |
-| M6 | E2E Verification & Adversarial Hardening | F20, F21 | M1, M2, M3, M4, M5 | DONE |
+| - | - | - | - | - |
+| M1 | Sensory Themes & WCAG AAA Palette | F1, F2, F3, F4 | none | DONE |
+| M2 | Keyboard Shortcuts Manager Modal | F5, F6, F7, F8 | none | DONE |
+| M3 | Screen Reader Narration & Voice Engine | F9, F10, F11 | none | DONE |
+| M4 | UI Integration & Settings Panels | F12, F13, F14 | M1, M2, M3 | DONE |
+| M5 | Schema v2.1 Storage & Data Portability | F15, F16, F17 | M1, M2, M3, M4 | DONE |
+| M6 | Test Verification & Release Baseline | F18 | M1, M2, M3, M4, M5 | DONE |
 
 ## Interface Contracts
 
-### `src/lib/export.ts` ↔ Downstream Importers / UI
+### `src/lib/theme.ts` ↔ UI / Styles
 ```typescript
-export function serializeToICal(sessions: SessionLogEntryV2[]): string
-export function serializeToCsv(sessions: SessionLogEntryV2[]): string
-export function serializeToMarkdown(sessions: SessionLogEntryV2[]): string
-```
-
-### `src/lib/download.ts` ↔ UI
-```typescript
-export function triggerDownload(filename: string, content: string | Blob, mimeType: string): void
-```
-
-### `src/lib/dataPort.ts` ↔ Storage / UI
-```typescript
-export interface BackupFileV2 {
-  app: 'focus-flow'
-  version: 2
-  exportedAt: string
-  data: {
-    settings: Settings
-    stats: StatsV2
-    sessions: SessionLogEntryV2[]
-    presets: TaskPreset[]
-    sounds: BackupSound[]
-    lang: Lang
-    theme: Theme
-    volume: number
-    interface: InterfacePrefs
-  }
+export interface ThemeTokens {
+  id: Theme
+  nameKey: string
+  descKey: string
+  surfacePage: string
+  surfaceCard: string
+  textPrimary: string
+  textSecondary: string
+  accentFocus: string
+  accentBreak: string
+  focusRing: string
+  isDark: boolean
 }
 
-export type BackupFileAny = BackupFile | BackupFileV2
-
-export function exportData(): BackupFileV2
-export function exportDataString(): string
-export function importData(raw: string): { success: boolean; error?: string; count?: number }
-export function isBackupFile(val: unknown): val is BackupFileAny
+export const THEMES: ThemeTokens[]
+export function isValidTheme(val: unknown): val is Theme
+export function applyTheme(theme: Theme): void
+export function getContrastRatio(fgHex: string, bgHex: string): number
 ```
 
-### `src/lib/webhook.ts` ↔ Timer Engine / UI
+### `src/lib/speech.ts` ↔ Timer Engine / Announcer
 ```typescript
-export interface WebhookSettings {
-  url: string
-  enabled: boolean
-}
+export type TimerNarrationEvent =
+  | { type: 'session-start'; task?: string | null }
+  | { type: 'session-pause' }
+  | { type: 'session-resume' }
+  | { type: 'session-complete'; task?: string | null }
+  | { type: 'break-start'; mode: 'short' | 'long' }
+  | { type: 'break-complete' }
+  | { type: 'round-advance'; round: number; totalRounds: number }
 
-export interface WebhookPayload {
-  event: 'start' | 'complete' | 'pause'
-  timestamp: string
-  app: 'focus-flow'
-  version: '2.4'
-  session: {
-    id: string
-    mode: TimerMode
-    durationMinutes: number
-    task: string | null
-    checklist?: ChecklistItem[]
-  }
-}
-
-export function dispatchWebhook(settings: WebhookSettings, payload: WebhookPayload): Promise<boolean>
-export function testWebhook(url: string): Promise<{ success: boolean; status?: number; error?: string }>
+export function formatNarrationText(event: TimerNarrationEvent, lang: Lang): string
+export function shouldAnnounce(eventType: TimerNarrationEvent['type'], verbosity: NarrationVerbosity): boolean
+export function speakNarration(text: string, lang: Lang, enabled: boolean): void
+export function announceTimerEvent(event: TimerNarrationEvent, settings: NarrationSettings | undefined, lang: Lang): string | null
 ```
 
-### `src/lib/timerWorker.ts` & `src/lib/wakeReconciliation.ts` ↔ `src/lib/timer.ts`
+### `src/types.ts` & `src/lib/storage.ts` ↔ Interface Preferences Schema v2.1
 ```typescript
-// Worker factory
-export function createTimerTicker(onTick: () => void): { start: () => void; stop: () => void }
+export type Theme = 'light' | 'dark' | 'obsidian' | 'sage' | 'eink'
+export type NarrationVerbosity = 'minimal' | 'standard' | 'detailed'
 
-// Wake reconciliation
-export interface WakeReconciliationResult {
-  reconciled: boolean
-  messageKey?: 'wakeReconciled'
-  elapsedMinutes?: number
+export interface NarrationSettings {
+  verbosity: NarrationVerbosity
+  voiceAlertsEnabled: boolean
 }
 
-export function reconcileExpiredSession(
-  snapshot: SessionSnapshotV2 | null,
-  settings: Settings,
-  stats: StatsV2
-): {
-  newSnapshot: SessionSnapshotV2 | null
-  newStats: StatsV2
-  result: WakeReconciliationResult
+export interface ShortcutKeymap {
+  toggleTimer: string
+  resetTimer: string
+  toggleFullscreen: string
+  openSettings: string
+}
+
+export interface InterfacePrefs {
+  reduceMotion: boolean
+  showGreeting: boolean
+  shortcuts?: ShortcutKeymap
+  narration?: NarrationSettings
 }
 ```
 
 ## Code Layout
-- `src/types.ts`: Core type definitions (`BackupFileV2`, `WebhookSettings`, `WebhookPayload`).
-- `src/lib/export.ts`: Serializers for iCal, CSV, and Markdown.
-- `src/lib/download.ts`: Client-side Blob download trigger helper.
-- `src/lib/dataPort.ts`: Schema v2 backup exporter, Schema v1 migrator, payload validator.
-- `src/lib/webhook.ts`: Webhook dispatcher and test trigger.
-- `src/lib/timerWorker.ts`: Web Worker 250ms unthrottled ticker.
-- `src/lib/wakeReconciliation.ts`: Pure cold-start wake reconciliation logic.
-- `src/lib/timer.ts`: Timer engine integration with worker ticker and wake reconciliation.
-- `src/lib/storage.ts`: Webhook settings storage helpers and boundary validation.
-- `src/components/AppSettingsModal.tsx`: Export buttons, backup file picker, and webhook settings.
-- `src/lib/translations.ts`: Polish and English translation strings.
+- `src/types.ts`: Extended type definitions (`Theme`, `ThemeTokens`, `NarrationSettings`, `ShortcutKeymap`, `InterfacePrefs`).
+- `src/lib/theme.ts`: 5 sensory-friendly themes tokens, contrast ratio computation, dynamic theme applicator.
+- `src/lib/speech.ts`: Web Speech API narration dispatcher and localized text formatter.
+- `src/lib/useShortcuts.ts`: Global keyboard shortcut hook supporting custom keymaps and `?` help shortcut.
+- `src/components/ShortcutsModal.tsx`: Accessible interactive keyboard shortcuts cheat sheet and rebinding modal.
+- `src/components/A11yLiveAnnouncer.tsx`: Screen reader polite live region component.
+- `src/components/AppSettingsModal.tsx`: Visual sensory themes card picker, Accessibility & Narration section, Shortcuts modal button.
+- `src/lib/storage.ts`: Persistence and boundary sanitizers for Schema v2.1 interface preferences and themes.
+- `src/lib/dataPort.ts`: Schema v2.1 export/import serialization supporting sensory themes and interface preferences.
+- `src/lib/translations.ts`: 100% Polish and English symmetric localization strings for all Stage 5 features.

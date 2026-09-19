@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../lib/i18n'
 import { AppSettingsModal } from './AppSettingsModal'
+import type { SettingsSection } from './AppSettingsModal'
 import * as exportModule from '../lib/export'
 import * as downloadModule from '../lib/download'
 import * as dataPortModule from '../lib/dataPort'
@@ -23,6 +24,7 @@ describe('AppSettingsModal Component', () => {
     interfacePrefs: defaultInterfacePrefs,
     onInterfaceChange: vi.fn(),
     onClose: vi.fn(),
+    onOpenShortcuts: vi.fn(),
     onImportSuccess: vi.fn(),
   }
 
@@ -31,17 +33,21 @@ describe('AppSettingsModal Component', () => {
     localStorage.clear()
   })
 
-  const renderModal = (props = defaultProps) => {
+  const renderModal = (
+    props: Partial<typeof defaultProps & { initialSection?: SettingsSection }> = {},
+    initialSection?: SettingsSection,
+  ) => {
+    const finalSection = initialSection ?? props.initialSection ?? 'main'
     return render(
       <I18nProvider>
-        <AppSettingsModal {...props} />
+        <AppSettingsModal {...defaultProps} {...props} initialSection={finalSection} />
       </I18nProvider>,
     )
   }
 
   describe('Export Actions', () => {
     it('renders all one-click export buttons (Markdown, CSV, iCal, JSON)', () => {
-      renderModal()
+      renderModal({}, 'data')
 
       expect(screen.getByRole('button', { name: /Markdown \(\.md\)/i })).toBeDefined()
       expect(screen.getByRole('button', { name: /Arkusz CSV \(\.csv\)|Spreadsheet CSV \(\.csv\)/i })).toBeDefined()
@@ -57,7 +63,7 @@ describe('AppSettingsModal Component', () => {
       vi.spyOn(storageModule, 'loadSessions').mockReturnValue(dummySessions)
       const downloadMarkdownSpy = vi.spyOn(exportModule, 'downloadMarkdown').mockImplementation(() => {})
 
-      renderModal()
+      renderModal({}, 'data')
       const mdButton = screen.getByRole('button', { name: /Markdown \(\.md\)/i })
       fireEvent.click(mdButton)
 
@@ -72,7 +78,7 @@ describe('AppSettingsModal Component', () => {
       vi.spyOn(storageModule, 'loadSessions').mockReturnValue(dummySessions)
       const downloadCsvSpy = vi.spyOn(exportModule, 'downloadCsv').mockImplementation(() => {})
 
-      renderModal()
+      renderModal({}, 'data')
       const csvButton = screen.getByRole('button', { name: /Arkusz CSV \(\.csv\)|Spreadsheet CSV \(\.csv\)/i })
       fireEvent.click(csvButton)
 
@@ -87,7 +93,7 @@ describe('AppSettingsModal Component', () => {
       vi.spyOn(storageModule, 'loadSessions').mockReturnValue(dummySessions)
       const downloadICalSpy = vi.spyOn(exportModule, 'downloadICal').mockImplementation(() => {})
 
-      renderModal()
+      renderModal({}, 'data')
       const icalButton = screen.getByRole('button', { name: /Kalendarz iCal \(\.ics\)|iCalendar \(\.ics\)/i })
       fireEvent.click(icalButton)
 
@@ -100,7 +106,7 @@ describe('AppSettingsModal Component', () => {
       vi.spyOn(dataPortModule, 'exportDataString').mockResolvedValue(mockJsonContent)
       const triggerDownloadSpy = vi.spyOn(downloadModule, 'triggerDownload').mockImplementation(() => {})
 
-      renderModal()
+      renderModal({}, 'data')
       const jsonButton = screen.getByRole('button', { name: /Kopia zapasowa JSON|Full JSON Backup/i })
       fireEvent.click(jsonButton)
 
@@ -120,7 +126,7 @@ describe('AppSettingsModal Component', () => {
       const onImportSuccess = vi.fn()
       vi.spyOn(dataPortModule, 'importData').mockResolvedValue({ success: true, count: 3 })
 
-      const { container } = renderModal({ ...defaultProps, onImportSuccess })
+      const { container } = renderModal({ onImportSuccess }, 'data')
       const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
       expect(fileInput).toBeDefined()
 
@@ -139,7 +145,7 @@ describe('AppSettingsModal Component', () => {
       const onImportSuccess = vi.fn()
       vi.spyOn(dataPortModule, 'importData').mockResolvedValue({ success: false, error: 'Malformed JSON' })
 
-      const { container } = renderModal({ ...defaultProps, onImportSuccess })
+      const { container } = renderModal({ onImportSuccess }, 'data')
       const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
       expect(fileInput).toBeDefined()
 
@@ -162,7 +168,7 @@ describe('AppSettingsModal Component', () => {
       }
       vi.spyOn(storageModule, 'loadWebhookSettings').mockReturnValue(initialSettings)
 
-      renderModal()
+      renderModal({}, 'webhook')
 
       const urlInput = screen.getByLabelText(/Adres URL docelowy|Target Webhook URL/i) as HTMLInputElement
       expect(urlInput.value).toBe('https://webhook.site/initial-test')
@@ -177,7 +183,7 @@ describe('AppSettingsModal Component', () => {
     it('updates URL and persists automatically via saveWebhookSettings', () => {
       const saveSpy = vi.spyOn(storageModule, 'saveWebhookSettings')
 
-      renderModal()
+      renderModal({}, 'webhook')
       const urlInput = screen.getByLabelText(/Adres URL docelowy|Target Webhook URL/i)
 
       fireEvent.change(urlInput, { target: { value: 'https://example.com/api/focus-hook' } })
@@ -192,7 +198,7 @@ describe('AppSettingsModal Component', () => {
     it('toggles enabled state and persists automatically via saveWebhookSettings', () => {
       const saveSpy = vi.spyOn(storageModule, 'saveWebhookSettings')
 
-      renderModal()
+      renderModal({}, 'webhook')
       const toggle = screen.getByRole('switch', { name: /Włącz powiadomienia webhook|Enable webhook dispatch/i })
 
       fireEvent.click(toggle)
@@ -214,7 +220,7 @@ describe('AppSettingsModal Component', () => {
         status: 200,
       })
 
-      renderModal()
+      renderModal({}, 'webhook')
       const testBtn = screen.getByRole('button', { name: /Przetestuj|Test Trigger/i })
 
       fireEvent.click(testBtn)
@@ -236,7 +242,7 @@ describe('AppSettingsModal Component', () => {
         error: 'Failed to fetch',
       })
 
-      renderModal()
+      renderModal({}, 'webhook')
       const testBtn = screen.getByRole('button', { name: /Przetestuj|Test Trigger/i })
 
       fireEvent.click(testBtn)
@@ -253,7 +259,7 @@ describe('AppSettingsModal Component', () => {
       })
       vi.spyOn(webhookModule, 'testWebhook').mockReturnValue(pendingPromise)
 
-      renderModal()
+      renderModal({}, 'webhook')
       const testBtn = screen.getByRole('button', { name: /Przetestuj|Test Trigger/i })
 
       fireEvent.click(testBtn)
@@ -273,7 +279,7 @@ describe('AppSettingsModal Component', () => {
       vi.spyOn(notificationsModule, 'getNotificationPermission').mockReturnValue('default')
       const requestSpy = vi.spyOn(notificationsModule, 'requestNotificationPermission').mockResolvedValue('granted')
 
-      renderModal()
+      renderModal({}, 'notifications')
       const reqBtn = screen.getByRole('button', { name: /Zezwól na powiadomienia|Allow notifications/i })
       fireEvent.click(reqBtn)
 
@@ -286,9 +292,93 @@ describe('AppSettingsModal Component', () => {
     it('displays denied instructions and recheck button when permission is denied', () => {
       vi.spyOn(notificationsModule, 'getNotificationPermission').mockReturnValue('denied')
 
-      renderModal()
+      renderModal({}, 'notifications')
       expect(screen.getAllByText(/Zablokowane|Blocked/i).length).toBeGreaterThanOrEqual(1)
       expect(screen.getByRole('button', { name: /Sprawdź ponownie|Check again/i })).toBeDefined()
+    })
+  })
+
+  describe('Stage 5 (v2.5) — Sensory Themes & Accessibility Controls', () => {
+    it('renders all 5 sensory themes and updates theme upon selection', () => {
+      const onTheme = vi.fn()
+      renderModal({ onTheme }, 'theme')
+
+      const obsidianBtn = screen.getByRole('radio', { name: /Obsydian|Obsidian/i })
+      expect(obsidianBtn).toBeDefined()
+      fireEvent.click(obsidianBtn)
+      expect(onTheme).toHaveBeenCalledWith('obsidian')
+
+      const sageBtn = screen.getByRole('radio', { name: /Szałwia|Sage/i })
+      expect(sageBtn).toBeDefined()
+      fireEvent.click(sageBtn)
+      expect(onTheme).toHaveBeenCalledWith('sage')
+
+      const einkBtn = screen.getByRole('radio', { name: /E-Ink/i })
+      expect(einkBtn).toBeDefined()
+      fireEvent.click(einkBtn)
+      expect(onTheme).toHaveBeenCalledWith('eink')
+    })
+
+    it('updates narration verbosity and voice alerts', () => {
+      const onInterfaceChange = vi.fn()
+      renderModal({ onInterfaceChange }, 'a11y')
+
+      // Narration verbosity
+      const detailedTab = screen.getByRole('tab', { name: /Szczegółowa|Detailed/i })
+      fireEvent.click(detailedTab)
+      expect(onInterfaceChange).toHaveBeenCalledWith({
+        narration: {
+          verbosity: 'detailed',
+          voiceAlertsEnabled: false,
+        },
+      })
+
+      // Voice alerts toggle
+      const voiceToggle = screen.getByRole('switch', { name: /Głosowe komunikaty|Voice alerts/i })
+      fireEvent.click(voiceToggle)
+      expect(onInterfaceChange).toHaveBeenCalledWith({
+        narration: {
+          verbosity: 'standard',
+          voiceAlertsEnabled: true,
+        },
+      })
+    })
+
+    it('invokes onOpenShortcuts when shortcuts button is clicked', () => {
+      const onOpenShortcuts = vi.fn()
+      renderModal({ onOpenShortcuts }, 'main')
+
+      const shortcutsBtn = screen.getByRole('button', { name: /Skróty klawiszowe/i })
+      expect(shortcutsBtn).toBeDefined()
+      fireEvent.click(shortcutsBtn)
+      expect(onOpenShortcuts).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('iOS-Style Settings Master-Detail Navigation', () => {
+    it('navigates from main menu to sub-sections and back cleanly', () => {
+      renderModal({}, 'main')
+
+      // Initially on main menu, cards are visible
+      expect(screen.getByRole('button', { name: /Motyw/i })).toBeDefined()
+      expect(screen.getByRole('button', { name: /Dostępność/i })).toBeDefined()
+
+      // Click on Motyw card -> enters theme view
+      fireEvent.click(screen.getByRole('button', { name: /Motyw/i }))
+      expect(screen.getByRole('radio', { name: /Obsydian/i })).toBeDefined()
+      expect(screen.getByRole('button', { name: /Wróć|Back/i })).toBeDefined()
+
+      // Click on Back button -> returns to main menu
+      fireEvent.click(screen.getByRole('button', { name: /Wróć|Back/i }))
+      expect(screen.getByRole('button', { name: /Motyw/i })).toBeDefined()
+
+      // Click on Dostępność card -> enters a11y view
+      fireEvent.click(screen.getByRole('button', { name: /Dostępność/i }))
+      expect(screen.getByRole('tab', { name: /Standardowa/i })).toBeDefined()
+
+      // Click on Back button -> returns to main menu
+      fireEvent.click(screen.getByRole('button', { name: /Wróć|Back/i }))
+      expect(screen.getByRole('button', { name: /Dostępność/i })).toBeDefined()
     })
   })
 })

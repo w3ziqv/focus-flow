@@ -25,6 +25,8 @@ import { captureInstallPrompt } from './lib/installPrompt'
 import { deleteSound, getSoundBlob, isAudioUpload, migrateLegacySounds, probeAudio, putSound } from './lib/soundStore'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
+import { ShortcutsModal } from './components/ShortcutsModal'
+import { A11yLiveAnnouncer } from './components/A11yLiveAnnouncer'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
 import { SoundSettingsDialog } from './components/SoundSettingsDialog'
 import { FocusOverlay } from './components/FocusOverlay'
@@ -33,6 +35,8 @@ import { Onboarding } from './components/Onboarding'
 import { PillButton } from './components/PillButton'
 import { Dial } from './components/Dial'
 import { TimerView } from './views/TimerView'
+import { applyTheme } from './lib/theme'
+import { announceTimerEvent } from './lib/speech'
 
 const TipsView = lazy(() => import('./views/TopicsIndex'))
 const TopicViewLazy = lazy(() => import('./views/TopicView'))
@@ -52,6 +56,7 @@ function Shell() {
   const [view, setView] = useState<View>('timer')
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [appSettingsOpen, setAppSettingsOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
   const [soundSettingsOpen, setSoundSettingsOpen] = useState(false)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
@@ -85,9 +90,7 @@ function Shell() {
   }, [startSession])
 
   useEffect(() => {
-    const root = document.documentElement
-    root.classList.add('grain')
-    root.classList.toggle('dark', theme === 'dark')
+    applyTheme(theme)
   }, [theme])
 
   // Custom sound audio lives in IndexedDB — resolve every blob to a session URL.
@@ -279,10 +282,16 @@ function Shell() {
       // Native haptic feedback triggered upon session completion
       triggerHapticFeedback()
 
+      announceTimerEvent(
+        { type: kind === 'focus' ? 'session-complete' : 'break-complete', task: currentTask },
+        interfacePrefs.narration,
+        lang,
+      )
+
       // Unified mobile ServiceWorker and desktop notification dispatcher
       void dispatchNotification(title, { body, hapticFeedback: false })
     },
-    [t],
+    [t, interfacePrefs.narration, lang],
   )
 
   useEffect(() => {
@@ -292,18 +301,73 @@ function Shell() {
     handleCompletion(engine.lastEvent.kind, engine.task)
   }, [engine.lastEvent, engine.task, handleCompletion])
 
-  useShortcuts({
-    toggle: engine.toggle,
-    reset: engine.reset,
-    focusMode: () => setFocusOpen(true),
-    escape: () => {
-      if (focusOpen) setFocusOpen(false)
-      else if (soundSettingsOpen) setSoundSettingsOpen(false)
-      else if (tipsStack.length > 0) setTipsStack((s) => s.slice(0, -1))
-      else if (timerSettingsOpen) setTimerSettingsOpen(false)
-      else if (appSettingsOpen) setAppSettingsOpen(false)
+  const prevRunningRef = useRef(engine.running)
+  const prevRoundRef = useRef(engine.round)
+  const prevModeRef = useRef(engine.mode)
+
+  useEffect(() => {
+    if (prevRunningRef.current !== engine.running) {
+      if (engine.running) {
+        announceTimerEvent(
+          { type: 'session-start', task: engine.task },
+          interfacePrefs.narration,
+          lang,
+        )
+      } else if (lastHandledEventRef.current !== engine.lastEvent?.at) {
+        // Paused manually by user (not an auto-completion)
+        announceTimerEvent(
+          { type: 'session-pause' },
+          interfacePrefs.narration,
+          lang,
+        )
+      }
+      prevRunningRef.current = engine.running
+    }
+  }, [engine.running, engine.task, engine.lastEvent, interfacePrefs.narration, lang])
+
+  useEffect(() => {
+    if (prevRoundRef.current !== engine.round) {
+      if (engine.round > prevRoundRef.current) {
+        announceTimerEvent(
+          { type: 'round-advance', round: engine.round, totalRounds: engine.settings.rounds },
+          interfacePrefs.narration,
+          lang,
+        )
+      }
+      prevRoundRef.current = engine.round
+    }
+  }, [engine.round, engine.settings.rounds, interfacePrefs.narration, lang])
+
+  useEffect(() => {
+    if (prevModeRef.current !== engine.mode) {
+      if (engine.mode !== 'focus' && engine.running) {
+        announceTimerEvent(
+          { type: 'break-start', mode: engine.mode === 'long' ? 'long' : 'short' },
+          interfacePrefs.narration,
+          lang,
+        )
+      }
+      prevModeRef.current = engine.mode
+    }
+  }, [engine.mode, engine.running, interfacePrefs.narration, lang])
+
+  useShortcuts(
+    {
+      toggle: engine.toggle,
+      reset: engine.reset,
+      focusMode: () => setFocusOpen(true),
+      openShortcuts: () => setShortcutsOpen(true),
+      escape: () => {
+        if (shortcutsOpen) setShortcutsOpen(false)
+        else if (focusOpen) setFocusOpen(false)
+        else if (soundSettingsOpen) setSoundSettingsOpen(false)
+        else if (tipsStack.length > 0) setTipsStack((s) => s.slice(0, -1))
+        else if (timerSettingsOpen) setTimerSettingsOpen(false)
+        else if (appSettingsOpen) setAppSettingsOpen(false)
+      },
     },
-  })
+    interfacePrefs.shortcuts,
+  )
 
   const todayKey = new Date().toDateString()
   const todayMinutes = engine.stats.history[todayKey] ?? 0
@@ -409,6 +473,7 @@ function Shell() {
             return next
           })
         }}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
         onImportSuccess={() => {
           setTheme(loadTheme() ?? systemTheme())
           setInterfacePrefs(loadInterface())
@@ -418,6 +483,21 @@ function Shell() {
         }}
         onClose={() => setAppSettingsOpen(false)}
       />
+
+      <ShortcutsModal
+        open={shortcutsOpen}
+        shortcuts={interfacePrefs.shortcuts}
+        onSaveShortcuts={(shortcuts) => {
+          setInterfacePrefs((prev) => {
+            const next = { ...prev, shortcuts }
+            saveInterface(next)
+            return next
+          })
+        }}
+        onClose={() => setShortcutsOpen(false)}
+      />
+
+      <A11yLiveAnnouncer message={null} />
 
       <TimerSettingsModal
         open={timerSettingsOpen}
