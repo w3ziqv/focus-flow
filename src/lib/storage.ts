@@ -733,6 +733,17 @@ export function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+/**
+ * Detects default user language from device/browser settings.
+ * Defaults to 'pl' if browser locale begins with Polish ('pl'), otherwise 'en' for global users.
+ */
+export function systemLang(): Lang {
+  if (typeof navigator === 'undefined') return 'en'
+  const nav = navigator as Navigator & { userLanguage?: string }
+  const navLang = (nav.language || nav.userLanguage || '').toLowerCase()
+  return navLang.startsWith('pl') ? 'pl' : 'en'
+}
+
 const SESSION_KEY = `${PREFIX}session`
 
 function isSnapshot(value: unknown): SessionSnapshotV2 | null {

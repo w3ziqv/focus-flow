@@ -83,6 +83,14 @@ if (typeof window !== 'undefined') {
   })
 }
 
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'language', {
+    value: 'pl-PL',
+    configurable: true,
+    writable: true,
+  })
+}
+
 afterEach(() => {
   cleanup()
   localStorage.clear()

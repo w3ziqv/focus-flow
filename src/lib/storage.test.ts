@@ -40,6 +40,7 @@ import {
   saveStats,
   saveTheme,
   saveVolume,
+  systemLang,
   systemTheme,
   updateSessionTask,
   weekStartOf,
@@ -632,6 +633,26 @@ describe('preferences, volume and interface storage', () => {
     } else {
       Reflect.deleteProperty(window, 'matchMedia')
     }
+  })
+
+  it('systemLang detects language from browser navigator or defaults to en', () => {
+    const originalLanguage = navigator.language
+
+    // Polish locale
+    Object.defineProperty(navigator, 'language', { value: 'pl-PL', configurable: true })
+    expect(systemLang()).toBe('pl')
+
+    Object.defineProperty(navigator, 'language', { value: 'pl', configurable: true })
+    expect(systemLang()).toBe('pl')
+
+    // Global / English / other locales
+    Object.defineProperty(navigator, 'language', { value: 'en-US', configurable: true })
+    expect(systemLang()).toBe('en')
+
+    Object.defineProperty(navigator, 'language', { value: 'de-DE', configurable: true })
+    expect(systemLang()).toBe('en')
+
+    Object.defineProperty(navigator, 'language', { value: originalLanguage, configurable: true })
   })
 })
 

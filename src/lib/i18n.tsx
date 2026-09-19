@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Lang } from '../types'
-import { loadLang, saveLang } from './storage'
+import { loadLang, saveLang, systemLang } from './storage'
 import { dict } from './translations'
 import type { TranslationKey } from './translations'
 
@@ -15,7 +15,7 @@ export type I18nContextValue = {
 const I18nContext = createContext<I18nContextValue | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }): React.JSX.Element {
-  const [lang, setLangState] = useState<Lang>(() => loadLang() ?? 'pl')
+  const [lang, setLangState] = useState<Lang>(() => loadLang() ?? systemLang())
 
   useEffect(() => {
     document.documentElement.lang = lang
