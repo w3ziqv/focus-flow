@@ -1,5 +1,7 @@
 # Focus Flow
 
+**Live Website**: [https://focusflow.ink](https://focusflow.ink)
+
 A quiet, local-first Pomodoro companion designed to dissolve into the background while you work. It anchors your active intention, generates real-time procedural acoustic soundscapes, tracks authentic progress without surveillance, and stays out of your way.
 
 The interface adheres to an intentional warm editorial aesthetic: paper tones, Fraunces serif typography, and an accent palette shifting calmly from terracotta during focus to sage during rest. Everything executes locally in your browser — zero backend, zero tracking, zero mandatory accounts.
