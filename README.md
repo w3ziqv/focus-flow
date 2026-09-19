@@ -21,9 +21,27 @@ Focus Flow is built upon four foundational pillars that protect cognitive focus 
 
 ---
 
+## Milestone v2.5 Capabilities
+
+Focus Flow v2.5 (Stage 5: Customization, Themes & Accessibility) elevates sensory personalization, universal accessibility (**WCAG 2.2 AAA**), and ergonomic navigation:
+
+- **Sensory-Friendly Themes Palette (WCAG 2.2 AAA)**: Five meticulously calibrated themes designed to eliminate glare and reduce eye strain, each guaranteed to meet or exceed 7.0:1 contrast ratios for normal body text and 4.5:1 for large display elements:
+  * **Warm Parchment** (`light`): Tactile paper background (`#F5F4ED`) with charcoal ink (`#141413`).
+  * **Warm Soot Dark** (`dark`): Low-glare dark canvas (`#141413`) with muted bone typography (`#FAF9F5`).
+  * **High-Contrast Obsidian** (`obsidian`): Pure pitch black (`#000000`) with ultra-crisp white text (`#FFFFFF`) and electric blue focus indicators, delivering 21:1 contrast for OLED panels.
+  * **Botanical Sage** (`sage`): Calming earthy olive/sage palette (`#EDF2EB` / `#1B2A18`) for prolonged visual calm without blue-light fatigue (13.5:1 contrast).
+  * **E-Ink Monochrome** (`eink`): Zero-color high-contrast grayscale (`#FFFFFF` / `#000000`) optimized for e-paper displays with disabled texture grain (21:1 contrast).
+- **iOS-Style Master-Detail Settings Navigation**: Replaces monolithic settings scroll with a clean, card-based drill-down navigation pattern. Powered by GPU-accelerated directional transitions (`translate3d`, `220ms var(--ease-standard)`, 120 FPS on ProMotion displays) and tactile micro-press feedback (`active:scale-[0.985]`).
+- **Keyboard Shortcuts Manager Modal (`?` Trigger)**: Global interactive cheat sheet and key rebinding modal accessible anywhere via `?` (when text inputs are unfocused). Supports customizing timer shortcuts (`Space`, `R`, `F`, `Esc`, `↑ / ↓`) with safe reserved-key conflict protection and one-click default restoration.
+- **Screen Reader Narration & Web Speech API Engine**: Granular voice feedback with three verbosity tiers (*Minimal*, *Standard*, *Detailed*). Features non-blocking speech synthesis in Polish and English, Firefox-hardened queue resumption, active utterance memory pinning to prevent garbage collection bugs, and an `aria-live="polite"` live region (`A11yLiveAnnouncer`).
+- **Touch Target Ergonomics & Focus Rings**: Enforces strict **44×44px** minimum touch target bounding boxes across all interactive buttons, steppers, and switches, paired with high-contrast dual-offset focus rings (`--color-ring: #3898EC`).
+- **Schema v2.1 Data Portability**: Extends backup format to capture custom theme selections, shortcut keymaps, and narration preferences with non-destructive backward compatibility.
+
+---
+
 ## Milestone v2.4 Capabilities
 
-Focus Flow v2.4 (Stage 4: Data Portability, Integrations & Background Execution) introduces complete data independence and resilient background performance:
+Focus Flow v2.4 (Stage 4: Data Portability, Integrations & Background Execution) introduced complete data independence and resilient background performance:
 
 - **RFC 5545 iCalendar (`.ics`) Export**: Exports focus blocks to universal calendar formats with strict UTC timestamps, summary metadata, and 75-octet line folding for seamless import into Google Calendar, Apple Calendar, and Outlook.
 - **RFC 4180 CSV (`.csv`) with UTF-8 BOM**: Exports historical sessions formatted with a UTF-8 Byte Order Mark (`\uFEFF`), ensuring instant, ungarbled character rendering in Microsoft Excel and spreadsheet suites with full RFC 4180 quote escaping.
@@ -84,7 +102,7 @@ npm install
 # Start local development server
 npm run dev
 
-# Run full test suite (582 tests across 33 test suites)
+# Run full test suite (668 tests across 39 test suites)
 npm run test:run
 
 # Static type checking
