@@ -164,7 +164,7 @@ async function restoreSounds(sounds: unknown[]): Promise<void> {
     const v = entry as Record<string, unknown>
     if (typeof v.id !== 'string' || typeof v.name !== 'string') continue
     const audio = typeof v.audio === 'string' ? v.audio : typeof v.dataUrl === 'string' ? v.dataUrl : null
-    if (audio !== null) {
+    if (audio !== null && audio.startsWith('data:')) {
       try {
         const blob = await (await fetch(audio)).blob()
         if (!isAudioUpload({ type: blob.type, name: v.name })) continue
