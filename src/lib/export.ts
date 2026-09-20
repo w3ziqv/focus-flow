@@ -197,7 +197,10 @@ export function escapeCsvField(val: string | number | null | undefined): string 
   if (typeof val === 'number') {
     return String(val)
   }
-  const str = String(val)
+  let str = String(val)
+  if (str.startsWith('=') || str.startsWith('@')) {
+    str = `'${str}`
+  }
   return `"${str.replace(/"/g, '""')}"`
 }
 

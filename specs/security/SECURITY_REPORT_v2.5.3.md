@@ -23,8 +23,8 @@ The scan identified **1 HIGH** vulnerability and **1 MEDIUM** defense-in-depth f
 
 | ID | File:Line | Category | CWE | Severity | Confidence | Status |
 |---|---|---|---|:---:|:---:|:---:|
-| **SEC-01** | `src/lib/dataPort.ts:187` | Client-Side SSRF / Unrestricted Network Fetch | CWE-918 | **HIGH** | **9/10** | Actionable |
-| **SEC-02** | `src/lib/export.ts:197` | CSV Formula Injection | CWE-1236 | **MEDIUM** | **8/10** | Actionable |
+| **SEC-01** | `src/lib/dataPort.ts:187` | Client-Side SSRF / Unrestricted Network Fetch | CWE-918 | **HIGH** | **9/10** | **RESOLVED** |
+| **SEC-02** | `src/lib/export.ts:197` | CSV Formula Injection | CWE-1236 | **MEDIUM** | **8/10** | **RESOLVED** |
 
 ---
 
