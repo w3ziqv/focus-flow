@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
 import { articleById, isStepList, readMinutes } from '../lib/articles'
 import { topicById } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
@@ -79,6 +79,17 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
           ))}
         </ul>
       </section>
+
+      <div className="mt-10 flex justify-center border-t border-line pt-6 pb-24 sm:pb-12">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-6 py-2.5 text-caption font-medium text-ink shadow-halo transition-all duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <ArrowLeft size={16} aria-hidden="true" />
+          <span>{t('topic.backToTopic')}</span>
+        </button>
+      </div>
     </div>
   )
 }
