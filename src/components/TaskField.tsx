@@ -215,7 +215,7 @@ export function TaskField({
                   aria-checked={item.completed}
                   aria-label={item.text}
                   onClick={() => handleToggleStep(item.id)}
-                  className={`size-3.5 w-[14px] h-[14px] shrink-0 rounded-full border transition-colors duration-150 [transition-timing-function:var(--ease-micro)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] ${
+                  className={`relative size-3.5 w-[14px] h-[14px] shrink-0 rounded-full border transition-colors duration-150 [transition-timing-function:var(--ease-micro)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] touch-manipulation before:absolute before:-inset-3 before:content-[''] ${
                     item.completed
                       ? 'bg-[var(--ac)] border-[var(--ac)] text-white'
                       : 'border-ink-3/50 bg-transparent hover:border-ink'
@@ -300,7 +300,7 @@ export function TaskField({
                   aria-checked={item.completed}
                   aria-label={item.text}
                   onClick={() => handleToggleStep(item.id)}
-                  className={`size-3.5 w-[14px] h-[14px] shrink-0 rounded-full border transition-colors duration-150 [transition-timing-function:var(--ease-micro)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] ${
+                  className={`relative size-3.5 w-[14px] h-[14px] shrink-0 rounded-full border transition-colors duration-150 [transition-timing-function:var(--ease-micro)] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] touch-manipulation before:absolute before:-inset-3 before:content-[''] ${
                     item.completed
                       ? 'bg-[var(--ac)] border-[var(--ac)] text-white'
                       : 'border-ink-3/50 bg-transparent hover:border-ink'
@@ -329,9 +329,9 @@ export function TaskField({
                   type="button"
                   onClick={() => handleRemoveStep(item.id)}
                   aria-label={t('microstep.delete')}
-                  className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-0.5 text-ink-3 hover:text-ink rounded transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-ring)]"
+                  className="relative flex items-center justify-center p-1 rounded text-ink-3 hover:text-ink active:text-ink transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-ring)] touch-manipulation opacity-60 sm:opacity-0 sm:group-hover:opacity-100 before:absolute before:-inset-2 before:content-['']"
                 >
-                  <X size={12} aria-hidden="true" />
+                  <X size={13} aria-hidden="true" />
                 </button>
               </div>
             ))}

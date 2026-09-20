@@ -51,7 +51,7 @@ describe('TaskField Component', () => {
     const onChecklistChange = vi.fn()
     renderField({ onChecklistChange })
 
-    const addBtn = screen.getByRole('button', { name: /\+ Dodaj mikrokrok|\+ Add micro-step/i })
+    const addBtn = screen.getByRole('button', { name: /Dodaj mikrokrok|Add micro-step/i })
     fireEvent.click(addBtn)
 
     const input = screen.getByPlaceholderText(/Kolejny mały krok|Next small step/i)
@@ -65,7 +65,7 @@ describe('TaskField Component', () => {
 
   it('dismisses adding input on Escape', () => {
     renderField()
-    const addBtn = screen.getByRole('button', { name: /\+ Dodaj mikrokrok|\+ Add micro-step/i })
+    const addBtn = screen.getByRole('button', { name: /Dodaj mikrokrok|Add micro-step/i })
     fireEvent.click(addBtn)
 
     const input = screen.getByPlaceholderText(/Kolejny mały krok|Next small step/i)
@@ -82,7 +82,7 @@ describe('TaskField Component', () => {
     const onChecklistChange = vi.fn()
     renderField({ checklist: initialChecklist, onChecklistChange })
 
-    const addBtn = screen.getByRole('button', { name: /\+ Dodaj mikrokrok|\+ Add micro-step/i })
+    const addBtn = screen.getByRole('button', { name: /Dodaj mikrokrok|Add micro-step/i })
     fireEvent.click(addBtn)
 
     const input = screen.getByPlaceholderText(/Kolejny mały krok|Next small step/i)
@@ -132,7 +132,7 @@ describe('TaskField Component', () => {
     ]
     renderField({ checklist: fullChecklist })
 
-    expect(screen.queryByRole('button', { name: /\+ Dodaj mikrokrok|\+ Add micro-step/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Dodaj mikrokrok|Add micro-step/i })).toBeNull()
   })
 
   it('renders running phase with active micro-steps checklist', () => {

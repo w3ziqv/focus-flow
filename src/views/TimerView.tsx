@@ -44,14 +44,15 @@ export function TimerView({
 
   const todayKey = new Date().toDateString()
   const todayMinutes = engine.stats.history[todayKey] ?? 0
+  const isSoundActive = ambient !== 'none' || (binaural && binaural !== 'off')
 
   return (
-    <div className="mx-auto w-full max-w-[560px] px-4 pt-12 pb-16 md:pt-24">
-      <p aria-hidden="true" className="mb-8 text-center text-overline text-ink-3 max-sm:block sm:hidden">
+    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 sm:min-h-0 sm:pt-10 sm:pb-20 md:pt-16">
+      <p aria-hidden="true" className="mb-3 text-center text-overline text-ink-3 max-sm:block sm:hidden">
         FOCUS FLOW
       </p>
 
-      <div className="fade-up" style={{ animationDelay: '0ms' }}>
+      <div className="fade-up shrink-0" style={{ animationDelay: '0ms' }}>
         <TaskField
           phase={taskPhase}
           value={engine.task}
@@ -65,69 +66,85 @@ export function TimerView({
         />
       </div>
 
-      <div className="fade-up mt-8" style={{ animationDelay: '40ms' }}>
+      <div className="fade-up mt-3 shrink-0 sm:mt-6" style={{ animationDelay: '40ms' }}>
         <SegmentedTabs tabs={tabs} value={engine.mode} onChange={engine.switchMode} ariaLabel={t('timer.modes')} />
       </div>
 
-      <div className="fade-up mt-8" style={{ animationDelay: '80ms' }}>
-        <Dial
-          mode={engine.mode}
-          remainingMs={engine.remainingMs}
-          totalMs={engine.totalMs}
-          running={engine.running}
-          round={engine.round}
-          rounds={engine.settings.rounds}
-          onToggle={engine.toggle}
-          goalEnabled={engine.goals.enabled}
-          todayMinutes={todayMinutes}
-          dailyTargetMinutes={engine.goals.dailyTargetMinutes}
-          goalCelebration={engine.goalCelebration}
-        />
+      <div className="fade-up my-auto py-1 sm:my-0 sm:mt-6 sm:py-0" style={{ animationDelay: '80ms' }}>
+        <div className="mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px] md:max-w-[380px]">
+          <Dial
+            mode={engine.mode}
+            remainingMs={engine.remainingMs}
+            totalMs={engine.totalMs}
+            running={engine.running}
+            round={engine.round}
+            rounds={engine.settings.rounds}
+            onToggle={engine.toggle}
+            goalEnabled={engine.goals.enabled}
+            todayMinutes={todayMinutes}
+            dailyTargetMinutes={engine.goals.dailyTargetMinutes}
+            goalCelebration={engine.goalCelebration}
+          />
+        </div>
       </div>
 
-      <div className="fade-up mt-8 flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: '120ms' }}>
-        <PillButton variant="primary" className="min-w-[132px]" onClick={engine.toggle}>
-          <StartIcon size={18} aria-hidden="true" />
-          {engine.running ? t('timer.pause') : t('timer.start')}
-        </PillButton>
-        <PillButton variant="secondary" onClick={engine.reset}>
-          <RotateCcw size={15} aria-hidden="true" />
-          {t('timer.reset')}
-        </PillButton>
-        <PillButton variant="icon" onClick={onOpenSettings} aria-label={t('settings.timer')} title={t('settings.timer')}>
-          <Settings2 size={18} aria-hidden="true" />
-        </PillButton>
-      </div>
+      {/* Unified Command Dock */}
+      <div className="fade-up mt-4 sm:mt-8 flex shrink-0 flex-col items-center gap-3" style={{ animationDelay: '120ms' }}>
+        {/* Primary Execution Controls */}
+        <div className="flex items-center justify-center gap-3">
+          <PillButton variant="primary" className="min-w-[136px]" onClick={engine.toggle}>
+            <StartIcon size={18} aria-hidden="true" />
+            {engine.running ? t('timer.pause') : t('timer.start')}
+          </PillButton>
+          <PillButton variant="secondary" onClick={engine.reset}>
+            <RotateCcw size={15} aria-hidden="true" />
+            {t('timer.reset')}
+          </PillButton>
+        </div>
 
-      <p className="mt-4 hidden text-center text-[12px] text-ink-3 sm:block">{t('timer.shortcuts')}</p>
+        {/* Secondary Quiet Utilities */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenSoundSettings}
+            aria-label={t('sound.settings')}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <Volume2 size={15} aria-hidden="true" />
+            <span>{t('sound.settings')}</span>
+            {isSoundActive && (
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--ac)]" />
+            )}
+          </button>
 
-      <button
-        type="button"
-        onClick={onEnterFocus}
-        className="mx-auto mt-6 flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-caption text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-[var(--ac-strong)]"
-      >
-        <Maximize2 size={14} aria-hidden="true" />
-        {t('focus.enter')}
-      </button>
+          <button
+            type="button"
+            onClick={onEnterFocus}
+            aria-label={t('focus.enter')}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <Maximize2 size={14} aria-hidden="true" />
+            <span>{t('focus.enter')}</span>
+          </button>
 
-      <div className="fade-up mt-10" style={{ animationDelay: '160ms' }}>
-        <button
-          type="button"
-          onClick={onOpenSoundSettings}
-          className="mx-auto flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-5 py-2 text-caption shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:bg-sunken"
-        >
-          <Volume2 size={15} aria-hidden="true" />
-          {t('sound.settings')}
-          {(ambient !== 'none' || (binaural && binaural !== 'off')) && (
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--ac)]" />
-          )}
-        </button>
+          <PillButton
+            variant="icon"
+            onClick={onOpenSettings}
+            aria-label={t('settings.timer')}
+            title={t('settings.timer')}
+            className="size-10 rounded-full border border-line bg-card shadow-halo"
+          >
+            <Settings2 size={16} aria-hidden="true" />
+          </PillButton>
+        </div>
+
+        <p className="mt-1 hidden text-center text-[12px] text-ink-3 sm:block">{t('timer.shortcuts')}</p>
       </div>
 
       {breakTip !== null && (
-        <div className="fade-up mt-10 rounded-2xl border border-line bg-card p-5">
+        <div className="fade-up mt-4 shrink-0 rounded-2xl border border-line bg-card p-4 text-center sm:mt-8 sm:p-5">
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
-          <p className="mt-2 font-serif text-[1.125rem] font-[500] text-ink">
+          <p className="mt-1 font-serif text-[1.125rem] font-[500] text-ink">
             {lang === 'pl' ? breakTip.titlePl : breakTip.titleEn}
           </p>
           <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
