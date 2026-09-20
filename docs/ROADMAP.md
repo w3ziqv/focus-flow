@@ -151,7 +151,8 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
 | **v2.2.0** | Stage 2 | Completed | `v2.2.0` | Pure Web Audio synthesis (pink/brown noise, rain, waves, Tibetan singing bowl) |
 | **v2.3.1** | Stage 3 | Completed | `v2.3.1` | Ephemeral micro-steps, Zen milestone seals, 30-day parchment heatmap, scientific guides library |
 | **v2.4.1** | Stage 4 | Completed | `v2.4.1` | Multi-format export (iCalendar RFC 5545, CSV RFC 4180, Markdown), webhooks, mobile SW alerts |
-| **v2.5.0** | Stage 5 | **Current (Active)** | `v2.5.0` | Sensory themes, WCAG 2.2 AAA contrast, shortcuts manager, speech narration, language auto-detection |
+| **v2.5.0** | Stage 5 | Completed | `v2.5.0` | Sensory themes, WCAG 2.2 AAA contrast, shortcuts manager, speech narration, language auto-detection |
+| **v2.5.2** | Stage 5 | **Current (Active)** | `v2.5.2` | Deep module architecture: Headless Timer Core, Consolidated Exporter, Unified Store, Audio Subsystem Facade |
 | **v2.6.0** | Stage 6 | In Queue | — | Opt-in Google authentication, Firestore multi-device sync, conflict reconciliation |
 | **v3.0.0** | Stage 7 | Planned | — | Tauri 2 native desktop app, system tray mini-dial, local P2P sync |
 

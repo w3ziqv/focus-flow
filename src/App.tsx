@@ -1,28 +1,22 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { AmbientSound, BaseSoundTexture, BinauralMode, CustomSound, PlayableSound, SoundPreferences, Theme } from './types'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import type { AmbientSound, BaseSoundTexture, BinauralMode, CustomSound, SoundPreferences, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
 import { useTimerEngine } from './lib/timer'
 import { useShortcuts } from './lib/useShortcuts'
 import { useWakeLock } from './lib/useWakeLock'
-import { audio } from './lib/audio'
+import { audioSubsystem } from './lib/audioSubsystem'
 import { dispatchNotification, triggerHapticFeedback } from './lib/notifications'
 import { accentStyle } from './lib/accent'
 import {
-  loadCustomSounds,
   loadInterface,
   loadOnboardingDone,
-  loadSoundPreferences,
   loadTheme,
-  MAX_SOUND_SIZE,
-  saveCustomSounds,
   saveInterface,
-  saveSoundPreferences,
   saveTheme,
   systemTheme,
 } from './lib/storage'
 import { last7Days, sumMinutes } from './lib/stats'
 import { captureInstallPrompt } from './lib/installPrompt'
-import { deleteSound, getSoundBlob, isAudioUpload, migrateLegacySounds, probeAudio, putSound } from './lib/soundStore'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
 import { ShortcutsModal } from './components/ShortcutsModal'
@@ -62,23 +56,23 @@ function Shell() {
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
   const [tipsStack, setTipsStack] = useState<TipsRoute[]>([])
   const [focusOpen, setFocusOpen] = useState(false)
-  const [sounds, setSounds] = useState<CustomSound[]>(loadCustomSounds)
-  const [soundUrls, setSoundUrls] = useState<Record<string, string>>({})
-  const [soundPrefs, setSoundPrefs] = useState<SoundPreferences>(loadSoundPreferences)
+  const [sounds, setSounds] = useState<CustomSound[]>(() => audioSubsystem.getCustomSounds())
+  const [soundPrefs, setSoundPrefs] = useState<SoundPreferences>(() => audioSubsystem.getPreferences())
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
   const [onboardingDone, setOnboardingDone] = useState(loadOnboardingDone)
   const messageTimer = useRef<number | undefined>(undefined)
 
-  const updateSoundPrefs = useCallback((patch: Partial<SoundPreferences>) => {
-    setSoundPrefs((prev) => {
-      const next: SoundPreferences = { ...prev, ...patch }
-      saveSoundPreferences(next)
-      return next
-    })
-  }, [])
-
   useEffect(() => {
     captureInstallPrompt()
+  }, [])
+
+  // Initialize deep Audio Subsystem and subscribe to updates
+  useEffect(() => {
+    void audioSubsystem.init()
+    return audioSubsystem.subscribe(() => {
+      setSoundPrefs(audioSubsystem.getPreferences())
+      setSounds(audioSubsystem.getCustomSounds())
+    })
   }, [])
 
   // PWA app-shortcut target (/?start=focus): launch straight into a session.
@@ -93,40 +87,6 @@ function Shell() {
     applyTheme(theme)
   }, [theme])
 
-  // Custom sound audio lives in IndexedDB — resolve every blob to a session URL.
-  useEffect(() => {
-    let cancelled = false
-    void migrateLegacySounds()
-      .then(() => {
-        if (cancelled) return null
-        const metas = loadCustomSounds()
-        setSounds(metas)
-        return Promise.all(
-          metas.map(async (sound) => {
-            const blob = await getSoundBlob(sound.id).catch(() => null)
-            return blob ? ([sound.id, URL.createObjectURL(blob)] as const) : null
-          }),
-        )
-      })
-      .then((entries) => {
-        if (cancelled || entries === null) return
-        setSoundUrls(Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => entry !== null)))
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const playableSounds = useMemo<PlayableSound[]>(
-    () => sounds.map((sound) => ({ ...sound, url: soundUrls[sound.id] ?? sound.dataUrl ?? '' })),
-    [sounds, soundUrls],
-  )
-
-  useEffect(() => {
-    audio.applyPreferences(soundPrefs, playableSounds)
-  }, [soundPrefs, playableSounds])
-
   const isFirstMount = useRef(true)
   useEffect(() => {
     if (isFirstMount.current) {
@@ -134,9 +94,9 @@ function Shell() {
       return
     }
     if (engine.running) {
-      audio.startSession()
+      audioSubsystem.startSession()
     } else {
-      audio.pauseSession()
+      audioSubsystem.pauseSession()
     }
   }, [engine.running])
 
@@ -178,91 +138,35 @@ function Shell() {
 
   const addSoundFile = useCallback(
     async (file: File) => {
-      if (!isAudioUpload({ type: file.type, name: file.name })) {
-        flashMessage('sound.notAudio')
+      const result = await audioSubsystem.addCustomSound(file, t('sound.unnamed'))
+      if (!result.ok) {
+        if (result.errorKey) flashMessage(result.errorKey)
         return
       }
-      if (file.size > MAX_SOUND_SIZE) {
-        flashMessage('sound.tooLarge')
-        return
-      }
-      if (!(await probeAudio(file))) {
-        flashMessage('sound.notAudio')
-        return
-      }
-      const name = (file.name.replace(/\.[^.]+$/, '').trim() || t('sound.unnamed')).slice(0, 40)
-      const id = `cs${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
-      try {
-        await putSound(id, name, file)
-      } catch {
-        flashMessage('sound.storageFull')
-        return
-      }
-      const next = [...sounds, { id, name }]
-      if (!saveCustomSounds(next)) {
-        void deleteSound(id).catch(() => {})
-        flashMessage('sound.storageFull')
-        return
-      }
-      setSounds(next)
-      setSoundUrls((prev) => ({ ...prev, [id]: URL.createObjectURL(file) }))
-      flashMessage('sound.added', name)
+      flashMessage('sound.added', result.sound?.name ?? '')
     },
-    [flashMessage, t, sounds],
+    [flashMessage, t],
   )
 
-  const removeSound = useCallback(
-    (id: string) => {
-      void deleteSound(id).catch(() => {})
-      setSoundUrls((prev) => {
-        const next = { ...prev }
-        const url = next[id]
-        if (url !== undefined) URL.revokeObjectURL(url)
-        delete next[id]
-        return next
-      })
-      const next = sounds.filter((sound) => sound.id !== id)
-      saveCustomSounds(next)
-      setSounds(next)
-      setSoundPrefs((prev) => {
-        if (prev.baseTexture === `custom:${id}`) {
-          const updated = { ...prev, baseTexture: 'none' as const }
-          saveSoundPreferences(updated)
-          return updated
-        }
-        return prev
-      })
-    },
-    [sounds],
-  )
+  const removeSound = useCallback((id: string) => {
+    void audioSubsystem.removeCustomSound(id)
+  }, [])
 
-  const setAmbientSound = useCallback(
-    (sound: AmbientSound) => {
-      updateSoundPrefs({ baseTexture: sound as BaseSoundTexture })
-    },
-    [updateSoundPrefs],
-  )
+  const setAmbientSound = useCallback((sound: AmbientSound) => {
+    audioSubsystem.setBaseTexture(sound as BaseSoundTexture)
+  }, [])
 
-  const setBinauralMode = useCallback(
-    (mode: BinauralMode) => {
-      updateSoundPrefs({ binauralMode: mode })
-    },
-    [updateSoundPrefs],
-  )
+  const setBinauralMode = useCallback((mode: BinauralMode) => {
+    audioSubsystem.setBinaural(mode)
+  }, [])
 
-  const setToneWarmth = useCallback(
-    (warmth: number) => {
-      updateSoundPrefs({ toneWarmthCutoff: warmth })
-    },
-    [updateSoundPrefs],
-  )
+  const setToneWarmth = useCallback((warmth: number) => {
+    audioSubsystem.setToneWarmth(warmth)
+  }, [])
 
-  const changeVolume = useCallback(
-    (next: number) => {
-      updateSoundPrefs({ volume: next })
-    },
-    [updateSoundPrefs],
-  )
+  const changeVolume = useCallback((next: number) => {
+    audioSubsystem.setVolume(next)
+  }, [])
 
   const lastHandledEventRef = useRef<number | null>(null)
 
@@ -272,9 +176,8 @@ function Shell() {
       const currentTask = taskTitle.trim()
       const body = kind === 'focus' && currentTask !== '' ? currentTask : undefined
 
-      // Procedural completion chime invoked promptly upon focus session or break end
       try {
-        audio.playChime()
+        audioSubsystem.playChime()
       } catch {
         // Stay silent if browser blocks audio autoplay
       }
@@ -477,8 +380,10 @@ function Shell() {
         onImportSuccess={() => {
           setTheme(loadTheme() ?? systemTheme())
           setInterfacePrefs(loadInterface())
-          setSounds(loadCustomSounds())
-          setSoundPrefs(loadSoundPreferences())
+          void audioSubsystem.init().then(() => {
+            setSounds(audioSubsystem.getCustomSounds())
+            setSoundPrefs(audioSubsystem.getPreferences())
+          })
           engine.refreshStats()
         }}
         onClose={() => setAppSettingsOpen(false)}

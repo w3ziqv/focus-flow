@@ -22,10 +22,8 @@ import type { TranslationKey } from '../lib/translations'
 import { THEMES, THEME_TOKENS } from '../lib/theme'
 import { getAvailableVoices, speakNarration } from '../lib/speech'
 import { detectPlatform } from '../lib/platform'
-import { exportDataString, importData } from '../lib/dataPort'
-import { downloadCsv, downloadICal, downloadMarkdown } from '../lib/export'
-import { triggerDownload } from '../lib/download'
-import { loadSessions, loadWebhookSettings, saveWebhookSettings } from '../lib/storage'
+import { Exporter } from '../lib/exporter'
+import { loadWebhookSettings, saveWebhookSettings } from '../lib/storage'
 import { testWebhook } from '../lib/webhook'
 import {
   getNotificationPermission,
@@ -119,20 +117,19 @@ export function AppSettingsModal({
   }
 
   const handleExportMarkdown = () => {
-    downloadMarkdown(loadSessions())
+    void Exporter.download('markdown')
   }
 
   const handleExportCsv = () => {
-    downloadCsv(loadSessions())
+    void Exporter.download('csv')
   }
 
   const handleExportICal = () => {
-    downloadICal(loadSessions())
+    void Exporter.download('ics')
   }
 
-  const handleExportJson = async () => {
-    const json = await exportDataString()
-    triggerDownload('focus-flow-backup-v2.json', json, 'application/json')
+  const handleExportJson = () => {
+    void Exporter.download('json')
   }
 
   const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +147,7 @@ export function AppSettingsModal({
     reader.onload = async () => {
       try {
         const text = String(reader.result ?? '')
-        const result = await importData(text)
+        const result = await Exporter.importBackup(text)
         if (result && result.success) {
           setImportStatus('success')
           onImportSuccess?.()

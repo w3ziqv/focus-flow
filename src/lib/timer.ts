@@ -59,10 +59,8 @@ export interface TimerEngine {
 
 const TICK_MS = 250
 
-function durationOf(settings: Settings, mode: Mode): number {
-  const minutes = mode === 'focus' ? settings.focus : mode === 'short' ? settings.short : settings.long
-  return minutes * 60_000
-}
+import { calculateNextPhase, durationOfMode } from './timerCore'
+const durationOf = durationOfMode
 
 function getInitialTimerData(): {
   snapshot: SessionSnapshotV2 | null
@@ -170,7 +168,7 @@ export function useTimerEngine(): TimerEngine {
     [],
   )
 
-  const totalMs = useMemo(() => durationOf(settings, mode), [settings, mode])
+  const totalMs = useMemo(() => durationOfMode(settings, mode), [settings, mode])
 
   const persist = useCallback(
     (next: { running: boolean; remainingMs: number; endTs: number | null }) => {
@@ -281,25 +279,13 @@ export function useTimerEngine(): TimerEngine {
     const finishedKind: 'focus' | 'break' = currentMode === 'focus' ? 'focus' : 'break'
     setLastEvent({ kind: finishedKind, at: Date.now() })
 
-    if (currentMode === 'focus') {
-      const nextRound = roundRef.current + 1
-      if (nextRound >= currentSettings.rounds) {
-        roundRef.current = 0
-        setRound(0)
-        modeRef.current = 'long'
-        setMode('long')
-      } else {
-        roundRef.current = nextRound
-        setRound(nextRound)
-        modeRef.current = 'short'
-        setMode('short')
-      }
-    } else {
-      modeRef.current = 'focus'
-      setMode('focus')
-    }
+    const { nextMode, nextRound } = calculateNextPhase(currentMode, roundRef.current, currentSettings.rounds)
+    roundRef.current = nextRound
+    setRound(nextRound)
+    modeRef.current = nextMode
+    setMode(nextMode)
 
-    const nextRemaining = durationOf(settingsRef.current, modeRef.current)
+    const nextRemaining = durationOfMode(settingsRef.current, nextMode)
     setRunning(false)
     runningRef.current = false
     setRemainingMs(nextRemaining)
