@@ -207,7 +207,7 @@ describe('useTimerEngine: Cold-Start Wake & Webhook Integration', () => {
       result.current.addChecklistItem('Step 1')
     })
 
-    // 1. START webhook
+    // Start webhook
     act(() => {
       result.current.start()
     })
@@ -223,7 +223,7 @@ describe('useTimerEngine: Cold-Start Wake & Webhook Integration', () => {
     expect(startBody.session.checklist).toHaveLength(1)
     const sessionId = startBody.session.id
 
-    // 2. PAUSE webhook
+    // Pause webhook
     act(() => {
       result.current.pause()
     })
@@ -239,7 +239,7 @@ describe('useTimerEngine: Cold-Start Wake & Webhook Integration', () => {
     })
     expect(fetchSpy).toHaveBeenCalledTimes(3)
 
-    // 3. COMPLETE webhook
+    // Complete webhook
     act(() => {
       vi.advanceTimersByTime(60_000 + 1_000)
     })

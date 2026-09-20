@@ -235,7 +235,7 @@ export function useTimerEngine(): TimerEngine {
       setStats(nextStats)
       statsRef.current = nextStats
 
-      // 1. Capture micro-steps into permanent session record
+      // Record completed session
       addSession({
         id: currentSessionId,
         date: new Date().toISOString(),
@@ -249,7 +249,7 @@ export function useTimerEngine(): TimerEngine {
         taskDoneRef.current = true
       }
 
-      // 2. Goal tracking: detect when today's minutes cross dailyTargetMinutes
+      // Check daily target goal celebration
       const currentGoals = goalsRef.current
       const newTodayMinutes = nextStats.history[todayKey] ?? 0
       if (
@@ -269,7 +269,7 @@ export function useTimerEngine(): TimerEngine {
         }, 3000)
       }
 
-      // 3. Ephemeral reset: clean checklist for the next session so items do not carry forward
+      // Reset micro-steps checklist for the next session
       setChecklistState([])
       checklistRef.current = []
     }
@@ -346,7 +346,7 @@ export function useTimerEngine(): TimerEngine {
   useEffect(() => {
     const handleWakeCheck = (): void => {
       const now = Date.now()
-      // 1. If actively running in memory and deadline passed while tab was asleep/hidden
+      // Deadline passed in memory while tab was asleep or hidden
       if (runningRef.current && endTsRef.current !== null && endTsRef.current <= now) {
         if (modeRef.current === 'focus') {
           const lang = loadLang() ?? 'en'
@@ -364,7 +364,7 @@ export function useTimerEngine(): TimerEngine {
         return
       }
 
-      // 2. Also inspect persisted storage snapshot in case tab woke with stale state
+      // Reconcile persisted snapshot if tab woke with stale state
       const snap = loadSession()
       if (snap?.running === true && snap.endTs !== null && snap.endTs <= now) {
         const lang = loadLang() ?? 'en'

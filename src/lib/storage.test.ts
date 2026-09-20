@@ -847,9 +847,7 @@ describe('loadSoundPreferences & saveSoundPreferences (Schema v1.2)', () => {
   })
 })
 
-// ============================================================================
-// Milestone 1 Additions: Storage Schema v1.3 Boundaries & Adapters
-// ============================================================================
+
 
 describe('isSessionEntry & sanitizeSessionEntry (Schema v1.3 Micro-steps & Boundaries)', () => {
   it('validates and clamps micro-step checklist items to a maximum of 3 items', () => {

@@ -24,7 +24,7 @@ export function isValidWebhookUrl(urlString: string): boolean {
 }
 
 /**
- * Constructs a typed WebhookPayload adhering to the Stage 4 (v2.4) specification.
+ * Constructs a typed WebhookPayload for timer lifecycle events.
  */
 export function createWebhookPayload(
   event: WebhookEvent,

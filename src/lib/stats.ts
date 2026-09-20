@@ -148,7 +148,7 @@ export function evaluateMilestones(
   const results: MilestoneRecord[] = []
   const nowIso = new Date().toISOString()
 
-  // 1. The First Step: First completed session
+  // The First Step: first completed session
   const hasFirstStep = sessions.length > 0 || stats.minutes > 0 || existingMap.has('the_first_step')
   if (hasFirstStep) {
     results.push(
@@ -160,7 +160,7 @@ export function evaluateMilestones(
     )
   }
 
-  // 2. Pebble of Rhythm: 3 active focus days within a single calendar week
+  // Pebble of Rhythm: 3 active focus days within a single calendar week
   let hasPebbleOfRhythm = existingMap.has('pebble_of_rhythm')
   if (!hasPebbleOfRhythm) {
     const weekDaysMap = new Map<string, Set<string>>()
@@ -195,7 +195,7 @@ export function evaluateMilestones(
 
   const totalMinutes = stats.minutes
 
-  // 3. Stone of Stillness: 10 cumulative hours (600 minutes)
+  // Stone of Stillness: 10 cumulative hours (600 minutes)
   if (totalMinutes >= 600 || existingMap.has('stone_of_stillness')) {
     results.push(
       existingMap.get('stone_of_stillness') ?? {
@@ -206,7 +206,7 @@ export function evaluateMilestones(
     )
   }
 
-  // 4. Garden of Flow: 50 cumulative hours (3000 minutes)
+  // Garden of Flow: 50 cumulative hours (3000 minutes)
   if (totalMinutes >= 3000 || existingMap.has('garden_of_flow')) {
     results.push(
       existingMap.get('garden_of_flow') ?? {
@@ -217,7 +217,7 @@ export function evaluateMilestones(
     )
   }
 
-  // 5. Century of Craft: 100 cumulative hours (6000 minutes)
+  // Century of Craft: 100 cumulative hours (6000 minutes)
   if (totalMinutes >= 6000 || existingMap.has('century_of_craft')) {
     results.push(
       existingMap.get('century_of_craft') ?? {

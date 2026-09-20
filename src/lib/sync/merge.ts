@@ -119,18 +119,18 @@ export function reconcileSessionConflict(
   entryA: SessionLogEntryV2,
   entryB: SessionLogEntryV2,
 ): SessionLogEntryV2 {
-  // 1. Task reconciliation: prefer non-null, longer string, then alphabetical localeCompare
+  // Task: prefer non-null, longer string, then alphabetical localeCompare
   const rawTask = reconcileTask(entryA.task, entryB.task)
   const finalTask: string | null =
     rawTask && rawTask.trim() !== '' ? rawTask.trim().slice(0, MAX_TASK_LENGTH) : null
 
-  // 2. Checklist reconciliation
+  // Checklist: merge items monotonically
   const checklist = mergeChecklists(entryA.checklist, entryB.checklist)
 
-  // 3. Minutes: take maximum valid duration
+  // Duration: take maximum minutes
   const minutes: number = Math.max(entryA.minutes, entryB.minutes)
 
-  // 4. Date: canonical timestamp from earliest valid timestamp
+  // Date: canonical timestamp from earliest valid timestamp
   const tsA = Date.parse(entryA.date)
   const tsB = Date.parse(entryB.date)
   let date: string
@@ -140,7 +140,7 @@ export function reconcileSessionConflict(
     date = entryA.date.localeCompare(entryB.date) <= 0 ? entryA.date : entryB.date
   }
 
-  // 5. ID: deterministic tie-break if IDs differed on secondary date match
+  // ID: deterministic tie-break if IDs differed on secondary match
   const id: string = entryA.id.localeCompare(entryB.id) >= 0 ? entryA.id : entryB.id
 
   const result: SessionLogEntryV2 = {

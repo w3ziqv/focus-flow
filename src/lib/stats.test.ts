@@ -197,9 +197,7 @@ describe('calculateInsights', () => {
   })
 })
 
-// ============================================================================
-// Milestone 1 Additions: Atomic Decrements & Milestone Engine
-// ============================================================================
+
 
 describe('decrementStatsForSession', () => {
   beforeEach(() => {

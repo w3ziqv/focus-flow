@@ -1,8 +1,5 @@
 /**
- * Client-Side Zero-Network File Download Trigger (v2.4)
- *
- * Triggers an instant in-memory browser download via an ephemeral anchor element.
- * Adheres strictly to the Local-First Data Sovereignty Doctrine (ADR-005).
+ * Triggers an in-memory browser file download via an ephemeral anchor element.
  */
 
 export function triggerDownload(filename: string, content: string | Blob, mimeType: string): void {

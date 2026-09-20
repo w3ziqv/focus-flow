@@ -107,13 +107,13 @@ describe('dataPort - exportData & exportDataString', () => {
 
     const backup = await exportData()
 
-    // 1. Root envelope
+    // Root envelope
     expect(backup.app).toBe('focus-flow')
     expect(backup.version).toBe(2)
     expect(typeof backup.exportedAt).toBe('string')
     expect(Number.isNaN(Date.parse(backup.exportedAt))).toBe(false)
 
-    // 2. Data slices
+    // Data slices
     expect(backup.data.settings).toEqual(customSettings)
     expect(backup.data.stats.minutes).toBe(540)
     expect(backup.data.stats.goals).toEqual({ dailyTargetMinutes: 120, enabled: true })
@@ -125,7 +125,7 @@ describe('dataPort - exportData & exportDataString', () => {
     expect(backup.data.volume).toBe(0.85)
     expect(backup.data.interface).toEqual({ reduceMotion: true, showGreeting: false })
 
-    // 3. Sound audio serialization
+    // Sound audio serialization
     expect(backup.data.sounds).toHaveLength(1)
     expect(backup.data.sounds[0].id).toBe('snd-ocean')
     expect(backup.data.sounds[0].name).toBe('Pacific Waves')

@@ -17,9 +17,7 @@ function makeSession(overrides: Partial<SessionLogEntryV2> = {}): SessionLogEntr
 }
 
 describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/merge.ts)', () => {
-  /* ========================================================================== */
-  /* 1. Prototype Pollution Attacks & Schema Integrity                           */
-  /* ========================================================================== */
+
   describe('1. Prototype Pollution Attacks & Schema Integrity', () => {
     it('prevents __proto__, constructor, and prototype pollution from injected objects', () => {
       const maliciousLocal = JSON.parse(
@@ -82,9 +80,7 @@ describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/m
     })
   })
 
-  /* ========================================================================== */
-  /* 2. Numerical Boundaries & Extreme Values                                   */
-  /* ========================================================================== */
+
   describe('2. Numerical Boundaries & Extreme Values', () => {
     it('handles 0 minutes correctly as a valid session duration', () => {
       const sess0 = makeSession({ id: 's0', minutes: 0 })
@@ -152,9 +148,7 @@ describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/m
     })
   })
 
-  /* ========================================================================== */
-  /* 3. Timestamp, Date & Timezone Extremes                                     */
-  /* ========================================================================== */
+
   describe('3. Timestamp, Date & Timezone Extremes', () => {
     it('handles Unix epoch 0 (1970-01-01T00:00:00.000Z)', () => {
       const epochSess = makeSession({ id: 'epoch', date: '1970-01-01T00:00:00.000Z' })
@@ -198,9 +192,7 @@ describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/m
     })
   })
 
-  /* ========================================================================== */
-  /* 4. Unicode, RTL & String Edge Cases                                        */
-  /* ========================================================================== */
+
   describe('4. Unicode, RTL & String Edge Cases', () => {
     it('handles zero-width spaces, RTL overrides, and multi-codepoint emojis safely', () => {
       const zwsp = 'Task\u200BWith\u200CZero\u200DWidth'
@@ -243,9 +235,7 @@ describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/m
     })
   })
 
-  /* ========================================================================== */
-  /* 5. High Volume Scalability & Capping (5,000 Sessions)                       */
-  /* ========================================================================== */
+
   describe('5. High Volume Scalability & Capping (5,000 Sessions)', () => {
     it('processes 5,000 sessions efficiently and caps at MAX_SESSIONS (1,000)', () => {
       const localBatch: SessionLogEntryV2[] = []
@@ -276,9 +266,7 @@ describe('Empirical Adversarial Stress Testing — mergeSessions (src/lib/sync/m
     })
   })
 
-  /* ========================================================================== */
-  /* 6. Empirical Invariant Challenges (The Discovered Flaws — Now Remediated)  */
-  /* ========================================================================== */
+
   describe('6. Empirical Invariant Challenges (Remediated Commutativity & Zero Data Loss)', () => {
     it('verifies symmetrical commutativity mergeSessions(A, B) === mergeSessions(B, A) with overlapping timestamps', () => {
       // S1: Device 1 has session X at 10:00 (25 min)

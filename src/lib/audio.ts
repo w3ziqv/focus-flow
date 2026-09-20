@@ -9,9 +9,7 @@ import {
 } from '../types'
 import { DEFAULT_TONE_WARMTH } from './storage'
 
-/* ========================================================================== */
-/* Mathematical Procedural Synthesis Functions                                */
-/* ========================================================================== */
+
 
 /**
  * Generates stereo Pink Noise using Paul Kellet's 6-pole IIR filter.
@@ -116,13 +114,12 @@ export function generateRainBuffer(ctx: AudioContext, seconds = 10): AudioBuffer
     let b5 = 0
     let b6 = 0
 
-    // Filter states for rain bed
+    // Biquad filter states
     let xLp1 = 0
     let xLp2 = 0
     let yLp1 = 0
     let yLp2 = 0
 
-    // Filter states for droplet impulses
     let xBp1 = 0
     let xBp2 = 0
     let yBp1 = 0
@@ -139,7 +136,6 @@ export function generateRainBuffer(ctx: AudioContext, seconds = 10): AudioBuffer
       const pinkSample = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11
       b6 = white * 0.115926
 
-      // Lowpass filter rain bed
       const yLp =
         (b0Lp * pinkSample + b1Lp * xLp1 + b2Lp * xLp2 - a1Lp * yLp1 - a2Lp * yLp2) / a0Lp
       xLp2 = xLp1
@@ -147,13 +143,11 @@ export function generateRainBuffer(ctx: AudioContext, seconds = 10): AudioBuffer
       yLp2 = yLp1
       yLp1 = yLp
 
-      // Poisson droplet impulse
       let dropletImpulse = 0
       if (Math.random() < dropletProb) {
         dropletImpulse = (Math.random() * 0.7 + 0.3) * (Math.random() > 0.5 ? 1 : -1)
       }
 
-      // Bandpass filter droplet impulse
       const yBp =
         (b0Bp * dropletImpulse + b1Bp * xBp1 + b2Bp * xBp2 - a1Bp * yBp1 - a2Bp * yBp2) / a0Bp
       xBp2 = xBp1
@@ -161,7 +155,6 @@ export function generateRainBuffer(ctx: AudioContext, seconds = 10): AudioBuffer
       yBp2 = yBp1
       yBp1 = yBp
 
-      // Blend steady rain bed + crisp droplets
       data[i] = yLp * 0.65 + yBp * 0.35
     }
   }
@@ -222,9 +215,7 @@ export function generateWavesBuffer(ctx: AudioContext, seconds = 10): AudioBuffe
   return buffer
 }
 
-/* ========================================================================== */
-/* Tibetan Singing Bowl Modal Synthesis & Binaural Config Specs                */
-/* ========================================================================== */
+
 
 export interface SingingBowlPartial {
   name: string
@@ -261,9 +252,7 @@ export function getBinauralConfig(mode: BinauralMode): BinauralConfig | null {
   return null
 }
 
-/* ========================================================================== */
-/* AudioEngine Class Implementation                                           */
-/* ========================================================================== */
+
 
 interface ActiveChannel {
   source: AudioScheduledSourceNode
@@ -279,19 +268,15 @@ export class AudioEngine {
   private masterGain: GainNode | null = null
   private toneWarmthFilter: BiquadFilterNode | null = null
 
-  // Base texture channel
   private currentTextureChannel: ActiveChannel | null = null
   private fadingTextureChannels: ActiveChannel[] = []
 
-  // Binaural beats channel
   private binauralLeftOsc: OscillatorNode | null = null
   private binauralRightOsc: OscillatorNode | null = null
   private binauralGainNode: GainNode | null = null
 
-  // Custom audio playback element fallback
   private loopEl: HTMLAudioElement | null = null
 
-  // Engine preferences state
   private preferences: SoundPreferences = { ...DEFAULT_SOUND_PREFERENCES }
   private volume: number = DEFAULT_SOUND_PREFERENCES.volume
   private toneWarmthCutoff: number = DEFAULT_TONE_WARMTH
@@ -395,14 +380,12 @@ export class AudioEngine {
     this.preferences.baseTexture = activeTexture
     const ctx = this.ensureContext()
 
-    // 1. Crossfade out current texture channel
     if (this.currentTextureChannel) {
       const oldChannel = this.currentTextureChannel
       this.currentTextureChannel = null
       this.fadeOutAndCleanChannel(oldChannel, 2.0)
     }
 
-    // 2. Stop HTMLAudioElement if running
     if (this.loopEl) {
       this.loopEl.pause()
       this.loopEl.src = ''
@@ -413,7 +396,6 @@ export class AudioEngine {
       return
     }
 
-    // 3. Custom sound upload playback
     if (activeTexture.startsWith('custom:')) {
       const id = activeTexture.slice(7)
       const record = customSounds?.find((s) => s.id === id)
@@ -429,7 +411,6 @@ export class AudioEngine {
       return
     }
 
-    // 4. Procedural Web Audio synthesis textures
     let buffer: AudioBuffer | null = null
     let spatialLfo = false
 
@@ -452,7 +433,6 @@ export class AudioEngine {
 
     const textureGain = ctx.createGain()
     const now = ctx.currentTime
-    // 2.0s crossfade fade-in ramp (with 0.0001 floor)
     textureGain.gain.cancelScheduledValues(now)
     textureGain.gain.setValueAtTime(0.0001, now)
     textureGain.gain.exponentialRampToValueAtTime(1.0, now + 2.0)
@@ -514,12 +494,10 @@ export class AudioEngine {
 
     const now = ctx.currentTime
     const binauralGain = ctx.createGain()
-    // Calibrated subtle hum (~0.10 relative gain)
     binauralGain.gain.setValueAtTime(0.1, now)
     binauralGain.connect(this.masterGain)
     this.binauralGainNode = binauralGain
 
-    // Left Carrier (panned -1.0)
     const leftOsc = ctx.createOscillator()
     leftOsc.type = 'sine'
     leftOsc.frequency.setValueAtTime(cfg.leftFreq, now)
@@ -533,7 +511,6 @@ export class AudioEngine {
       leftOsc.connect(binauralGain)
     }
 
-    // Right Carrier (panned +1.0)
     const rightOsc = ctx.createOscillator()
     rightOsc.type = 'sine'
     rightOsc.frequency.setValueAtTime(cfg.rightFreq, now)
@@ -596,7 +573,7 @@ export class AudioEngine {
   }
 
   /**
-   * Session Start: Smooth 3.0s exponential gain ramp from 0.0001 up to volume.
+   * Smooth 3.0s exponential gain ramp on session start.
    */
   public startSession(): void {
     this.isSessionActive = true
@@ -610,7 +587,7 @@ export class AudioEngine {
   }
 
   /**
-   * Session Pause: Smooth 3.0s exponential gain ramp down to 0.0001.
+   * Smooth 3.0s exponential gain ramp down on pause.
    */
   public pauseSession(): void {
     this.isSessionActive = false
@@ -629,8 +606,7 @@ export class AudioEngine {
   }
 
   /**
-   * Tibetan Singing Bowl Modal Completion Chime.
-   * Synthesizes 5 inharmonic partials + 25ms mallet bandpass contact burst.
+   * Tibetan singing bowl completion chime with inharmonic modal partials.
    */
   public playChime(): void {
     const ctx = this.ensureContext()
@@ -657,7 +633,6 @@ export class AudioEngine {
 
         const startGain = Math.max(0.0001, p.gain * gainScale)
         gain.gain.setValueAtTime(startGain, now)
-        // Exponential decay envelope to 0.0001 over tau
         gain.gain.exponentialRampToValueAtTime(0.0001, now + p.decay)
 
         osc.connect(gain)
@@ -666,7 +641,6 @@ export class AudioEngine {
         osc.start(now)
         osc.stop(now + p.decay + 0.05)
 
-        // Node GC cleanup
         setTimeout(() => {
           try {
             osc.disconnect()
@@ -678,7 +652,7 @@ export class AudioEngine {
       }
     }
 
-    // Mallet transient burst: 25ms white noise through bandpass (2.4 kHz, Q=4)
+    // Mallet transient burst: 25ms bandpass noise
     try {
       const malletDuration = 0.025
       const malletSamples = Math.floor(ctx.sampleRate * malletDuration)

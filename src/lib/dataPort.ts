@@ -280,8 +280,7 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: true, count: 0 }
   }
 
-  // Version 2: validates and sanitizes all fields and persists to storage.
-  // 1. Settings
+  // Version 2: validates and sanitizes all fields and persists to storage
   if (typeof data.settings !== 'object' || data.settings === null || Array.isArray(data.settings)) {
     return { success: false, error: 'Invalid backup file: missing or invalid settings' }
   }
@@ -290,7 +289,6 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: false, error: 'Invalid backup file: settings failed validation' }
   }
 
-  // 2. Stats
   if (typeof data.stats !== 'object' || data.stats === null || Array.isArray(data.stats)) {
     return { success: false, error: 'Invalid backup file: missing or invalid stats' }
   }
@@ -299,7 +297,6 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: false, error: 'Invalid backup file: stats failed validation' }
   }
 
-  // 3. Sessions
   if (!Array.isArray(data.sessions)) {
     return { success: false, error: 'Invalid backup file: sessions must be an array' }
   }
@@ -312,7 +309,6 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     sanitizedSessions.push(sanitized)
   }
 
-  // 4. Presets
   if (!Array.isArray(data.presets)) {
     return { success: false, error: 'Invalid backup file: presets must be an array' }
   }
@@ -325,7 +321,6 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     sanitizedPresets.push(sanitized)
   }
 
-  // 5. Interface
   if (typeof data.interface !== 'object' || data.interface === null || Array.isArray(data.interface)) {
     return { success: false, error: 'Invalid backup file: interface must be an object' }
   }
@@ -334,12 +329,9 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: false, error: 'Invalid backup file: interface failed validation' }
   }
 
-  // 6. Sounds
   if (!Array.isArray(data.sounds)) {
     return { success: false, error: 'Invalid backup file: sounds must be an array' }
   }
-
-  // 7. Lang, Theme, Volume
   if (data.lang !== 'pl' && data.lang !== 'en') {
     return { success: false, error: 'Invalid backup file: lang must be "pl" or "en"' }
   }

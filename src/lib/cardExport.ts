@@ -1,9 +1,5 @@
 /**
- * Client-Side HTML5 Canvas Summary Card Generator (v2.3)
- *
- * Renders a crisp 1200x630 weekly summary card completely in memory
- * using Fraunces serif typography, Instrument Sans, warm parchment canvas (#F5F4ED),
- * and a 3% procedural film grain tile. Zero external network or CDN calls.
+ * Renders a 1200x630 weekly summary card image via an offscreen HTML5 canvas.
  */
 
 export interface WeeklyCardData {
@@ -75,23 +71,22 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   // Set coordinate space to 1200x630
   ctx.scale(SCALE, SCALE)
 
-  // 1. Warm parchment canvas background
+  // Canvas background and film grain
   ctx.fillStyle = '#F5F4ED'
   ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
-  // 2. Procedural 3% film grain overlay
   const grain = createFilmGrainPattern(ctx)
   if (grain) {
     ctx.fillStyle = grain
     ctx.fillRect(0, 0, WIDTH, HEIGHT)
   }
 
-  // 3. Hairline perimeter border
+  // Perimeter border
   ctx.strokeStyle = '#E8E6DC'
   ctx.lineWidth = 1.5
   ctx.strokeRect(40, 40, WIDTH - 80, HEIGHT - 80)
 
-  // 4. Overline Header
+  // Header
   ctx.font = '600 13px "Instrument Sans Variable", system-ui, sans-serif'
   ctx.fillStyle = '#716F66'
   ctx.letterSpacing = '1px'
@@ -105,7 +100,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
     ctx.textAlign = 'left'
   }
 
-  // 5. Hero Stat: Total Focus Time (Fraunces Serif)
+  // Total focus time
   const hours = (data.totalMinutes / 60).toFixed(1)
   ctx.font = '500 76px "Fraunces Variable", Georgia, serif'
   ctx.fillStyle = '#141413'
@@ -121,7 +116,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
       : data.totalMinutes + ' total focus minutes across ' + data.activeDaysCount + ' active days'
   ctx.fillText(subHero, 70, 220)
 
-  // 6. Mini 7-Day Bar Chart
+  // 7-day bar chart
   const chartX = 70
   const chartY = 270
   const chartW = 460
@@ -175,7 +170,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   })
   ctx.textAlign = 'left'
 
-  // 7. Divider between Chart and Intentions
+  // Section divider
   ctx.strokeStyle = '#E8E6DC'
   ctx.lineWidth = 1
   ctx.beginPath()
@@ -183,7 +178,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   ctx.lineTo(600, 490)
   ctx.stroke()
 
-  // 8. Top Intentions Section
+  // Top intentions list
   const taskX = 660
   let taskY = 160
 
@@ -227,7 +222,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
     }
   }
 
-  // 9. Serene Footer
+  // Footer
   ctx.font = 'italic 14px "Fraunces Variable", Georgia, serif'
   ctx.fillStyle = '#716F66'
   const quote =

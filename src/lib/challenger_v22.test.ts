@@ -18,9 +18,7 @@ import {
   saveSoundPreferences,
 } from './storage'
 
-/* ========================================================================== */
-/* Web Audio API Mocks for JSDOM Environment                                  */
-/* ========================================================================== */
+// Web Audio API Mocks for JSDOM Environment
 
 class MockAudioParam {
   value: number
@@ -151,9 +149,7 @@ class MockAudioContext {
   close = vi.fn().mockResolvedValue(undefined)
 }
 
-/* ========================================================================== */
-/* EMPIRICAL CHALLENGER TEST SUITE                                             */
-/* ========================================================================== */
+
 
 describe('Milestone v2.2 Empirical Adversarial Testing (challenger_v22_1)', () => {
   beforeEach(() => {
@@ -491,7 +487,7 @@ describe('Milestone v2.2 Empirical Adversarial Testing (challenger_v22_1)', () =
       const engine = new AudioEngine()
       const mockCtx = engine.ensureContext() as unknown as MockAudioContext
 
-      // 1. Activate Alpha mode
+      // Activate Alpha mode
       engine.setBinaural('alpha')
       expect(mockCtx.createdOscillators.length).toBe(2)
       const leftOsc = mockCtx.createdOscillators[0]
@@ -505,7 +501,7 @@ describe('Milestone v2.2 Empirical Adversarial Testing (challenger_v22_1)', () =
       expect(mockCtx.createdPanners[0].pan.setValueAtTime).toHaveBeenCalledWith(-1.0, mockCtx.currentTime)
       expect(mockCtx.createdPanners[1].pan.setValueAtTime).toHaveBeenCalledWith(1.0, mockCtx.currentTime)
 
-      // 2. Switch to Theta mode
+      // Switch to Theta mode
       mockCtx.createdOscillators = []
       mockCtx.createdPanners = []
       engine.setBinaural('theta')
@@ -513,7 +509,7 @@ describe('Milestone v2.2 Empirical Adversarial Testing (challenger_v22_1)', () =
       expect(mockCtx.createdOscillators[0].frequency.setValueAtTime).toHaveBeenCalledWith(180, mockCtx.currentTime)
       expect(mockCtx.createdOscillators[1].frequency.setValueAtTime).toHaveBeenCalledWith(186, mockCtx.currentTime)
 
-      // 3. Switch to Off
+      // Switch to Off
       engine.setBinaural('off')
       expect(engine.getPreferences().binauralMode).toBe('off')
 

@@ -52,9 +52,7 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
-// ============================================================================
-// AREA 1: RFC 5545 iCalendar Adversarial Challenges
-// ============================================================================
+
 describe('Adversarial Challenge Area 1: RFC 5545 iCalendar (src/lib/export.ts)', () => {
   const fixedNow = new Date('2026-09-16T14:00:00.000Z')
 
@@ -275,9 +273,7 @@ describe('Adversarial Challenge Area 1: RFC 5545 iCalendar (src/lib/export.ts)',
   })
 })
 
-// ============================================================================
-// AREA 2: RFC 4180 CSV Adversarial Challenges
-// ============================================================================
+
 describe('Adversarial Challenge Area 2: RFC 4180 CSV (src/lib/export.ts)', () => {
   it('strictly validates UTF-8 BOM (\\uFEFF) at byte offset 0 in encoded output', () => {
     const csv = serializeToCsv([])
@@ -446,9 +442,7 @@ describe('Adversarial Challenge Area 2: RFC 4180 CSV (src/lib/export.ts)', () =>
   })
 })
 
-// ============================================================================
-// AREA 3: GFM Markdown Tables Adversarial Challenges
-// ============================================================================
+
 describe('Adversarial Challenge Area 3: GFM Markdown Tables (src/lib/export.ts)', () => {
   const fixedNow = new Date('2026-09-16T14:30:00.000Z')
 
@@ -532,9 +526,7 @@ describe('Adversarial Challenge Area 3: GFM Markdown Tables (src/lib/export.ts)'
   })
 })
 
-// ============================================================================
-// AREA 4: Schema v2 Backup & Restore Adversarial Challenges
-// ============================================================================
+
 describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/dataPort.ts)', () => {
   describe('Prototype Pollution Resistance', () => {
     it('rejects root __proto__ pollution payload and protects Object.prototype', async () => {
@@ -657,7 +649,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
 
   describe('Backward Compatibility with Schema v1 Payloads', () => {
     it('restores minimal Schema v1 payload while strictly preserving existing local sessions, presets, and interface prefs', async () => {
-      // 1. Establish pre-existing local state
+      // Pre-existing local state
       const preExistingSessions: SessionLogEntryV2[] = [
         {
           id: 's-pre-1',
@@ -676,7 +668,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
 
       saveInterface({ reduceMotion: true, showGreeting: false })
 
-      // 2. Minimal Schema v1 payload (contains only settings and stats, no sessions/presets)
+      // Minimal Schema v1 payload (contains only settings and stats, no sessions/presets)
       const minimalV1Payload = JSON.stringify({
         app: 'focus-flow',
         version: 1,
@@ -696,11 +688,11 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
       const result = await importData(minimalV1Payload)
       expect(result.success).toBe(true)
 
-      // 3. Verify settings and stats were migrated
+      // Verify settings and stats were migrated
       expect(loadSettings().focus).toBe(40)
       expect(loadStats().minutes).toBe(300)
 
-      // 4. CRITICAL: Existing sessions, presets, and interface MUST remain intact
+      // Existing sessions, presets, and interface MUST remain intact
       expect(loadSessions()).toEqual(preExistingSessions)
       expect(loadPresets()).toEqual(preExistingPresets)
       expect(loadInterface()).toEqual({ reduceMotion: true, showGreeting: false })
@@ -816,7 +808,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
     })
 
     it('rejects deeply nested corrupted structures in sessions and handles extreme nesting without crashing', async () => {
-      // 1. Nested object placed in sessions slice
+      // Nested object placed in sessions slice
       let deepSessionObj: Record<string, unknown> = { val: 1 }
       for (let i = 0; i < 50; i++) {
         deepSessionObj = { nested: deepSessionObj }
@@ -845,7 +837,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
         expect(sessionResult.error).toMatch(/corrupted session entry/i)
       }
 
-      // 2. Extremely deep JSON nesting that exceeds parser recursion depth
+      // Extremely deep JSON nesting that exceeds parser recursion depth
       let extremeDeep = '{"leaf": true}'
       for (let i = 0; i < 10_000; i++) {
         extremeDeep = `{"d":${extremeDeep}}`
@@ -1007,9 +999,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
     })
   })
 
-  // ==========================================================================
-  // Scale and High-Volume Serialization Stress Testing
-  // ==========================================================================
+
   describe('High-Volume Scale Stress Testing (1,000 Sessions Benchmark)', () => {
     const generate1000Sessions = (): SessionLogEntryV2[] => {
       const sessions: SessionLogEntryV2[] = []

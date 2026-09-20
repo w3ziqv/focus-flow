@@ -1,20 +1,14 @@
 /**
- * Multi-Format Session Export Serializers (v2.4)
- *
- * Implements client-side serializers for focus session logs:
- * 1. RFC 5545 iCalendar (.ics) with line folding and character escaping.
- * 2. RFC 4180 CSV (.csv) with UTF-8 BOM (\uFEFF) for Excel compatibility.
- * 3. GitHub-Flavored Markdown (.md) tables with daily summary blockquote.
- *
- * Adheres strictly to the Local-First Data Sovereignty Doctrine (ADR-005).
+ * Serializers for exporting session logs:
+ * - RFC 5545 iCalendar (.ics) with line folding and character escaping
+ * - RFC 4180 CSV (.csv) with UTF-8 BOM for spreadsheet compatibility
+ * - GitHub-Flavored Markdown (.md) tables with summary blockquote
  */
 
 import type { SessionLogEntryV2 } from '../types'
 import { triggerDownload } from './download'
 
-// ============================================================================
-// Helpers: Date & Formatting
-// ============================================================================
+
 
 export function formatLocalDate(d: Date): string {
   if (isNaN(d.getTime())) return ''
@@ -58,9 +52,7 @@ export function formatHoursAndMinutes(totalMinutes: number): string {
   return `${mins} ${mWord}`
 }
 
-// ============================================================================
-// 1. RFC 5545 iCalendar (.ics) Serializer
-// ============================================================================
+
 
 /**
  * Escapes characters per RFC 5545 § 3.3.11:
@@ -196,9 +188,7 @@ export function serializeToICal(sessions: SessionLogEntryV2[], now: Date = new D
   return rawLines.map(foldIcsLine).join('\r\n') + '\r\n'
 }
 
-// ============================================================================
-// 2. RFC 4180 CSV (.csv) Serializer
-// ============================================================================
+
 
 export function escapeCsvField(val: string | number | null | undefined): string {
   if (val === null || val === undefined) {
@@ -256,9 +246,7 @@ export function serializeToCsv(sessions: SessionLogEntryV2[]): string {
   return BOM + rows.join('\r\n') + '\r\n'
 }
 
-// ============================================================================
-// 3. GitHub-Flavored Markdown (.md) Serializer
-// ============================================================================
+
 
 export function escapeMarkdownTableCell(val: string): string {
   return val.replace(/\r?\n/g, ' ').replace(/\|/g, '\\|')
@@ -305,9 +293,7 @@ export function serializeToMarkdown(sessions: SessionLogEntryV2[], now: Date = n
   return out
 }
 
-// ============================================================================
-// 4. Client-Side Download Helpers
-// ============================================================================
+
 
 export function downloadICal(sessions: SessionLogEntryV2[], filename?: string, now?: Date): void {
   const defaultDate = formatLocalDate(now ?? new Date())

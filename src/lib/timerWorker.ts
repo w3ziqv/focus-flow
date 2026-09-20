@@ -1,9 +1,6 @@
 /**
- * Dedicated Web Worker Background Heartbeat Ticker (Milestone v2.4)
- *
- * Runs an unthrottled setInterval (~250ms) on a background thread to prevent
- * browser timer throttling when the application tab is inactive or hidden.
- * Provides graceful fallback to window.setInterval in headless, test, or restricted environments.
+ * Background heartbeat ticker using a dedicated Web Worker to prevent
+ * browser timer throttling when the tab is inactive or hidden.
  */
 
 export interface WorkerStartMessage {
@@ -31,6 +28,7 @@ export interface TimerTicker {
 /**
  * Self-execution block when running inside dedicated Web Worker scope.
  */
+// SAFETY: Worker global scope check in worker context
 const isDedicatedWorker =
   typeof window === 'undefined' &&
   typeof document === 'undefined' &&
@@ -53,7 +51,9 @@ if (isDedicatedWorker) {
           ? data.intervalMs
           : 250
       intervalId = setInterval(() => {
-        ;(self as unknown as Worker).postMessage({ type: 'tick' } satisfies WorkerOutMessage)
+        // SAFETY: self is a dedicated Worker instance in worker scope
+        const workerSelf = self as unknown as Worker
+        workerSelf.postMessage({ type: 'tick' } satisfies WorkerOutMessage)
       }, interval)
     } else if (data.type === 'stop') {
       if (intervalId !== null) {

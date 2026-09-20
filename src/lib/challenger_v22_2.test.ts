@@ -16,9 +16,7 @@ import { dict as translations } from './translations'
 import fs from 'node:fs'
 import path from 'node:path'
 
-/* ========================================================================== */
-/* Web Audio API Mocks for JSDOM Environment                                  */
-/* ========================================================================== */
+// Web Audio API Mocks for JSDOM Environment
 
 class MockAudioParam {
   value: number
@@ -152,9 +150,7 @@ class MockAudioContext {
   close = vi.fn().mockResolvedValue(undefined)
 }
 
-/* ========================================================================== */
-/* Adversarial Stress Tests                                                   */
-/* ========================================================================== */
+
 
 describe('Challenger 2: Transition Dynamics & Cancellation Stress', () => {
   let mockCtx: MockAudioContext

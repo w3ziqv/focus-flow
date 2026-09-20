@@ -22,9 +22,7 @@ import {
   testWebhook,
 } from './webhook'
 
-/* ========================================================================== */
-/* Helpers & Fixtures                                                         */
-/* ========================================================================== */
+// Helpers & Fixtures
 
 function makeTestSettings(overrides?: Partial<Settings>): Settings {
   return {
@@ -52,9 +50,7 @@ function makeTestStats(overrides?: Partial<StatsV2>): StatsV2 {
   }
 }
 
-/* ========================================================================== */
-/* Mock Worker Implementation for Adversarial Ticker Tests                    */
-/* ========================================================================== */
+// Mock Worker Implementation for Adversarial Ticker Tests
 
 class MockWorkerHarness {
   static instances: MockWorkerHarness[] = []
@@ -89,9 +85,7 @@ class MockWorkerHarness {
   }
 }
 
-/* ========================================================================== */
-/* AREA 1: Web Worker Ticker Adversarial Stress & Graceful Fallback           */
-/* ========================================================================== */
+
 
 describe('Area 1: Web Worker Ticker Adversarial Stress & Graceful Fallback', () => {
   beforeEach(() => {
@@ -302,9 +296,7 @@ describe('Area 1: Web Worker Ticker Adversarial Stress & Graceful Fallback', () 
   })
 })
 
-/* ========================================================================== */
-/* AREA 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotency    */
-/* ========================================================================== */
+
 
 describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotency', () => {
   beforeEach(() => {
@@ -589,14 +581,14 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
       const settings = makeTestSettings({ focus: 25 })
       const initialStats = makeTestStats()
 
-      // 1. Initial reconciliation
+      // Initial reconciliation
       const firstResult = reconcileExpiredSession(snapshot, settings, initialStats, now, 'en')
       expect(firstResult.reconciled).toBe(true)
       expect(firstResult.elapsedMinutes).toBe(25)
       expect(loadSessions()).toHaveLength(1)
       expect(loadStats().minutes).toBe(25)
 
-      // 2. Repeat 10 times with the updated snapshot and stats
+      // Subsequent runs with updated snapshot and stats
       let currentSnapshot = firstResult.newSnapshot
       let currentStats = firstResult.newStats
 
@@ -713,9 +705,7 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
   })
 })
 
-/* ========================================================================== */
-/* AREA 3: Client-Side Webhook Trigger Adversarial Stress                     */
-/* ========================================================================== */
+
 
 describe('Area 3: Client-Side Webhook Trigger Adversarial Stress', () => {
   beforeEach(() => {
@@ -905,7 +895,7 @@ describe('Area 3: Client-Side Webhook Trigger Adversarial Stress', () => {
         result.current.updateSettings({ focus: 1, short: 1, long: 1, rounds: 4, autoStart: false })
       })
 
-      // 1. START must be instantaneous and set running=true
+      // Start must be instantaneous and set running=true
       const startBefore = Date.now()
       act(() => {
         result.current.start()
@@ -914,7 +904,7 @@ describe('Area 3: Client-Side Webhook Trigger Adversarial Stress', () => {
       expect(startAfter - startBefore).toBeLessThan(100) // Synchronous, no await
       expect(result.current.running).toBe(true)
 
-      // 2. PAUSE must be instantaneous and set running=false
+      // Pause must be instantaneous and set running=false
       const pauseBefore = Date.now()
       act(() => {
         result.current.pause()
@@ -923,7 +913,7 @@ describe('Area 3: Client-Side Webhook Trigger Adversarial Stress', () => {
       expect(pauseAfter - pauseBefore).toBeLessThan(100)
       expect(result.current.running).toBe(false)
 
-      // 3. Resume and COMPLETE must advance mode to short break without hanging
+      // Resume and complete must advance mode to short break without hanging
       act(() => {
         result.current.start()
       })

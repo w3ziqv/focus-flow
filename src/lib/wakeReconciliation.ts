@@ -1,16 +1,5 @@
 /**
- * Pure Cold-Start Wake Reconciliation (Milestone v2.4)
- *
- * Reconciles sessions that expired while the system was in deep sleep,
- * laptop lid was closed, or browser process was suspended/closed.
- *
- * Invariants:
- * - Pure, fully unit-testable function with deterministic outputs.
- * - If an active focus session expired: credits stats, logs session with micro-steps,
- *   advances phase to short/long break, saves snapshot, and returns a bilingual notice.
- * - If an active break session expired: advances to focus phase without crediting stats or notice.
- * - If active session has not expired or was not running: returns reconciled: false without mutations.
- * - Strict idempotency: re-running on an already-reconciled snapshot produces zero mutations.
+ * Reconciles sessions that expired while the system was asleep or tab was suspended.
  */
 
 import type { Lang, Mode, SessionSnapshotV2, Settings, StatsV2, TimerMode } from '../types'
@@ -74,10 +63,8 @@ export function reconcileExpiredSession(
 
   if (isFocus) {
     elapsedMinutes = settings.focus
-    // 1. Credit stats with elapsed focus minutes
     newStats = recordFocusSession(stats, elapsedMinutes)
 
-    // 2. Append completed session to storage with exact completion timestamp
     const sessionId = snapshot.id || `s${endTs.toString(36)}${Math.random().toString(36).slice(2, 7)}`
     addSession({
       id: sessionId,
@@ -87,10 +74,8 @@ export function reconcileExpiredSession(
       checklist: snapshot.checklist && snapshot.checklist.length > 0 ? [...snapshot.checklist] : undefined,
     })
 
-    // 3. Persist updated stats
     saveStats(newStats)
 
-    // 4. Bilingual tranquil in-app notice
     notice =
       lang === 'pl'
         ? 'Sesja skupienia została ukończona podczas Twojej nieobecności.'

@@ -143,6 +143,18 @@ To prevent feature bloat from eroding the product's focus sanctuary, all UX capa
 | **Stage 6** | **v2.6** | Opt-In Cloud Synchronization & Google Identity | Schema v2.6 (`CloudSyncAdapter` + Firestore `users/{uid}/*`) | Full acoustic engine with synced sound preferences | All v2.4 formats + Cloud JSON Snapshot | Web (PWA) & Desktop (Tauri 2) | Forced account creation, telemetry tracking, background battery drain & data lock-in |
 | **Stage 7** | **v3.0** | Platform Expansion & Desktop Ecosystem | Schema v3.0 (Atomic JSON + Local P2P CRDT) | OS-integrated audio engine | All v2.4 formats + Native File I/O | Windows, macOS, Linux | Bloated Electron runtime (150MB+ RAM), spyware daemons & cloud sync servers |
 
+### 2.1 Release Status Tracking
+
+| Version | Stage | Status | Tag / Release | Primary Deliverables |
+|---|---|---|---|---|
+| **v2.1.0** | Stage 1 | Completed | `v2.1.0` | TypeScript 7.0 Go compiler baseline, Vitest 4, unified storage layer |
+| **v2.2.0** | Stage 2 | Completed | `v2.2.0` | Pure Web Audio synthesis (pink/brown noise, rain, waves, Tibetan singing bowl) |
+| **v2.3.1** | Stage 3 | Completed | `v2.3.1` | Ephemeral micro-steps, Zen milestone seals, 30-day parchment heatmap, scientific guides library |
+| **v2.4.1** | Stage 4 | Completed | `v2.4.1` | Multi-format export (iCalendar RFC 5545, CSV RFC 4180, Markdown), webhooks, mobile SW alerts |
+| **v2.5.0** | Stage 5 | **Current (Active)** | `v2.5.0` | Sensory themes, WCAG 2.2 AAA contrast, shortcuts manager, speech narration, language auto-detection |
+| **v2.6.0** | Stage 6 | In Queue | — | Opt-in Google authentication, Firestore multi-device sync, conflict reconciliation |
+| **v3.0.0** | Stage 7 | Planned | — | Tauri 2 native desktop app, system tray mini-dial, local P2P sync |
+
 ---
 
 ## 3. Milestone Specifications

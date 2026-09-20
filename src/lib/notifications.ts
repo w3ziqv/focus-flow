@@ -1,9 +1,6 @@
 /**
- * Robust Mobile and Desktop Notification Dispatcher for Focus Flow.
- *
- * Upgrades notification delivery from naive `new Notification()` to
- * `ServiceWorkerRegistration.showNotification()` with vibration feedback,
- * native haptics, and graceful desktop fallback.
+ * Notification dispatcher with ServiceWorker showNotification on mobile,
+ * haptic feedback, and desktop Notification fallback.
  */
 
 export type NotificationPermissionState = 'granted' | 'denied' | 'default' | 'unsupported'
@@ -85,17 +82,14 @@ export async function dispatchNotification(
   title: string,
   options: MobileNotificationOptions = {},
 ): Promise<boolean> {
-  // 1. Guard against ungranted permission or unsupported environment
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
     return false
   }
 
-  // 2. Trigger native haptic feedback directly upon session completion unless opted out
   if (options.hapticFeedback !== false) {
     triggerHapticFeedback(HAPTIC_FEEDBACK_PATTERN)
   }
 
-  // 3. Compose merged options with defaults
   const mergedOptions: MobileNotificationOptions = {
     ...NOTIFICATION_DEFAULTS,
     ...options,
@@ -109,7 +103,7 @@ export async function dispatchNotification(
   }
   delete mergedOptions.hapticFeedback
 
-  // 4. Attempt delivery via Service Worker
+  // Try Service Worker notification first (required for mobile browsers)
   if (
     typeof navigator !== 'undefined' &&
     'serviceWorker' in navigator &&
@@ -164,7 +158,7 @@ export async function dispatchNotification(
     }
   }
 
-  // 5. Gracefully fall back to standard desktop new Notification()
+  // Standard desktop notification fallback
   try {
     new Notification(title, mergedOptions)
     return true

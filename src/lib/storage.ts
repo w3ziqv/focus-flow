@@ -572,7 +572,7 @@ export function isSoundPreferences(value: unknown): SoundPreferences | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
   const v = value as Record<string, unknown>
 
-  // 1. Base Texture validation & fallback
+  // Base Texture validation & fallback
   let baseTexture: BaseSoundTexture = DEFAULT_SOUND_PREFERENCES.baseTexture
   const rawTexture = v.baseTexture ?? v.texture
   if (typeof rawTexture === 'string') {
@@ -586,16 +586,14 @@ export function isSoundPreferences(value: unknown): SoundPreferences | null {
       if (customId.length > 0 && customId.length <= 64) {
         baseTexture = `custom:${customId}`
       } else {
-        // Corrupt custom sound metadata falls back to brown noise per ROADMAP spec
         baseTexture = 'brown'
       }
     } else {
-      // Unrecognized string -> fallback to none
       baseTexture = 'none'
     }
   }
 
-  // 2. Binaural Mode validation
+  // Binaural Mode validation
   let binauralMode: BinauralMode = DEFAULT_SOUND_PREFERENCES.binauralMode
   const rawBinaural = v.binauralMode ?? v.binaural
   if (typeof rawBinaural === 'string') {
@@ -607,14 +605,14 @@ export function isSoundPreferences(value: unknown): SoundPreferences | null {
     }
   }
 
-  // 3. Tone Warmth Cutoff (200 - 1200 Hz)
+  // Tone Warmth Cutoff (200 - 1200 Hz)
   let toneWarmthCutoff = DEFAULT_TONE_WARMTH
   const rawWarmth = v.toneWarmthCutoff ?? v.toneWarmth
   if (typeof rawWarmth === 'number' && Number.isFinite(rawWarmth)) {
     toneWarmthCutoff = Math.min(MAX_TONE_WARMTH, Math.max(MIN_TONE_WARMTH, Math.round(rawWarmth)))
   }
 
-  // 4. Volume (0.0 - 1.0)
+  // Volume (0.0 - 1.0)
   let volume = DEFAULT_VOLUME
   if (typeof v.volume === 'number' && Number.isFinite(v.volume)) {
     volume = Math.min(1, Math.max(0, Math.round(v.volume * 100) / 100))

@@ -52,9 +52,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     },
   ]
 
-  // ==========================================================================
-  // Date and Time Helpers
-  // ==========================================================================
+
   describe('Date and Time Format Helpers', () => {
     it('formats UTC date-time into iCal YYYYMMDDTHHMMSSZ format', () => {
       const d = new Date('2026-09-01T09:05:07.000Z')
@@ -85,9 +83,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     })
   })
 
-  // ==========================================================================
-  // RFC 5545 iCalendar Serializer
-  // ==========================================================================
+
   describe('serializeToICal (RFC 5545)', () => {
     it('escapes special iCalendar characters per RFC 5545 § 3.3.11', () => {
       const input = 'Backslash \\ Semicolon ; Comma , Newline\nEnd'
@@ -193,9 +189,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     })
   })
 
-  // ==========================================================================
-  // RFC 4180 CSV Serializer
-  // ==========================================================================
+
   describe('serializeToCsv (RFC 4180)', () => {
     it('escapes CSV fields according to RFC 4180 rules', () => {
       expect(escapeCsvField('simple')).toBe('"simple"')
@@ -254,9 +248,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     })
   })
 
-  // ==========================================================================
-  // GitHub-Flavored Markdown Serializer
-  // ==========================================================================
+
   describe('serializeToMarkdown (GFM)', () => {
     it('escapes pipes and strips newlines from markdown table cells', () => {
       expect(escapeMarkdownTableCell('Task | with | pipes')).toBe('Task \\| with \\| pipes')
@@ -314,9 +306,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     })
   })
 
-  // ==========================================================================
-  // Client-Side Download Trigger Helper
-  // ==========================================================================
+
   describe('Download Triggers (download.ts & export.ts)', () => {
     let originalCreateObjectURL: typeof URL.createObjectURL
     let originalRevokeObjectURL: typeof URL.revokeObjectURL
@@ -404,9 +394,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     })
   })
 
-  // ==========================================================================
-  // Boundary and Edge Conditions
-  // ==========================================================================
+
   describe('Boundary and Edge Conditions', () => {
     it('handles empty sessions array across all three serializers', () => {
       const ics = serializeToICal([], fixedNow)

@@ -16,9 +16,7 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-// ============================================================================
-// AREA 1: Ephemeral Session Micro-Steps & Storage Stress
-// ============================================================================
+
 
 describe('Area 1: Storage Bounds Stress & Production Persistence Adapter', () => {
   it('measures payload size of 1,000 realistic SessionLogEntry items in production storage', () => {
@@ -192,9 +190,7 @@ describe('Area 1: Storage Bounds Stress & Production Persistence Adapter', () =>
   })
 })
 
-// ============================================================================
-// AREA 2: Web Audio Procedural Synthesis Math & Stability
-// ============================================================================
+
 
 describe('Area 2: Web Audio Math & Numerical Stability', () => {
   it('tests Kellet pink noise filter numerical stability and amplitude bounds', () => {
@@ -311,9 +307,7 @@ describe('Area 2: Web Audio Math & Numerical Stability', () => {
   })
 })
 
-// ============================================================================
-// AREA 3: Desktop OS & Tray / DPI Scaling
-// ============================================================================
+
 
 describe('Area 3: Desktop OS Tray DPI & Shortcuts Stress', () => {
   it('calculates tray icon dimensions across standard OS scale factors', () => {
@@ -346,9 +340,7 @@ describe('Area 3: Desktop OS Tray DPI & Shortcuts Stress', () => {
   })
 })
 
-// ============================================================================
-// AREA 4: Ecosystem Serializers & Non-Goals Integrity
-// ============================================================================
+
 
 describe('Area 4: Ecosystem Serializers & Boundary Compliance', () => {
   it('tests RFC 5545 iCalendar serialization escaping rules', () => {

@@ -8,9 +8,7 @@ import {
   generateWavesBuffer,
 } from './audio'
 
-/* ========================================================================== */
-/* Web Audio API Mocks for JSDOM Environment                                  */
-/* ========================================================================== */
+// Web Audio API Mocks for JSDOM Environment
 
 class MockAudioParam {
   value: number
@@ -133,9 +131,7 @@ class MockAudioContext {
   close = vi.fn().mockResolvedValue(undefined)
 }
 
-/* ========================================================================== */
-/* Test Suites                                                                */
-/* ========================================================================== */
+
 
 describe('Web Audio Procedural Buffer Generation', () => {
   let mockCtx: AudioContext
