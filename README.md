@@ -79,7 +79,7 @@ Everything runs entirely in your browser — no accounts, no subscriptions, and 
 
 ```text
 focus-flow/
-├── public/              # Static assets, PWA icons, screenshots, favicon
+├── public/              # Static web assets, PWA icons, screenshots, favicon
 ├── src/
 │   ├── components/      # UI components (Dial, Settings, AudioMixer, Shortcuts)
 │   ├── hooks/           # Custom hooks (useTimer, useAudio, useLanguage)
@@ -87,8 +87,7 @@ focus-flow/
 │   ├── views/           # Primary views (Timer, Stats, Guides library)
 │   ├── types.ts         # Central TypeScript interfaces & schemas
 │   └── App.tsx          # Application shell & routing
-├── docs/                # Architecture records (ADR), roadmap, and assets
-├── DESIGN.md            # Typography, color tokens, and design system contracts
+├── docs/                # Architecture records (ADR), roadmap, specs, and assets
 └── vite.config.ts       # Vite & PWA configuration
 ```
 
@@ -128,11 +127,12 @@ npm run build
 
 ---
 
-## Documentation & Roadmap
+## Documentation
 
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — 7-stage technical roadmap specification and release status tracking.
-- [`DESIGN.md`](DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
+- [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
+- [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
 
 ---
 

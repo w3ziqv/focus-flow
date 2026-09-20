@@ -166,7 +166,7 @@ class FirestoreRulesEngine {
 }
 
 describe('Adversarial Firestore Security Rules Verification', () => {
-  const rulesPath = path.resolve(process.cwd(), 'firestore.rules')
+  const rulesPath = path.resolve(__dirname, 'firestore.rules')
   const engine = new FirestoreRulesEngine(rulesPath)
   const rulesContent = engine.getRawRules()
 

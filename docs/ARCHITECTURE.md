@@ -32,7 +32,7 @@ Rules that keep it future-proof:
    for a file-backed adapter; nothing else changes.
 2. `lib/` never imports React DOM APIs. Engine and derivations are testable
    without rendering.
-3. All design decisions trace to `DESIGN.md`; all colors/spacing/type to tokens
+3. All design decisions trace to `docs/DESIGN.md`; all colors/spacing/type to tokens
    in `src/index.css`.
 
 ## 3. ADRs
@@ -201,7 +201,7 @@ To ensure zero risk of developer disruption or CI lockouts during the transition
 - **Negative:** Project dependency relies on platform-specific native binary releases.
 - **Neutral:** Zero runtime client impact; emitted JavaScript and bundle sizes are 100% identical.
 
-### ADR-002 — Tailwind CSS v4 with a token file, design contract in DESIGN.md — Accepted
+### ADR-002 — Tailwind CSS v4 with a token file, design contract in docs/DESIGN.md — Accepted
 Tailwind utilities keep styling local; the token layer (`@theme` in
 `src/index.css`) is the single source of visual truth. Lint and review check
 that no raw values bypass tokens.
@@ -381,7 +381,7 @@ To prevent hitting Firestore’s 1 MB per-document limit, data is organized into
   ├── metadata/sync         (Client platform, schemaVersion, lastSyncedAt)
   └── sessions/{sessionId}  (Individual SessionLogEntryV2 records)
 ```
-Access is governed by `firestore.rules`, enforcing that unauthenticated requests and cross-user read/write attempts are rejected with `PERMISSION_DENIED` at the network edge:
+Access is governed by `src/lib/sync/firestore.rules`, enforcing that unauthenticated requests and cross-user read/write attempts are rejected with `PERMISSION_DENIED` at the network edge:
 `request.auth != null && request.auth.uid == userId`.
 
 #### 7. Consequences & Trade-offs
