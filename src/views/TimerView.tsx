@@ -47,7 +47,7 @@ export function TimerView({
   const isSoundActive = ambient !== 'none' || (binaural && binaural !== 'off')
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 sm:min-h-0 sm:pt-10 sm:pb-20 md:pt-16">
+    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 md:min-h-0 md:justify-start md:pt-24 md:pb-16">
       <p aria-hidden="true" className="mb-3 text-center text-overline text-ink-3 max-sm:block sm:hidden">
         FOCUS FLOW
       </p>
