@@ -302,7 +302,12 @@ The 100% Opt-In rule is an inviolable architectural contract:
 2. **Explicit User Action Required:** Firebase SDK resolution and initialization occur exclusively after the user opens the Cloud Sync dialog and explicitly clicks the "Sign in with Google" button.
 3. **Clean Disconnect & Sovereignty Retention:**
    - **Sign Out**: Terminates authentication, unregisters Firestore real-time listeners, and reverts the client to local mode. **All local sessions and preferences remain 100% intact.**
-   - **Purge Cloud Data**: Issues an authenticated batch deletion across `users/{uid}/*`, signs out, and preserves local storage.
+   - **Purge Cloud Data (GDPR Art. 17 Complete Erasure)**: Performs an authenticated batch deletion across all subcollections (`sessions/*`, `settings/*`, `stats/*`, `sound_prefs/*`, `interface/*`, `metadata/*`, `tombstones/*`) before deleting the Google Identity user record, eliminating orphaned cloud documents permanently.
+4. **Private Task Intention Masking (Opt-In Privacy Mode):**
+   - Users can toggle *"Mask task titles in cloud"* in Interface / Privacy preferences (`maskTaskTitlesInCloud: true`).
+   - When enabled, remote writes to Firestore transmit `task: null` and omit `checklist`, synchronizing duration minutes, completion timestamps, and streak momentum while keeping intimate task descriptions exclusively on the host physical device.
+5. **Shared Device / Multi-Account Consent Guard:**
+   - On first login, if local storage contains session history previously associated with a different Google account, the user is explicitly prompted (*Link local sessions* vs. *Start fresh with cloud sessions*), preventing accidental data leakage across users sharing a workstation.
 
 #### 4. Dynamic Code-Splitting Strategy (<300 kB Base Bundle Budget)
 The uncompressed Firebase v11 modular SDK (`firebase/app`, `firebase/auth`, `firebase/firestore`) totals ~520 kB (~165 kB gzipped). Statically importing these packages into the main entry bundle would double the application footprint, violating Focus Flow's core performance budget (<300 kB uncompressed).
@@ -360,11 +365,18 @@ When linking a device with existing local records to a Google account for the fi
 2. **Algebraic Merge Engine (`mergeSessions` in `src/lib/sync/merge.ts`):**
    - **Commutative & Symmetrical:** `merge(A, B) === merge(B, A)`. Regardless of which device acts as local or remote, the resolved state is identical.
    - **Idempotent:** `merge(A, A) === A`. Repeated sync passes produce zero state oscillation.
-   - **Session Deduplication:** Sessions sharing an identical `id` are unified.
-     * `minutes`: Retains the maximum valid duration `Math.max(local.minutes, remote.minutes)`.
-     * `task`: Non-null string preferred; if both exist, the longer intention string wins; if lengths match, deterministic alphabetical tie-break (`localeCompare`).
+   - **Session Deduplication & LWW Conflict Resolution:** Sessions sharing an identical `id` are unified.
+     * `updatedAt`: Field conflicts resolve via deterministic Last-Write-Wins (LWW) based on ISO `updatedAt` timestamps, allowing users to correct typos, shorten strings, or clear descriptions without heuristic character-length overrides.
+     * `minutes`: Retains the latest write; falls back to maximum valid duration `Math.max(local.minutes, remote.minutes)`.
      * `checklist`: Monotonic progression merge (`done: true` wins over `done: false`), deduplicated by item `id`.
-   - **Boundary Clamping:** The unified array is sorted chronologically descending (`date` newest first) and clamped strictly to `MAX_SESSIONS` (1,000 items).
+   - **Tombstone Deletion Invariant (30-Day TTL):**
+     * Solves the "Zombie Session Resurrection" problem across offline devices.
+     * Session deletions generate a lightweight tombstone record `{ id, deletedAt }` stored locally (`ff_session_tombstones`) and synced to `/users/{userId}/tombstones/{sessionId}`.
+     * During synchronization, any session whose creation date is prior to or at `tombstone.deletedAt` is permanently discarded rather than resurrected.
+     * Tombstones older than 30 days are pruned automatically.
+   - **Bounded Cloud Querying & Clamping:**
+     * `pullSessions()` enforces `.orderBy('date', 'desc').limit(1000)` to eliminate unbounded read leaks and prevent Out Of Memory (OOM) browser crashes.
+     * The unified array is sorted chronologically descending (`date` newest first) and clamped strictly to `MAX_SESSIONS` (1,000 items).
    - **Aggregate Metric Recalculation:** Aggregate statistics (`minutes`, `today`, `week`, `history`) are recomputed directly from the merged session list, preventing counter drift or double-counting.
 3. **Bi-Directional Commit:**
    - Unified sessions and recomputed stats are committed atomically to local storage via `src/lib/storage.ts`.
@@ -372,17 +384,23 @@ When linking a device with existing local records to a Google account for the fi
 
 #### 6. Firestore Document Hierarchy & Scoped Security Architecture
 To prevent hitting Firestore’s 1 MB per-document limit, data is organized into user-scoped subcollections:
-```
+```text
 /users/{userId}/
-  ├── settings/current      (Timer and round durations, autoStart)
-  ├── stats/summary         (All-time minutes, today, week, streak, history)
-  ├── sound_prefs/current   (Ambient texture, binaural beats, warmth cutoff, volume)
-  ├── interface/current     (Theme, keyboard shortcuts, narration verbosity, daily targets)
-  ├── metadata/sync         (Client platform, schemaVersion, lastSyncedAt)
-  └── sessions/{sessionId}  (Individual SessionLogEntryV2 records)
+  ├── settings/current      (Timer and round durations, autoStart — singleton)
+  ├── stats/summary         (All-time minutes, today, week, streak, history — singleton)
+  ├── sound_prefs/current   (Ambient texture, binaural beats, warmth cutoff, volume — singleton)
+  ├── interface/current     (Theme, keyboard shortcuts, narration verbosity, task masking — singleton)
+  ├── metadata/sync         (Client platform, schemaVersion, lastSyncedAt — singleton)
+  ├── tombstones/{id}       (30-day session deletion tombstones for resurrection prevention)
+  └── sessions/{sessionId}  (Individual SessionLogEntryV2 records, bounded at 1,000)
 ```
 Access is governed by `src/lib/sync/firestore.rules`, enforcing that unauthenticated requests and cross-user read/write attempts are rejected with `PERMISSION_DENIED` at the network edge:
 `request.auth != null && request.auth.uid == userId`.
+In addition, rules enforce:
+- Bounded list queries (`request.query.limit <= 1000`) preventing Denial-of-Wallet / read quota exhaustion.
+- Document ID locking (`data.id == sessionId`).
+- Strict field allowlisting (`data.keys().hasOnly(...)`) and scalar bounds (`task.size() <= 200`, `checklist.size() <= 3`).
+- Singleton document key locking (`docId == 'current'`, `docId == 'summary'`, `docId == 'sync'`).
 
 #### 7. Consequences & Trade-offs
 - **Positive:**

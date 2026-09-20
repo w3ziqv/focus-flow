@@ -777,7 +777,7 @@ Focus Flow’s visual serenity remains inviolable. Cloud capabilities introduce 
 
 To prevent hitting the 1 MB document size ceiling and allow efficient indexed queries, data is modeled as user-isolated subcollections rather than a single monolithic document:
 
-```
+```text
 users/
   └── {uid}/
         ├── settings/
@@ -787,13 +787,15 @@ users/
         ├── sound_prefs/
         │     └── current         --> CloudSoundPrefsDocument { baseTexture, binauralMode, toneWarmthCutoff, volume, updatedLocallyAt }
         ├── interface/
-        │     └── current         --> CloudInterfaceDocument { theme, shortcuts, narration, dailyTargetMinutes, updatedLocallyAt }
+        │     └── current         --> CloudInterfaceDocument { theme, shortcuts, narration, dailyTargetMinutes, maskTaskTitlesInCloud, updatedLocallyAt }
         ├── metadata/
         │     └── sync            --> CloudSyncMetadataDocument { lastSyncedAt, schemaVersion, clientPlatform }
+        ├── tombstones/
+        │     └── {tombstoneId}   --> SessionTombstone { id, deletedAt } (30-day TTL resurrection prevention)
         └── sessions/
-              ├── {sessionId_1}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
-              ├── {sessionId_2}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
-              └── {sessionId_N}   --> CloudSessionDocument (SessionLogEntryV2 + updatedLocallyAt, deleted)
+              ├── {sessionId_1}   --> CloudSessionDocument (SessionLogEntryV2 + updatedAt, deleted)
+              ├── {sessionId_2}   --> CloudSessionDocument (SessionLogEntryV2 + updatedAt, deleted)
+              └── {sessionId_N}   --> CloudSessionDocument (SessionLogEntryV2 + updatedAt, deleted, bounded <= 1,000)
 ```
 
 **Subcollection Architectural Advantages**:
@@ -818,6 +820,10 @@ users/
   ```
 - **Reconciliation Protocol**:
   - Symmetrical union merge `mergeSessions(local, remote)` is commutative (`merge(A, B) === merge(B, A)`), idempotent (`merge(A, A) === A`), and monotonic.
+  - **Tombstones Integration (30-Day TTL)**: Deleted sessions record a tombstone `{ id, deletedAt }` in `ff_session_tombstones` and sync to `users/{uid}/tombstones/{id}`, preventing session resurrection when offline devices reconnect.
+  - **Last-Write-Wins (LWW) via `updatedAt`**: Field conflict resolution uses ISO `updatedAt` timestamps rather than character-length heuristics, ensuring intentional text edits or string clearing are faithfully preserved.
+  - **Private Task Intention Masking (Opt-In Privacy)**: Configurable in Interface settings (`maskTaskTitlesInCloud: true`). When enabled, cloud session writes transmit `task: null` and omit `checklist`, syncing duration minutes and streaks while keeping task strings strictly local.
+  - **Bounded Pull Queries**: `pullSessions()` enforces `.orderBy('date', 'desc').limit(1000)` to eliminate unbounded read leaks and protect Firestore free-tier quotas.
   - Capped to `MAX_SESSIONS` (1,000 items) sorted newest-first by completion timestamp.
   - Recomputes aggregate stats dynamically to prevent drift or duplicate counting.
 

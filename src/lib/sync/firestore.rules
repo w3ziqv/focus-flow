@@ -3,100 +3,162 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // =========================================================================
-    // Focus Flow — Production Cloud Firestore Security Rules (Stage 6 / v2.6)
+    // Focus Flow — Hardened Cloud Firestore Security Rules (Stage 6 / v2.6)
     // Architecture: ADR-005 (Local-First) & ADR-009 (Opt-in Cloud Sync)
     // Invariant: 100% user-isolated subcollections with explicit default deny.
     // =========================================================================
 
-    // Authentication and ownership validation helpers
     function isAuthenticated() {
-      return request.auth != null;
+      return request.auth != null && request.auth.uid != null;
     }
 
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Boundary data integrity validators
+    // --- Checklist Item Validator ---
+    function isValidChecklistItem(item) {
+      return item is map &&
+             item.keys().hasOnly(['id', 'text', 'completed', 'done']) &&
+             item.id is string && item.id.size() > 0 && item.id.size() <= 64 &&
+             item.text is string && item.text.size() <= 140 &&
+             (!('completed' in item) || item.completed is bool) &&
+             (!('done' in item) || item.done is bool);
+    }
+
+    // --- Session Record Validator ---
+    function isValidSession(data, sessionId) {
+      return data.keys().hasOnly([
+               'id', 'date', 'minutes', 'durationMinutes', 'task', 'checklist',
+               'updatedLocallyAt', 'deleted', 'schemaVersion', 'deviceId'
+             ]) &&
+             data.id is string && data.id == sessionId && data.id.size() <= 64 &&
+             data.date is string && data.date.size() <= 40 &&
+             data.minutes is number && data.minutes >= 0 && data.minutes <= 120 &&
+             (!('task' in data) || data.task == null || (data.task is string && data.task.size() <= 200)) &&
+             (!('checklist' in data) || data.checklist == null || (data.checklist is list && data.checklist.size() <= 3)) &&
+             (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40)) &&
+             (!('deleted' in data) || data.deleted is bool) &&
+             (!('schemaVersion' in data) || data.schemaVersion is number) &&
+             (!('deviceId' in data) || (data.deviceId is string && data.deviceId.size() <= 64));
+    }
+
+    // --- Settings Validator ---
     function isValidSettings(data) {
-      return data.focus is number && data.focus >= 1 && data.focus <= 120 &&
+      return data.keys().hasOnly([
+               'focus', 'short', 'shortBreak', 'long', 'longBreak', 'rounds',
+               'autoStart', 'soundPreferences', 'interface', 'goals',
+               'updatedLocallyAt', 'schemaVersion', 'deviceId'
+             ]) &&
+             data.focus is number && data.focus >= 1 && data.focus <= 120 &&
              ((data.short is number && data.short >= 1 && data.short <= 60) ||
               (data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
              ((data.long is number && data.long >= 1 && data.long <= 120) ||
               (data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
              data.rounds is number && data.rounds >= 1 && data.rounds <= 20 &&
-             data.autoStart is bool;
+             data.autoStart is bool &&
+             (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
     }
 
+    // --- Stats Validator ---
     function isValidStats(data) {
-      return data.minutes is number && data.minutes >= 0 &&
-             data.today is number && data.today >= 0 &&
-             data.week is number && data.week >= 0 &&
-             data.streak is number && data.streak >= 0;
+      return data.keys().hasOnly([
+               'minutes', 'today', 'week', 'streak', 'date', 'weekStart',
+               'lastDate', 'history', 'milestones', 'goals',
+               'updatedLocallyAt', 'schemaVersion', 'deviceId'
+             ]) &&
+             data.minutes is number && data.minutes >= 0 && data.minutes <= 10000000 &&
+             data.today is number && data.today >= 0 && data.today <= 1440 &&
+             data.week is number && data.week >= 0 && data.week <= 10080 &&
+             data.streak is number && data.streak >= 0 && data.streak <= 36500 &&
+             (!('date' in data) || (data.date is string && data.date.size() <= 40)) &&
+             (!('weekStart' in data) || (data.weekStart is string && data.weekStart.size() <= 40)) &&
+             (!('lastDate' in data) || data.lastDate == null || (data.lastDate is string && data.lastDate.size() <= 40)) &&
+             (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
     }
 
-    function isValidSession(data) {
-      return data.id is string && data.id.size() > 0 && data.id.size() <= 64 &&
-             data.minutes is number && data.minutes >= 1 && data.minutes <= 120 &&
-             data.date is string && data.date.size() <= 40;
+    // --- Preferences Validator ---
+    function isValidSoundPrefs(data) {
+      return data.keys().hasOnly(['baseTexture', 'binauralMode', 'toneWarmthCutoff', 'volume', 'updatedLocallyAt']) &&
+             (!('volume' in data) || (data.volume is number && data.volume >= 0 && data.volume <= 1)) &&
+             (!('toneWarmthCutoff' in data) || (data.toneWarmthCutoff is number && data.toneWarmthCutoff >= 0 && data.toneWarmthCutoff <= 1200)) &&
+             (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
+    }
+
+    function isValidInterface(data) {
+      return data.keys().hasOnly(['theme', 'shortcuts', 'narration', 'dailyTargetMinutes', 'updatedLocallyAt', 'maskTaskTitlesInCloud']) &&
+             (!('dailyTargetMinutes' in data) || (data.dailyTargetMinutes is number && data.dailyTargetMinutes >= 0 && data.dailyTargetMinutes <= 720)) &&
+             (!('maskTaskTitlesInCloud' in data) || data.maskTaskTitlesInCloud is bool) &&
+             (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
+    }
+
+    function isValidMetadata(data) {
+      return data.keys().hasOnly(['lastSyncedAt', 'schemaVersion', 'clientPlatform']) &&
+             (!('lastSyncedAt' in data) || (data.lastSyncedAt is string && data.lastSyncedAt.size() <= 40)) &&
+             (!('schemaVersion' in data) || data.schemaVersion is number);
+    }
+
+    // --- Tombstone Validator ---
+    function isValidTombstone(data, tombstoneId) {
+      return data.keys().hasOnly(['id', 'deletedAt']) &&
+             data.id is string && data.id == tombstoneId && data.id.size() <= 64 &&
+             data.deletedAt is string && data.deletedAt.size() <= 40;
     }
 
     // -------------------------------------------------------------------------
-    // User Document Hierarchy: /users/{userId}
-    // All read/write access is strictly scoped to request.auth.uid == userId.
-    // Cross-user reads and writes are forbidden.
+    // User Hierarchy: /users/{userId}
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      // Disallow direct reads/writes to the root user container document
       allow read, write: if false;
 
-      // Settings subcollection (/users/{userId}/settings/{docId})
+      // Singleton subcollections: strictly lock document IDs
       match /settings/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isValidSettings(request.resource.data);
+        allow create, update: if isOwner(userId) && docId == 'current' && isValidSettings(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Stats summary subcollection (/users/{userId}/stats/{docId})
       match /stats/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isValidStats(request.resource.data);
+        allow create, update: if isOwner(userId) && docId == 'summary' && isValidStats(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Sound preferences subcollection (/users/{userId}/sound_prefs/{docId})
       match /sound_prefs/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId);
+        allow create, update: if isOwner(userId) && docId == 'current' && isValidSoundPrefs(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Interface preferences & daily goals subcollection (/users/{userId}/interface/{docId})
       match /interface/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId);
+        allow create, update: if isOwner(userId) && docId == 'current' && isValidInterface(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Metadata & sync status subcollection (/users/{userId}/metadata/{docId})
       match /metadata/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId);
+        allow create, update: if isOwner(userId) && docId == 'sync' && isValidMetadata(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Session records subcollection (/users/{userId}/sessions/{sessionId})
+      // Sessions subcollection: enforce query limit and path-body ID locking
       match /sessions/{sessionId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId) && request.query.limit <= 1000;
+        allow create, update: if isOwner(userId) && isValidSession(request.resource.data, sessionId);
+        allow delete: if isOwner(userId);
+      }
+
+      // Deletion Tombstones subcollection (30-day resurrection prevention)
+      match /tombstones/{tombstoneId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isValidSession(request.resource.data);
+        allow create, update: if isOwner(userId) && isValidTombstone(request.resource.data, tombstoneId);
         allow delete: if isOwner(userId);
       }
     }
 
-    // -------------------------------------------------------------------------
     // Global Default Deny
-    // Any document path outside of /users/{userId} is strictly denied.
-    // -------------------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;
     }
