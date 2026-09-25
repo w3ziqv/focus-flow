@@ -60,21 +60,17 @@ let cachedModules: FirebaseModules | null = null
 let cachedContext: FirebaseContext | null = null
 
 /**
- * Default public demo / client config fallback for development/testing when env vars are absent.
- * Real deployment uses environment variables.
+ * Resolves Firebase web client configuration.
+ * Uses Vite environment variables if provided, falling back to Focus Flow production client identifiers.
  */
 export function getFirebaseConfig(): FirebaseConfig {
-  // SAFETY: import.meta.env is Vite's runtime environment object containing string keys
-  const env = (typeof import.meta !== 'undefined' && import.meta.env
-    ? (import.meta.env as unknown as Record<string, string | undefined>)
-    : {})
   return {
-    apiKey: env.VITE_FIREBASE_API_KEY || 'demo-focus-flow-api-key',
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || 'focus-flow-demo.firebaseapp.com',
-    projectId: env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-demo',
-    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || 'focus-flow-demo.appspot.com',
-    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-    appId: env.VITE_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDaSM4HcIPzipa9moIvt2_mSrytKDr3LqY',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'focus-flow-70527.firebaseapp.com',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-70527',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'focus-flow-70527.firebasestorage.app',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '895102769411',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:895102769411:web:85a8a00704e1e1e069b136',
   }
 }
 
