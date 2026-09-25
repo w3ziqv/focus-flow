@@ -70,6 +70,7 @@ export interface InterfacePrefs {
   showGreeting: boolean
   shortcuts?: ShortcutKeymap
   narration?: NarrationSettings
+  maskTaskTitlesInCloud?: boolean
 }
 
 export interface CustomSound {

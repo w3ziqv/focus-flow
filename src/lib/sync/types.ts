@@ -121,11 +121,60 @@ export interface SessionMergeResult {
   readonly conflictResolvedCount?: number
 }
 
+export interface SessionTombstone {
+  readonly id: string
+  readonly deletedAt: string
+}
+
+export interface CloudSoundPrefsDocument {
+  readonly baseTexture?: string
+  readonly binauralMode?: string
+  readonly toneWarmthCutoff?: number
+  readonly volume?: number
+  readonly updatedLocallyAt?: string
+}
+
+export interface CloudInterfaceDocument {
+  readonly theme?: string
+  readonly shortcuts?: Record<string, string>
+  readonly narration?: {
+    readonly verbosity: string
+    readonly voiceAlertsEnabled: boolean
+  }
+  readonly dailyTargetMinutes?: number
+  readonly maskTaskTitlesInCloud?: boolean
+  readonly updatedLocallyAt?: string
+}
+
+export interface CloudSyncMetadataDocument {
+  readonly lastSyncedAt?: string
+  readonly schemaVersion?: number
+  readonly clientPlatform?: string
+}
+
+export interface CloudSyncState {
+  readonly status: 'disconnected' | 'idle' | 'syncing' | 'synced' | 'error'
+  readonly uid: string | null
+  readonly email: string | null
+  readonly displayName: string | null
+  readonly photoURL: string | null
+  readonly lastSyncedAt: string | null
+  readonly error: string | null
+}
+
+export type AccountSwitchChoice = 'merge' | 'replace-local'
+
+export interface AccountSwitchEvent {
+  readonly previousUid: string
+  readonly newUid: string
+}
+
 export interface SyncStorageAdapter {
   getAuthState(): AuthState
   getSyncStatus(): SyncStatus
-  signInWithGoogle(): Promise<CloudUser>
+  signInWithGoogle(consentResolver?: (event: AccountSwitchEvent) => Promise<AccountSwitchChoice>): Promise<CloudUser>
   signOut(): Promise<void>
+  getLastSyncedUid?(): string | null
   pullSessions(): Promise<SessionLogEntryV2[]>
   pushSessions(sessions: SessionLogEntryV2[]): Promise<void>
   reconcileSessions(localSessions: SessionLogEntryV2[]): Promise<SessionLogEntryV2[]>
@@ -139,6 +188,10 @@ export interface SyncStorageAdapter {
   pushSettings?(settings: Settings): Promise<void>
   pullStats?(): Promise<StatsV2 | null>
   pushStats?(stats: StatsV2): Promise<void>
+  pullTombstones?(): Promise<SessionTombstone[]>
+  pushTombstone?(tombstone: SessionTombstone): Promise<void>
+  purgeCloudData?(): Promise<void>
+  syncAll?(): Promise<void>
   dispose?(): void
 }
 

@@ -1,4 +1,5 @@
 import type { ChecklistItem, SessionLogEntryV2 } from '../../types'
+import type { SessionTombstone } from './types'
 import {
   MAX_CHECKLIST_ID_LENGTH,
   MAX_CHECKLIST_ITEMS,
@@ -212,6 +213,7 @@ function sanitizeCandidate(raw: unknown): SessionLogEntryV2 | null {
 export function mergeSessions(
   local?: readonly unknown[] | null,
   remote?: readonly unknown[] | null,
+  tombstones?: readonly SessionTombstone[] | null,
 ): SessionLogEntryV2[] {
   const sanitizedLocal: SessionLogEntryV2[] = Array.isArray(local)
     ? local
@@ -230,11 +232,34 @@ export function mergeSessions(
     return []
   }
 
+  // Active tombstones map (within 30 days) to prevent zombie resurrection
+  const tombstoneMap = new Map<string, string>()
+  if (Array.isArray(tombstones)) {
+    const now = Date.now()
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+    for (const t of tombstones) {
+      if (t && typeof t.id === 'string' && typeof t.deletedAt === 'string') {
+        const deletedTime = Date.parse(t.deletedAt)
+        if (!Number.isNaN(deletedTime) && now - deletedTime < THIRTY_DAYS_MS) {
+          tombstoneMap.set(t.id, t.deletedAt)
+        }
+      }
+    }
+  }
+
   // Primary index by session ID
   const byId = new Map<string, SessionLogEntryV2>()
   const pool: SessionLogEntryV2[] = [...sanitizedLocal, ...sanitizedRemote]
 
   for (const candidate of pool) {
+    const deletedAt = tombstoneMap.get(candidate.id)
+    if (deletedAt) {
+      const candidateTime = Date.parse(candidate.date)
+      const tombstoneTime = Date.parse(deletedAt)
+      if (!Number.isNaN(candidateTime) && candidateTime <= tombstoneTime) {
+        continue // Skip deleted session to prevent resurrection
+      }
+    }
     const existing = byId.get(candidate.id)
     if (existing) {
       byId.set(candidate.id, reconcileSessionConflict(existing, candidate))

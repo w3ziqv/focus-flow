@@ -24,6 +24,8 @@ import {
   type WebhookSettings,
 } from '../types'
 
+import type { CloudSyncState, SessionTombstone } from './sync/types'
+
 export const MAX_SOUND_SIZE: number = 200 * 1024 * 1024
 export const MAX_SESSIONS: number = 1000
 export const MAX_TASK_LENGTH: number = 200
@@ -58,6 +60,9 @@ const KEYS = {
   milestones: `${PREFIX}milestones`,
   presets: `${PREFIX}presets`,
   webhook: `${PREFIX}webhook`,
+  tombstones: `${PREFIX}session_tombstones`,
+  cloudSync: `${PREFIX}cloud_sync`,
+  lastSyncedUid: `${PREFIX}last_synced_uid`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
@@ -414,10 +419,110 @@ export function deleteSession(id: string): {
   const deleted = sessions[targetIndex]
   const updated = sessions.filter((_, idx) => idx !== targetIndex)
   saveSessions(updated)
+  addTombstone(targetId)
 
   return {
     sessions: updated,
     deleted,
+  }
+}
+
+export const THIRTY_DAYS_MS: number = 30 * 24 * 60 * 60 * 1000
+
+export function isSessionTombstone(value: unknown): SessionTombstone | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const v = value as Record<string, unknown>
+  if (typeof v.id !== 'string' || v.id.trim() === '') return null
+  if (typeof v.deletedAt !== 'string' || Number.isNaN(Date.parse(v.deletedAt))) return null
+  return { id: v.id.trim().slice(0, 64), deletedAt: v.deletedAt }
+}
+
+export function loadTombstones(): SessionTombstone[] {
+  const list = read<SessionTombstone[]>(KEYS.tombstones, (raw) => {
+    if (!Array.isArray(raw)) return null
+    return raw
+      .map(isSessionTombstone)
+      .filter((item): item is SessionTombstone => item !== null)
+  })
+  return list ?? []
+}
+
+export function saveTombstones(tombstones: SessionTombstone[]): void {
+  const sanitized = tombstones
+    .map(isSessionTombstone)
+    .filter((item): item is SessionTombstone => item !== null)
+  write(KEYS.tombstones, sanitized)
+}
+
+export function addTombstone(id: string, deletedAt: string = new Date().toISOString()): SessionTombstone[] {
+  const existing = loadTombstones()
+  const now = Date.now()
+  const active = existing.filter((t) => {
+    const time = Date.parse(t.deletedAt)
+    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS && t.id !== id
+  })
+  const updated = [{ id, deletedAt }, ...active]
+  saveTombstones(updated)
+  return updated
+}
+
+export function pruneTombstones(now: number = Date.now()): SessionTombstone[] {
+  const existing = loadTombstones()
+  const active = existing.filter((t) => {
+    const time = Date.parse(t.deletedAt)
+    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS
+  })
+  if (active.length !== existing.length) {
+    saveTombstones(active)
+  }
+  return active
+}
+
+export function loadCloudSyncState(): CloudSyncState | null {
+  return read<CloudSyncState>(KEYS.cloudSync, (val) => {
+    if (typeof val !== 'object' || val === null || Array.isArray(val)) return null
+    const v = val as Record<string, unknown>
+    if (
+      v.status !== 'disconnected' &&
+      v.status !== 'idle' &&
+      v.status !== 'syncing' &&
+      v.status !== 'synced' &&
+      v.status !== 'error'
+    ) {
+      return null
+    }
+    return {
+      status: v.status,
+      uid: typeof v.uid === 'string' ? v.uid : null,
+      email: typeof v.email === 'string' ? v.email : null,
+      displayName: typeof v.displayName === 'string' ? v.displayName : null,
+      photoURL: typeof v.photoURL === 'string' ? v.photoURL : null,
+      lastSyncedAt: typeof v.lastSyncedAt === 'string' ? v.lastSyncedAt : null,
+      error: typeof v.error === 'string' ? v.error : null,
+    }
+  })
+}
+
+export function saveCloudSyncState(state: CloudSyncState | null): void {
+  if (state === null) {
+    localStorage.removeItem(KEYS.cloudSync)
+  } else {
+    write(KEYS.cloudSync, state)
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('focus-flow:sync-state', { detail: state }))
+  }
+}
+
+export function loadLastSyncedUid(): string | null {
+  return readString(KEYS.lastSyncedUid)
+}
+
+export function saveLastSyncedUid(uid: string | null): void {
+  if (uid === null) {
+    localStorage.removeItem(KEYS.lastSyncedUid)
+  } else {
+    localStorage.setItem(KEYS.lastSyncedUid, uid)
   }
 }
 
@@ -657,6 +762,7 @@ export const DEFAULT_INTERFACE: InterfacePrefs = {
   showGreeting: true,
   shortcuts: { ...DEFAULT_SHORTCUTS },
   narration: { ...DEFAULT_NARRATION },
+  maskTaskTitlesInCloud: false,
 }
 
 export function isShortcutKeymap(val: unknown): ShortcutKeymap | null {
@@ -699,6 +805,9 @@ export function isInterface(value: unknown): InterfacePrefs | null {
   if (v.narration !== undefined) {
     const narration = isNarrationSettings(v.narration)
     if (narration) res.narration = narration
+  }
+  if (v.maskTaskTitlesInCloud !== undefined) {
+    res.maskTaskTitlesInCloud = v.maskTaskTitlesInCloud === true
   }
   return res
 }

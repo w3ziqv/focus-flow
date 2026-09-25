@@ -2,7 +2,7 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "2.5.3",
+  "version": "2.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",
     "@fontsource-variable/instrument-sans": "^5.2.5",
+    "firebase": "^12.19.0",
     "lucide-react": "^0.539.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

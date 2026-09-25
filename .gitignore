@@ -3,5 +3,8 @@ node_modules/
 Thumbs.db
 .vscode/
 .env
+.env.local
+.env.*.local
 dist/
 .agents/
+.pi/

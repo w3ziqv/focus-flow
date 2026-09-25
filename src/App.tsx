@@ -19,6 +19,7 @@ import { last7Days, sumMinutes } from './lib/stats'
 import { captureInstallPrompt } from './lib/installPrompt'
 import { NavPill } from './components/NavPill'
 import { AppSettingsModal } from './components/AppSettingsModal'
+import { SyncStatusIndicator } from './components/SyncStatusIndicator'
 import { ShortcutsModal } from './components/ShortcutsModal'
 import { A11yLiveAnnouncer } from './components/A11yLiveAnnouncer'
 import { TimerSettingsModal } from './components/TimerSettingsModal'
@@ -36,6 +37,9 @@ const TipsView = lazy(() => import('./views/TopicsIndex'))
 const TopicViewLazy = lazy(() => import('./views/TopicView'))
 const ArticleViewLazy = lazy(() => import('./views/ArticleView'))
 const StatsView = lazy(() => import('./views/StatsView'))
+const CloudSyncModalLazy = lazy(() =>
+  import('./components/CloudSyncModal').then((m) => ({ default: m.CloudSyncModal })),
+)
 
 type View = 'timer' | 'stats' | 'tips'
 
@@ -52,6 +56,8 @@ function Shell() {
   const [appSettingsOpen, setAppSettingsOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [timerSettingsOpen, setTimerSettingsOpen] = useState(false)
+  const [cloudSyncOpen, setCloudSyncOpen] = useState(false)
+  const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null)
   const [soundSettingsOpen, setSoundSettingsOpen] = useState(false)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
   const [tipsStack, setTipsStack] = useState<TipsRoute[]>([])
@@ -363,7 +369,10 @@ function Shell() {
           view === 'timer' ? 'hidden sm:block' : ''
         }`}
       >
-        {t('footer', { year: 2026 })}
+        <div className="mb-2 flex items-center justify-center">
+          <SyncStatusIndicator onClick={() => setCloudSyncOpen(true)} />
+        </div>
+        <div>{t('footer', { year: 2026 })}</div>
       </footer>
 
       <Onboarding open={!onboardingDone} onDone={() => setOnboardingDone(true)} />
@@ -381,6 +390,10 @@ function Shell() {
           })
         }}
         onOpenShortcuts={() => setShortcutsOpen(true)}
+        onOpenCloudSync={() => {
+          setAppSettingsOpen(false)
+          setCloudSyncOpen(true)
+        }}
         onImportSuccess={() => {
           setTheme(loadTheme() ?? systemTheme())
           setInterfacePrefs(loadInterface())
@@ -392,6 +405,27 @@ function Shell() {
         }}
         onClose={() => setAppSettingsOpen(false)}
       />
+
+      <Suspense fallback={null}>
+        <CloudSyncModalLazy
+          open={cloudSyncOpen}
+          onClose={() => setCloudSyncOpen(false)}
+          onSyncComplete={(msg) => {
+            setSyncToastMessage(msg)
+            setTimeout(() => setSyncToastMessage(null), 3500)
+            engine.refreshStats()
+          }}
+        />
+      </Suspense>
+
+      {syncToastMessage && (
+        <div
+          role="status"
+          className="fixed bottom-6 right-6 z-50 rounded-2xl border border-line bg-card/95 px-4 py-2.5 text-xs text-ink shadow-whisper backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-2"
+        >
+          {syncToastMessage}
+        </div>
+      )}
 
       <ShortcutsModal
         open={shortcutsOpen}

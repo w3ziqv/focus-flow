@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Cloud,
   Download,
   FileText,
   Globe,
@@ -53,6 +54,7 @@ interface AppSettingsModalProps {
   onInterfaceChange: (patch: Partial<InterfacePrefs>) => void
   onClose: () => void
   onOpenShortcuts?: () => void
+  onOpenCloudSync?: () => void
   onImportSuccess?: () => void
   initialSection?: SettingsSection
 }
@@ -72,6 +74,7 @@ export function AppSettingsModal({
   onInterfaceChange,
   onClose,
   onOpenShortcuts,
+  onOpenCloudSync,
   onImportSuccess,
   initialSection = 'main',
 }: AppSettingsModalProps): JSX.Element | null {
@@ -354,6 +357,25 @@ export function AppSettingsModal({
 
           {/* Group 3: Data, Webhook & Notifications */}
           <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
+            {onOpenCloudSync && (
+              <button
+                type="button"
+                onClick={onOpenCloudSync}
+                className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(56,152,236,0.12)] text-[#3898ec]">
+                    <Cloud size={17} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-medium text-ink">Cloud Synchronization</div>
+                    <div className="text-[12px] text-ink-3">Cross-device sync & Google sign-in</div>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => goToSection('data')}
