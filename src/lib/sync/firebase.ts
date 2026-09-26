@@ -61,16 +61,21 @@ let cachedContext: FirebaseContext | null = null
 
 /**
  * Resolves Firebase web client configuration.
- * Uses Vite environment variables if provided, falling back to Focus Flow production client identifiers.
+ * Uses Vite environment variables for credentials. Non-sensitive project metadata
+ * has safe defaults so local-first mode can still boot without Firebase configured.
  */
 export function getFirebaseConfig(): FirebaseConfig {
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-70527'
+
   return {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDaSM4HcIPzipa9moIvt2_mSrytKDr3LqY',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'focus-flow-70527.firebaseapp.com',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-70527',
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'focus-flow-70527.firebasestorage.app',
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '895102769411',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:895102769411:web:85a8a00704e1e1e069b136',
+    // API credentials must come from .env.local or Vercel environment variables.
+    // Never commit the Firebase API key to source control.
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
+    projectId,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
   }
 }
 
@@ -133,6 +138,13 @@ export async function initFirebase(customConfig?: Partial<FirebaseConfig>): Prom
   const config: FirebaseConfig = {
     ...getFirebaseConfig(),
     ...customConfig,
+  }
+
+  const missingConfig = ['apiKey', 'appId'].filter((key) => !config[key as keyof FirebaseConfig])
+  if (missingConfig.length > 0) {
+    throw new Error(
+      'Firebase is not configured. Set VITE_FIREBASE_API_KEY and VITE_FIREBASE_APP_ID in .env.local or Vercel.',
+    )
   }
 
   const existingApps = modules.getApps()

@@ -143,3 +143,17 @@ Mateusz Szostak — [@w3ziqv](https://github.com/w3ziqv)
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Google login and Vercel
+
+Firebase credentials are intentionally not stored in the repository. To keep Google login working:
+
+1. In Firebase Console, rotate/restrict the exposed Web API key and confirm that Google is enabled under **Authentication → Sign-in method**.
+2. Create `.env.local` for local development from `.env.example`.
+3. Add the same variables to the Vercel project `focus-flow` for the **Production** and **Preview** environments:
+   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
+   `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, and `VITE_FIREBASE_APP_ID`.
+4. In Firebase Authentication → Settings → Authorized domains, keep `focusflow.ink`,
+   `www.focusflow.ink`, and the Vercel preview domain(s) that you use.
+
+The app now fails with a clear configuration message instead of silently using a committed key.

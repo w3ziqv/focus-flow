@@ -28,7 +28,10 @@ describe('Firebase Dynamic Module Loader', () => {
   })
 
   it('initializes Firebase context and returns the singleton instance', async () => {
-    const context1 = await initFirebase()
+    const context1 = await initFirebase({
+      apiKey: 'test-api-key',
+      appId: 'test-app-id',
+    })
     expect(context1.app).toBeDefined()
     expect(context1.auth).toBeDefined()
     expect(context1.db).toBeDefined()
