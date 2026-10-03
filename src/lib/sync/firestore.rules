@@ -26,6 +26,20 @@ service cloud.firestore {
              (!('done' in item) || item.done is bool);
     }
 
+    function isValidChecklist(items) {
+      return items is list && items.size() <= 3 &&
+        (items.size() < 1 || isValidChecklistItem(items[0])) &&
+        (items.size() < 2 || isValidChecklistItem(items[1])) &&
+        (items.size() < 3 || isValidChecklistItem(items[2]));
+    }
+    function isValidGoals(goals) {
+      return goals is map && goals.keys().hasOnly(['dailyTargetMinutes', 'enabled']) &&
+        goals.dailyTargetMinutes is int && goals.dailyTargetMinutes >= 0 && goals.dailyTargetMinutes <= 720 && goals.enabled is bool;
+    }
+    function validRevision(data) {
+      return (!('schemaVersion' in data) || data.schemaVersion in [2, 3]) &&
+        (!('deviceId' in data) || (data.deviceId is string && data.deviceId.size() > 0 && data.deviceId.size() <= 64));
+    }
     // --- Session Record Validator ---
     function isValidSession(data, sessionId) {
       return data.keys().hasOnly([
@@ -36,41 +50,63 @@ service cloud.firestore {
              data.date is string && data.date.size() <= 40 &&
              data.minutes is number && data.minutes >= 0 && data.minutes <= 120 &&
              (!('task' in data) || data.task == null || (data.task is string && data.task.size() <= 200)) &&
-             (!('checklist' in data) || data.checklist == null || (data.checklist is list && data.checklist.size() <= 3)) &&
+             (!('checklist' in data) || data.checklist == null || isValidChecklist(data.checklist)) &&
              (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40)) &&
              (!('deleted' in data) || data.deleted is bool) &&
-             (!('schemaVersion' in data) || data.schemaVersion is number) &&
-             (!('deviceId' in data) || (data.deviceId is string && data.deviceId.size() <= 64));
+             validRevision(data) &&
+             (!('durationMinutes' in data) || (data.durationMinutes is number && data.durationMinutes >= 0 && data.durationMinutes <= 120));
     }
 
     // --- Settings Validator ---
     function isValidSettings(data) {
       return data.keys().hasOnly([
                'focus', 'short', 'shortBreak', 'long', 'longBreak', 'rounds',
-               'autoStart', 'soundPreferences', 'interface', 'goals',
+               'autoStart',
                'updatedLocallyAt', 'schemaVersion', 'deviceId'
              ]) &&
              data.focus is number && data.focus >= 1 && data.focus <= 120 &&
-             ((data.short is number && data.short >= 1 && data.short <= 60) ||
-              (data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
-             ((data.long is number && data.long >= 1 && data.long <= 120) ||
-              (data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
+             ((('short' in data) && data.short is number && data.short >= 1 && data.short <= 60) ||
+              (('shortBreak' in data) && data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
+             ((('long' in data) && data.long is number && data.long >= 1 && data.long <= 120) ||
+              (('longBreak' in data) && data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
              data.rounds is number && data.rounds >= 1 && data.rounds <= 20 &&
-             data.autoStart is bool &&
+             data.autoStart is bool && validRevision(data) &&
              (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
     }
 
+    function isValidMilestone(item) {
+      return item is map && item.keys().hasOnly(['id', 'unlockedAt', 'seen']) &&
+        item.id is string && item.id.size() > 0 && item.id.size() <= 64 &&
+        item.unlockedAt is string && item.unlockedAt.size() <= 40 && item.seen is bool;
+    }
+    function isValidMilestones(items) {
+      return items is list && items.size() <= 12 &&
+        (items.size() < 1 || isValidMilestone(items[0])) &&
+        (items.size() < 2 || isValidMilestone(items[1])) &&
+        (items.size() < 3 || isValidMilestone(items[2])) &&
+        (items.size() < 4 || isValidMilestone(items[3])) &&
+        (items.size() < 5 || isValidMilestone(items[4])) &&
+        (items.size() < 6 || isValidMilestone(items[5])) &&
+        (items.size() < 7 || isValidMilestone(items[6])) &&
+        (items.size() < 8 || isValidMilestone(items[7])) &&
+        (items.size() < 9 || isValidMilestone(items[8])) &&
+        (items.size() < 10 || isValidMilestone(items[9])) &&
+        (items.size() < 11 || isValidMilestone(items[10])) &&
+        (items.size() < 12 || isValidMilestone(items[11]));
+    }
     // --- Stats Validator ---
     function isValidStats(data) {
       return data.keys().hasOnly([
                'minutes', 'today', 'week', 'streak', 'date', 'weekStart',
-               'lastDate', 'history', 'milestones', 'goals',
+               'lastDate', 'milestones', 'goals',
                'updatedLocallyAt', 'schemaVersion', 'deviceId'
              ]) &&
              data.minutes is number && data.minutes >= 0 && data.minutes <= 10000000 &&
              data.today is number && data.today >= 0 && data.today <= 1440 &&
              data.week is number && data.week >= 0 && data.week <= 10080 &&
-             data.streak is number && data.streak >= 0 && data.streak <= 36500 &&
+             data.streak is number && data.streak >= 0 && data.streak <= 36500 && validRevision(data) &&
+             (!('milestones' in data) || isValidMilestones(data.milestones)) &&
+             (!('goals' in data) || isValidGoals(data.goals)) &&
              (!('date' in data) || (data.date is string && data.date.size() <= 40)) &&
              (!('weekStart' in data) || (data.weekStart is string && data.weekStart.size() <= 40)) &&
              (!('lastDate' in data) || data.lastDate == null || (data.lastDate is string && data.lastDate.size() <= 40)) &&
@@ -80,13 +116,15 @@ service cloud.firestore {
     // --- Preferences Validator ---
     function isValidSoundPrefs(data) {
       return data.keys().hasOnly(['baseTexture', 'binauralMode', 'toneWarmthCutoff', 'volume', 'updatedLocallyAt']) &&
+             (!('baseTexture' in data) || (data.baseTexture is string && data.baseTexture.size() <= 80 && (data.baseTexture in ['none', 'brown', 'pink', 'rain', 'waves'] || data.baseTexture.matches('custom:[a-zA-Z0-9_-]{1,64}')))) &&
+             (!('binauralMode' in data) || data.binauralMode in ['off', 'alpha', 'theta']) &&
              (!('volume' in data) || (data.volume is number && data.volume >= 0 && data.volume <= 1)) &&
              (!('toneWarmthCutoff' in data) || (data.toneWarmthCutoff is number && data.toneWarmthCutoff >= 0 && data.toneWarmthCutoff <= 1200)) &&
              (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
     }
 
     function isValidInterface(data) {
-      return data.keys().hasOnly(['theme', 'shortcuts', 'narration', 'dailyTargetMinutes', 'updatedLocallyAt', 'maskTaskTitlesInCloud']) &&
+      return data.keys().hasOnly(['dailyTargetMinutes', 'updatedLocallyAt', 'maskTaskTitlesInCloud']) &&
              (!('dailyTargetMinutes' in data) || (data.dailyTargetMinutes is number && data.dailyTargetMinutes >= 0 && data.dailyTargetMinutes <= 720)) &&
              (!('maskTaskTitlesInCloud' in data) || data.maskTaskTitlesInCloud is bool) &&
              (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));
@@ -95,7 +133,13 @@ service cloud.firestore {
     function isValidMetadata(data) {
       return data.keys().hasOnly(['lastSyncedAt', 'schemaVersion', 'clientPlatform']) &&
              (!('lastSyncedAt' in data) || (data.lastSyncedAt is string && data.lastSyncedAt.size() <= 40)) &&
-             (!('schemaVersion' in data) || data.schemaVersion is number);
+             (!('schemaVersion' in data) || data.schemaVersion in [2, 3]) &&
+             (!('clientPlatform' in data) || (data.clientPlatform is string && data.clientPlatform.size() <= 512));
+    }
+
+    function isValidCalendarDay(day) {
+      return day.matches('[1-9][0-9]{3}-((01|03|05|07|08|10|12)-(0[1-9]|[12][0-9]|3[01])|(04|06|09|11)-(0[1-9]|[12][0-9]|30)|02-(0[1-9]|1[0-9]|2[0-8]))') ||
+        day.matches('([1-9][0-9](0[48]|[2468][048]|[13579][26])|([2468][048]|[13579][26])00)-02-29');
     }
 
     // --- Tombstone Validator ---
@@ -143,14 +187,31 @@ service cloud.firestore {
       }
 
       // Sessions subcollection: enforce query limit and path-body ID locking
+      function allowsContent(data) {
+        let prefs = /databases/$(database)/documents/users/$(userId)/interface/current;
+        return !exists(prefs) || get(prefs).data.get('maskTaskTitlesInCloud', false) != true ||
+          ((!('task' in data) || data.task == null) && (!('checklist' in data) || data.checklist.size() == 0));
+      }
+
       match /sessions/{sessionId} {
         allow get: if isOwner(userId);
         allow list: if isOwner(userId) && request.query.limit <= 1000;
-        allow create, update: if isOwner(userId) && isValidSession(request.resource.data, sessionId);
+        allow create, update: if isOwner(userId) && isValidSession(request.resource.data, sessionId) &&
+          !exists(/databases/$(database)/documents/users/$(userId)/tombstones/$(sessionId)) &&
+          allowsContent(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
-      // Deletion Tombstones subcollection (30-day resurrection prevention)
+      match /daily_history/{dayId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) &&
+          request.resource.data.keys().hasOnly(['date', 'minutes', 'schemaVersion']) &&
+          request.resource.data.date == dayId && isValidCalendarDay(dayId) &&
+          request.resource.data.minutes is int && request.resource.data.minutes >= 0 && request.resource.data.minutes <= 10000000 &&
+          request.resource.data.schemaVersion == 3;
+      }
+
+      // Deletion Tombstones subcollection (permanent resurrection prevention)
       match /tombstones/{tombstoneId} {
         allow read: if isOwner(userId);
         allow create, update: if isOwner(userId) && isValidTombstone(request.resource.data, tombstoneId);

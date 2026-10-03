@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-awake"
+description = "Enables the set_awake command without any pre-configured scope."
+commands.allow = ["set_awake"]
+
+[[permission]]
+identifier = "deny-set-awake"
+description = "Denies the set_awake command without any pre-configured scope."
+commands.deny = ["set_awake"]

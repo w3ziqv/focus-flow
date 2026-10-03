@@ -12,6 +12,7 @@ import {
   saveSession,
   saveSettings,
 } from './storage'
+import { isRemoteWrite } from './sync/outbox'
 import { recordFocusSession } from './stats'
 import { addSession } from './sessions'
 import { audio } from './audio'
@@ -41,6 +42,7 @@ export interface TimerEngine {
   pause: () => void
   toggle: () => void
   reset: () => void
+  skip: () => void
   switchMode: (mode: Mode) => void
   setTask: (task: string) => void
   checklist: ChecklistItem[]
@@ -131,6 +133,19 @@ export function useTimerEngine(): TimerEngine {
   const autoStartTimer = useRef<number | null>(null)
   const celebrationTimer = useRef<number | null>(null)
   const sessionIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const changed = (event: Event) => {
+      if (!isRemoteWrite()) return
+      const key = (event as CustomEvent).detail
+      if (key === 'ff2_stats') {const next = loadStats(); statsRef.current = next; setStats(next)}
+      if (key === 'ff2_settings') {const next = loadSettings(); settingsRef.current = next; setSettings(next)}
+      if (key === 'ff2_goals') {const next = loadGoals(); goalsRef.current = next; setGoals(next)}
+      // Keep this device's running/paused timer, deadline and active task unchanged.
+    }
+    window.addEventListener('focus-flow:storage', changed)
+    return () => window.removeEventListener('focus-flow:storage', changed)
+  }, [])
 
   const triggerWebhook = useCallback(
     (event: 'start' | 'pause' | 'complete', overrideSessionId?: string, overrideMode?: Mode) => {
@@ -457,6 +472,18 @@ export function useTimerEngine(): TimerEngine {
     [persist],
   )
 
+  const skip = useCallback(() => {
+    if (autoStartTimer.current !== null) { window.clearTimeout(autoStartTimer.current); autoStartTimer.current = null }
+    sessionIdRef.current = null
+    const { nextMode, nextRound } = calculateNextPhase(modeRef.current, roundRef.current, settingsRef.current.rounds)
+    modeRef.current = nextMode; roundRef.current = nextRound
+    setMode(nextMode); setRound(nextRound)
+    const remaining = durationOf(settingsRef.current, nextMode)
+    endTsRef.current = null; runningRef.current = false; remainingRef.current = remaining
+    setRunning(false); setRemainingMs(remaining); setTaskDone(false); taskDoneRef.current = false
+    persist({running: false, remainingMs: remaining, endTs: null})
+  }, [persist])
+
   const updateSettings = useCallback(
     (next: Settings) => {
       setSettings(next)
@@ -613,6 +640,7 @@ export function useTimerEngine(): TimerEngine {
     pause,
     toggle,
     reset,
+    skip,
     switchMode,
     setTask,
     checklist,

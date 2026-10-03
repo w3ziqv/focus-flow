@@ -3,6 +3,7 @@ import { Edit2, Trash2, Check, X, Share2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 import type { StatsV2, SessionLogEntryV2 } from '../types'
 import { groupByDay, loadSessions, timeLabel } from '../lib/sessions'
+import { isRemoteWrite } from '../lib/sync/outbox'
 import { updateSessionTask } from '../lib/storage'
 import {
   aggregateTaskBreakdown,
@@ -30,18 +31,27 @@ interface StatsViewProps {
   lang: 'pl' | 'en'
   chartDays?: ReturnType<typeof last7Days>
   totalMinutes?: number
+  onStartSession?: () => void
   onStatsChange?: (next: StatsV2) => void
 }
 
 type Range = '7' | '30'
 
-export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewProps): React.JSX.Element {
+export function StatsView({ stats: propStats, lang, onStatsChange, onStartSession }: StatsViewProps): React.JSX.Element {
   const { t } = useI18n()
   const [deletedStatsOverride, setDeletedStatsOverride] = useState<StatsV2 | null>(null)
   const stats = deletedStatsOverride ?? propStats
   const [sessions, setSessions] = useState<SessionLogEntryV2[]>(loadSessions)
   const [range, setRange] = useState<Range>('7')
   const [exportModalOpen, setExportModalOpen] = useState(false)
+
+  useEffect(() => {
+    const changed = (event: Event) => {
+      if (isRemoteWrite() && (event as CustomEvent).detail === 'ff2_sessions') {setSessions(loadSessions()); setDeletedStatsOverride(null)}
+    }
+    window.addEventListener('focus-flow:storage', changed)
+    return () => window.removeEventListener('focus-flow:storage', changed)
+  }, [])
 
   // Search and date filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -176,7 +186,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
         </div>
       </div>
 
-      <ZenMilestones stats={stats} sessions={sessions} />
+      {stats.minutes === 0 && onStartSession && <PillButton onClick={onStartSession}>{t('stats.begin')}</PillButton>}
 
       <ActivityHeatmap days={heatmapDays} totalMinutes={heatmapTotalMinutes} />
 
@@ -340,6 +350,8 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
           </div>
         )}
       </div>
+
+      <ZenMilestones stats={stats} sessions={sessions} />
 
       <ExportCardModal
         open={exportModalOpen}

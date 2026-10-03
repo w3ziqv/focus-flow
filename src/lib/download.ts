@@ -1,8 +1,23 @@
+import { detectPlatform } from './platform'
+
+async function nativeDownload(filename: string, content: string | Blob, mimeType: string): Promise<void> {
+  const { save } = await import('@tauri-apps/plugin-dialog')
+  const { writeFile } = await import('@tauri-apps/plugin-fs')
+  const path = await save({ defaultPath: filename })
+  if (!path) return
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType })
+  await writeFile(path, new Uint8Array(await blob.arrayBuffer()))
+}
+
 /**
  * Triggers an in-memory browser file download via an ephemeral anchor element.
  */
 
 export function triggerDownload(filename: string, content: string | Blob, mimeType: string): void {
+  if (detectPlatform() === 'tauri') {
+    void nativeDownload(filename, content, mimeType).catch(error => window.dispatchEvent(new CustomEvent('focus-flow:persistence', { detail: String(error) })))
+    return
+  }
   if (typeof document === 'undefined' || typeof window === 'undefined') {
     return
   }

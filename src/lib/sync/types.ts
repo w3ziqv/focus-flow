@@ -153,6 +153,7 @@ export interface CloudSyncMetadataDocument {
 }
 
 export interface CloudSyncState {
+  readonly pendingChanges?: number
   readonly status: 'disconnected' | 'idle' | 'syncing' | 'synced' | 'error'
   readonly uid: string | null
   readonly email: string | null
@@ -162,7 +163,7 @@ export interface CloudSyncState {
   readonly error: string | null
 }
 
-export type AccountSwitchChoice = 'merge' | 'replace-local'
+export type AccountSwitchChoice = 'merge' | 'replace-local' | 'cancel'
 
 export interface AccountSwitchEvent {
   readonly previousUid: string

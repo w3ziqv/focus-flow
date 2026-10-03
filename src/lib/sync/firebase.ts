@@ -45,6 +45,8 @@ export interface FirebaseModules {
   query: typeof import('firebase/firestore').query
   orderBy: typeof import('firebase/firestore').orderBy
   limit: typeof import('firebase/firestore').limit
+  documentId: typeof import('firebase/firestore').documentId
+  startAfter: typeof import('firebase/firestore').startAfter
   where: typeof import('firebase/firestore').where
 }
 
@@ -120,6 +122,8 @@ export async function loadFirebaseModules(): Promise<FirebaseModules> {
     orderBy: firestoreMod.orderBy,
     limit: firestoreMod.limit,
     where: firestoreMod.where,
+    documentId: firestoreMod.documentId,
+    startAfter: firestoreMod.startAfter,
   }
 
   return cachedModules

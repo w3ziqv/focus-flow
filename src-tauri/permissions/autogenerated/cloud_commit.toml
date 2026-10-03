@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cloud-commit"
+description = "Enables the cloud_commit command without any pre-configured scope."
+commands.allow = ["cloud_commit"]
+
+[[permission]]
+identifier = "deny-cloud-commit"
+description = "Denies the cloud_commit command without any pre-configured scope."
+commands.deny = ["cloud_commit"]

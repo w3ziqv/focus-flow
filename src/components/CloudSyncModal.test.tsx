@@ -1,14 +1,19 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { I18nProvider } from '../lib/i18n'
+import { fireEvent, render as renderComponent, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CloudSyncModal } from './CloudSyncModal'
-import { getCloudSyncAdapter, resetCloudSyncAdapter } from '../lib/sync/adapter'
+import { CloudSyncAdapterImpl, getCloudSyncAdapter, resetCloudSyncAdapter } from '../lib/sync/adapter'
 import { saveCloudSyncState } from '../lib/storage'
+
+const render = (element: React.ReactNode) => renderComponent(<I18nProvider>{element}</I18nProvider>)
 
 describe('CloudSyncModal (Tier 2 Elevated Dialog)', () => {
   beforeEach(() => {
     localStorage.clear()
+    localStorage.setItem('ff2_lang', 'en')
     resetCloudSyncAdapter()
     vi.restoreAllMocks()
+    vi.spyOn(CloudSyncAdapterImpl.prototype, 'getAvailability').mockResolvedValue({configured: true, persistent: true})
   })
 
   it('renders nothing when closed', () => {
@@ -25,7 +30,7 @@ describe('CloudSyncModal (Tier 2 Elevated Dialog)', () => {
 
     expect(screen.getByText('Cloud Synchronization')).toBeDefined()
     expect(screen.getByText('Sign in with Google')).toBeDefined()
-    expect(screen.getByText('Mask task titles in cloud')).toBeDefined()
+    expect(screen.getByRole('switch', {name: 'Hide task content in the cloud'})).toBeDefined()
   })
 
   it('invokes adapter.signInWithGoogle on sign-in click', async () => {
@@ -42,6 +47,7 @@ describe('CloudSyncModal (Tier 2 Elevated Dialog)', () => {
       <CloudSyncModal open={true} onClose={vi.fn()} onSyncComplete={onSyncComplete} />,
     )
 
+    await waitFor(() => expect(screen.getByText('Sign in with Google').closest('button')!.disabled).toBe(false))
     const signInButton = screen.getByText('Sign in with Google').closest('button')!
     fireEvent.click(signInButton)
 

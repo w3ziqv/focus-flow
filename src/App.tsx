@@ -1,3 +1,6 @@
+import { getCloudSyncAdapter } from './lib/sync/adapter'
+import { useDesktopBridge } from './lib/desktop/bridge'
+import { flushPersistence } from './lib/desktop/runtime'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { AmbientSound, BaseSoundTexture, BinauralMode, CustomSound, SoundPreferences, Theme } from './types'
 import { I18nProvider, useI18n } from './lib/i18n'
@@ -49,6 +52,7 @@ interface TipsRoute {
 }
 
 function Shell() {
+  useEffect(() => getCloudSyncAdapter().startBackground(), [])
   const engine = useTimerEngine()
   const { t, lang } = useI18n()
   const [view, setView] = useState<View>('timer')
@@ -67,6 +71,7 @@ function Shell() {
   const [soundMessage, setSoundMessage] = useState<string | null>(null)
   const [onboardingDone, setOnboardingDone] = useState(loadOnboardingDone)
   const messageTimer = useRef<number | undefined>(undefined)
+  const { error: desktopError, nativeError, dismiss: dismissNativeError } = useDesktopBridge(engine, theme, lang, t, setAppSettingsOpen)
 
   useEffect(() => {
     captureInstallPrompt()
@@ -299,6 +304,10 @@ function Shell() {
 
   return (
     <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="min-h-[100dvh]">
+      {desktopError && <div role="alert" className="fixed top-4 left-4 z-50 max-w-sm rounded-2xl border border-line bg-card p-4 text-body-sm text-ink">
+        <p>{t('desktop.error')}</p><p className="break-words text-caption">{desktopError}</p>
+        <button className="min-h-11 rounded-full px-4 hover:bg-sunken" onClick={nativeError ? dismissNativeError : () => { void flushPersistence().catch(() => {}) }}>{t(nativeError ? 'desktop.dismiss' : 'desktop.retry')}</button>
+      </div>}
       {engine.wakeNotice && (
         <div
           role="status"
@@ -333,6 +342,7 @@ function Shell() {
         ) : view === 'stats' ? (
           <Suspense fallback={<div className="min-h-[60vh]" />}>
             <StatsView
+              onStartSession={() => {setView('timer'); engine.start()}}
               key={engine.lastEvent?.at ?? 'stats'}
               stats={engine.stats}
               lang={lang}

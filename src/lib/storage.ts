@@ -1,3 +1,6 @@
+import { trackCloudWrite } from './sync/outbox'
+import { canonical, setReplicaValue, type ReplicaDocument } from './desktop/crdt'
+import { getPersistence } from './desktop/runtime'
 import {
   DEFAULT_NARRATION,
   DEFAULT_SHORTCUTS,
@@ -67,7 +70,7 @@ const KEYS = {
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = getPersistence().getItem(key)
     if (raw === null) return null
     return validate(JSON.parse(raw))
   } catch {
@@ -75,9 +78,13 @@ function read<T>(key: string, validate: (value: unknown) => T | null): T | null 
   }
 }
 
-function write(key: string, value: unknown): boolean {
+function write(key: string, value: unknown, cloudValue: unknown = value): boolean {
   try {
-    localStorage.setItem(key, JSON.stringify(value))
+    const encoded = JSON.stringify(value)
+    if (getPersistence().getItem(key) === encoded) return true
+    trackCloudWrite(key, cloudValue)
+    getPersistence().setItem(key, encoded)
+    window.dispatchEvent(new CustomEvent('focus-flow:storage', { detail: key }))
     return true
   } catch {
     // Quota exceeded or storage unavailable — the caller decides what to tell the user.
@@ -87,7 +94,7 @@ function write(key: string, value: unknown): boolean {
 
 function readString(key: string): string | null {
   try {
-    return localStorage.getItem(key)
+    return getPersistence().getItem(key)
   } catch {
     return null
   }
@@ -201,13 +208,14 @@ export function isStats(value: unknown): StatsV2 | null {
   const date = typeof v.date === 'string' ? v.date : today
   const weekStart = typeof v.weekStart === 'string' ? v.weekStart : ws
   // Roll day and week counters the way a fresh day demands.
-  const rolledToday = date === today ? Number(v.today) || 0 : 0
-  const rolledWeek = weekStart === ws ? Number(v.week) || 0 : 0
+  const finiteCounter = (value: unknown): number => { const n = Number(value); return Number.isFinite(n) && n >= 0 ? Math.min(n, 10_000_000) : 0 }
+  const rolledToday = date === today ? finiteCounter(v.today) : 0
+  const rolledWeek = weekStart === ws ? finiteCounter(v.week) : 0
   const stats: StatsV2 = {
     today: rolledToday,
     week: rolledWeek,
-    streak: Number(v.streak) || 0,
-    minutes: Number(v.minutes) || 0,
+    streak: finiteCounter(v.streak),
+    minutes: finiteCounter(v.minutes),
     date: today,
     weekStart: ws,
     lastDate: typeof v.lastDate === 'string' ? v.lastDate : null,
@@ -267,6 +275,7 @@ export function isSessionEntry(value: unknown): SessionLogEntryV2 | null {
     typeof v.task === 'string' && v.task.trim() !== '' ? v.task.trim().slice(0, MAX_TASK_LENGTH) : null
 
   const entry: SessionLogEntryV2 = { id, date, minutes, task }
+  if (typeof v.updatedLocallyAt === 'string' && v.updatedLocallyAt.length <= 40 && Number.isFinite(Date.parse(v.updatedLocallyAt))) entry.updatedLocallyAt = v.updatedLocallyAt
 
   if (Array.isArray(v.checklist)) {
     const checklist = isChecklist(v.checklist)
@@ -362,8 +371,7 @@ export function saveSessions(sessions: SessionLogEntryV2[]): boolean {
   const sanitized: SessionLogEntryV2[] = sessions
     .map(isSessionEntry)
     .filter((e): e is SessionLogEntryV2 => e !== null)
-    .slice(0, MAX_SESSIONS)
-  return write(KEYS.sessions, sanitized)
+  return write(KEYS.sessions, sanitized.slice(0, MAX_SESSIONS), sanitized)
 }
 
 export function addSession(entry: SessionLogEntryV2): SessionLogEntryV2[] {
@@ -390,6 +398,7 @@ export function updateSessionTask(id: string, task: string | null): SessionLogEn
       return {
         ...entry,
         task: sanitizedTask,
+        updatedLocallyAt: new Date().toISOString(),
       }
     }
     return entry
@@ -451,31 +460,39 @@ export function saveTombstones(tombstones: SessionTombstone[]): void {
   const sanitized = tombstones
     .map(isSessionTombstone)
     .filter((item): item is SessionTombstone => item !== null)
+  // Once P2P has been used, keep deletions in its permanent causal metadata.
+  // Cloud tombstones may expire while this device remains disconnected.
+  const store = getPersistence()
+  const replica = store.getItem('ff3_replica')
+  const device = store.getItem('ff3_device')
   write(KEYS.tombstones, sanitized)
+  if (replica && device) {
+    try {
+      let document = JSON.parse(replica) as ReplicaDocument
+      for (const item of sanitized) document = setReplicaValue(document, `session:${item.id}`, null, device, true)
+      store.setItem('ff3_replica', canonical(document))
+    } catch (error) {
+      // Keep the ordinary deletion durable even if P2P metadata needs recovery.
+      window.dispatchEvent(new CustomEvent('focus-flow:persistence', { detail: String(error) }))
+    }
+  }
 }
 
 export function addTombstone(id: string, deletedAt: string = new Date().toISOString()): SessionTombstone[] {
   const existing = loadTombstones()
-  const now = Date.now()
   const active = existing.filter((t) => {
     const time = Date.parse(t.deletedAt)
-    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS && t.id !== id
+    return !Number.isNaN(time) && t.id !== id
   })
   const updated = [{ id, deletedAt }, ...active]
   saveTombstones(updated)
   return updated
 }
 
-export function pruneTombstones(now: number = Date.now()): SessionTombstone[] {
-  const existing = loadTombstones()
-  const active = existing.filter((t) => {
-    const time = Date.parse(t.deletedAt)
-    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS
-  })
-  if (active.length !== existing.length) {
-    saveTombstones(active)
-  }
-  return active
+export function pruneTombstones(_now: number = Date.now()): SessionTombstone[] {
+  void _now
+  // Valid deletion identities are permanent. Only explicit cloud/account erasure removes them.
+  return loadTombstones()
 }
 
 export function loadCloudSyncState(): CloudSyncState | null {
@@ -499,13 +516,14 @@ export function loadCloudSyncState(): CloudSyncState | null {
       photoURL: typeof v.photoURL === 'string' ? v.photoURL : null,
       lastSyncedAt: typeof v.lastSyncedAt === 'string' ? v.lastSyncedAt : null,
       error: typeof v.error === 'string' ? v.error : null,
+      pendingChanges: typeof v.pendingChanges === 'number' ? v.pendingChanges : 0,
     }
   })
 }
 
 export function saveCloudSyncState(state: CloudSyncState | null): void {
   if (state === null) {
-    localStorage.removeItem(KEYS.cloudSync)
+    getPersistence().removeItem(KEYS.cloudSync)
   } else {
     write(KEYS.cloudSync, state)
   }
@@ -520,9 +538,9 @@ export function loadLastSyncedUid(): string | null {
 
 export function saveLastSyncedUid(uid: string | null): void {
   if (uid === null) {
-    localStorage.removeItem(KEYS.lastSyncedUid)
+    getPersistence().removeItem(KEYS.lastSyncedUid)
   } else {
-    localStorage.setItem(KEYS.lastSyncedUid, uid)
+    getPersistence().setItem(KEYS.lastSyncedUid, uid)
   }
 }
 

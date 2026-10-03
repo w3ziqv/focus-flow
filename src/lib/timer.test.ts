@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimerEngine } from './timer'
-import { DEFAULT_SETTINGS, loadSessions } from './storage'
+import { applyRemote } from './sync/outbox'
+import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats } from './storage'
 import { audio } from './audio'
 import type { Settings } from '../types'
 
@@ -17,6 +18,22 @@ beforeEach(() => {
 })
 
 describe('useTimerEngine', () => {
+  it('refreshes cloud settings/history while preserving the device timer and task', () => {
+    const {result} = renderHook(() => useTimerEngine())
+    act(() => result.current.setTask('Local active task'))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    const remaining = result.current.remainingMs
+    act(() => applyRemote(() => {
+      saveSettings({...DEFAULT_SETTINGS, focus: 45})
+      saveStats({...loadStats(), minutes: 125})
+    }))
+    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.stats.minutes).toBe(125)
+    expect(result.current.running).toBe(true)
+    expect(result.current.remainingMs).toBe(remaining)
+    expect(result.current.task).toBe('Local active task')
+  })
   it('starts idle in focus mode with a full duration', () => {
     const { result } = renderHook(() => useTimerEngine())
     expect(result.current.mode).toBe('focus')
@@ -286,3 +303,24 @@ describe('useTimerEngine', () => {
   })
 })
 
+
+describe('desktop skip phase', () => {
+  it('advances rounds and long breaks without crediting unfinished work', () => {
+    const { result } = renderHook(() => useTimerEngine())
+    act(() => result.current.updateSettings(fastSettings({rounds: 2})))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('short')
+    expect(result.current.round).toBe(1)
+    expect(result.current.running).toBe(false)
+    expect(loadSessions()).toHaveLength(0)
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('focus')
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('long')
+    expect(result.current.round).toBe(0)
+    expect(loadSessions()).toHaveLength(0)
+    expect(result.current.lastEvent).toBeNull()
+  })
+})

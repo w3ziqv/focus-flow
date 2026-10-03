@@ -3,6 +3,8 @@ import type { SessionLogEntryV2, Settings, SoundPreferences } from '../../types'
 import {
   DEFAULT_INTERFACE,
   loadCloudSyncState,
+  loadStats,
+  saveStats,
   loadSessions,
   saveCloudSyncState,
   saveInterface,
@@ -11,7 +13,7 @@ import {
   saveTombstones,
   loadLastSyncedUid,
 } from '../storage'
-import { CloudSyncAdapterImpl, resetCloudSyncAdapter } from './adapter'
+import { MAX_SESSION_BATCH_WRITES, CloudSyncAdapterImpl, resetCloudSyncAdapter } from './adapter'
 import type { FirebaseContext, FirebaseModules } from './firebase'
 import * as firebaseMod from './firebase'
 
@@ -54,9 +56,11 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
       collection: vi.fn((_db, ...pathSegments) => ({
         path: pathSegments.join('/'),
       })) as unknown as FirebaseModules['collection'],
-      query: vi.fn((col) => col) as unknown as FirebaseModules['query'],
-      orderBy: vi.fn() as unknown as FirebaseModules['orderBy'],
-      limit: vi.fn() as unknown as FirebaseModules['limit'],
+      query: vi.fn((col, ...constraints) => ({...col, constraints})) as unknown as FirebaseModules['query'],
+      documentId: vi.fn(() => '__name__') as unknown as FirebaseModules['documentId'],
+      startAfter: vi.fn((snapshot) => ({kind: 'cursor', path: snapshot.ref.path})) as unknown as FirebaseModules['startAfter'],
+      orderBy: vi.fn((field, direction) => ({kind: 'order', field, direction})) as unknown as FirebaseModules['orderBy'],
+      limit: vi.fn((count) => ({kind: 'limit', count})) as unknown as FirebaseModules['limit'],
       getDoc: vi.fn((docRef) => {
         const data = mockDocStore.get(docRef.path)
         return Promise.resolve({
@@ -74,11 +78,18 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
       }) as unknown as FirebaseModules['deleteDoc'],
       getDocs: vi.fn((colRef) => {
         const col = getCol(colRef.path)
-        const docs = Array.from(col.entries()).map(([id, data]) => ({
+        let docs = Array.from(col.entries()).map(([id, data]) => ({
           id,
           data: () => data,
           ref: { path: `${colRef.path}/${id}` },
         }))
+        const constraints = colRef.constraints ?? []
+        const cursor = constraints.find((item: {kind: string}) => item.kind === 'cursor')
+        const max = constraints.find((item: {kind: string}) => item.kind === 'limit')
+        const order = constraints.find((item: {kind: string}) => item.kind === 'order')
+        docs.sort((a, b) => order?.field === '__name__' ? a.id.localeCompare(b.id) : String(b.data().date).localeCompare(String(a.data().date)))
+        if (cursor) docs = docs.filter(doc => doc.ref.path > cursor.path)
+        if (max) docs = docs.slice(0, max.count)
         return Promise.resolve({
           forEach: (cb: (doc: unknown) => void) => docs.forEach(cb),
           docs,
@@ -206,7 +217,7 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
     const cloudDoc = mockDocStore.get('users/user-123/sessions/private-session-1')
     expect(cloudDoc).toBeDefined()
     expect(cloudDoc?.task).toBeNull()
-    expect(cloudDoc?.checklist).toBeUndefined()
+    expect(cloudDoc?.checklist).toEqual([])
     expect(cloudDoc?.minutes).toBe(25)
   })
 
@@ -311,6 +322,7 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
   describe('Multi-Account Consent Guard', () => {
     it('prompts consent resolver when signing into a different Google account and local sessions exist', async () => {
       saveLastSyncedUid('previous-user-999')
+      saveStats({...loadStats(), milestones: [{id: 'first_session', unlockedAt: '2026-01-01T12:00:00Z', seen: true}]})
       saveSessions([
         { id: 'user-a-session', date: '2026-09-20T10:00:00.000Z', minutes: 25, task: 'Confidential Session A' },
       ])
@@ -326,6 +338,8 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
       })
       // If user chose replace-local, user-a-session should NOT be in remote doc store for user-123
       expect(mockDocStore.has('users/user-123/sessions/user-a-session')).toBe(false)
+      expect(loadStats().milestones).toEqual([])
+      expect(localStorage.getItem('ff3_account_backup_previous-user-999')).toContain('first_session')
       expect(loadLastSyncedUid()).toBe('user-123')
     })
 
@@ -349,4 +363,149 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
       expect(loadLastSyncedUid()).toBe('user-123')
     })
   })
+  it('retries a partially committed 805-session upload in batches <=400 without duplicate IDs', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    const factory = vi.mocked(mockFirebaseContext.modules.writeBatch).getMockImplementation()!
+    const sizes: number[] = []
+    let failSecond = true
+    vi.spyOn(mockFirebaseContext.modules, 'writeBatch').mockImplementation(((db: unknown) => {
+      const batch = factory(db as Parameters<typeof factory>[0])
+      let size = 0
+      return {
+        set: (...args: Parameters<typeof batch.set>) => {size++; return batch.set(...args)},
+        commit: async () => {
+          sizes.push(size)
+          if (failSecond && sizes.length === 2) throw new Error('temporary failure')
+          await batch.commit()
+        },
+      }
+    }) as unknown as FirebaseModules['writeBatch'])
+    const entries = Array.from({length: 805}, (_, i) => ({id: `batch-${i}`, date: '2026-10-01T12:00:00Z', minutes: 1, task: null}))
+    await expect(adapter.pushSessions(entries)).rejects.toThrow('temporary failure')
+    expect(mockCollectionStore.get('users/user-123/sessions')?.size).toBe(MAX_SESSION_BATCH_WRITES)
+    failSecond = false
+    await adapter.pushSessions(entries)
+    expect(sizes.every(size => size <= 400)).toBe(true)
+    expect(sizes.slice(2).reduce((sum, size) => sum + size, 0)).toBe(805)
+    expect(mockCollectionStore.get('users/user-123/sessions')?.size).toBe(805)
+  })
+
+  it('erases old task/checklist content outside the 1000-session visible window', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    const entries = Array.from({length: 1105}, (_, i) => ({id: `private-${String(i).padStart(4, '0')}`, date: '2026-10-01T12:00:00Z', minutes: 1, task: 'private title', checklist: [{id: 'step', text: 'secret', completed: false}]}))
+    await adapter.pushSessions(entries)
+    saveInterface({...DEFAULT_INTERFACE, maskTaskTitlesInCloud: true})
+    await adapter.applyPrivacy(true)
+    const documents = [...mockCollectionStore.get('users/user-123/sessions')!.values()]
+    expect(documents).toHaveLength(1105)
+    expect(documents.every(doc => doc.task === null && Array.isArray(doc.checklist) && doc.checklist.length === 0)).toBe(true)
+  })
+
+  it('keeps a versioned source copy and daily history when migration repeats', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    const source = {minutes: 250, today: 0, week: 0, streak: 1, history: {'Thu Jan 01 2015': 250}, schemaVersion: 2}
+    mockDocStore.set('users/user-123/stats/summary', source)
+    const stats = (await adapter.pullStats())!
+    await adapter.pushStats(stats)
+    await adapter.pushStats(stats)
+    expect(JSON.parse(localStorage.getItem('ff3_history_source_user-123')!)).toEqual(source)
+    expect(mockDocStore.get('users/user-123/daily_history/2015-01-01')?.minutes).toBe(250)
+    expect(mockDocStore.get('users/user-123/stats/summary')?.history).toBeUndefined()
+    expect(mockDocStore.get('users/user-123/stats/summary')?.schemaVersion).toBe(3)
+  })
+
+  it('requires account consent even when only settings and old history remain', async () => {
+    saveLastSyncedUid('previous-user')
+    const adapter = new CloudSyncAdapterImpl()
+    await expect(adapter.signInWithGoogle()).rejects.toThrow('account-switch-consent-required')
+    expect(loadLastSyncedUid()).toBe('previous-user')
+    expect(mockDocStore.size).toBe(0)
+  })
+
+  it('does not apply a previous account response after signing out during a sync', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    let resolve!: (value: unknown) => void
+    const pending = new Promise(r => {resolve = r})
+    let started!: () => void
+    const entered = new Promise<void>(r => {started = r})
+    vi.spyOn(mockFirebaseContext.modules, 'getDocs').mockImplementationOnce(() => {started(); return pending as ReturnType<FirebaseModules['getDocs']>})
+    const sync = adapter.syncAll()
+    const rejected = expect(sync).rejects.toThrow('cloud-account-changed')
+    await entered
+    await adapter.signOut()
+    saveTombstones([{id: 'new-profile', deletedAt: '2026-10-03T12:00:00Z'}])
+    resolve({docs: [], forEach: () => {}})
+    await rejected
+    expect(localStorage.getItem('ff2_session_tombstones')).toContain('new-profile')
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+  })
+
+  it('does not resend unchanged private content when its cloud projection is already masked', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    saveInterface({...DEFAULT_INTERFACE, maskTaskTitlesInCloud: true})
+    const entries = [{id: 'already-masked', date: '2026-10-01T12:00:00Z', minutes: 25, task: 'Local secret', checklist: [{id: 'step', text: 'Local detail', completed: false}]}]
+    saveSessions(entries)
+    await adapter.pushSessions(entries)
+    const upload = vi.spyOn(adapter, 'pushSessions')
+    await adapter.reconcileSessions(entries)
+    expect(upload).not.toHaveBeenCalled()
+    expect(loadSessions()[0].task).toBe('Local secret')
+  })
+
+  it('reconstructs consecutive days and last activity from synchronized history', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    const entries = Array.from({length: 3}, (_, i) => {
+      const date = new Date(); date.setDate(date.getDate() - i); date.setHours(12, 0, 0, 0)
+      return {id: `streak-${i}`, date: date.toISOString(), minutes: 25, task: null}
+    })
+    await adapter.pushSessions(entries)
+    await adapter.reconcileSessions([])
+    expect(loadStats().streak).toBe(3)
+    expect(loadStats().lastDate).toBe(new Date().toDateString())
+  })
+
+  it('times out stalled transport while retaining unsent local sessions', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    vi.useFakeTimers()
+    let resolve!: (value: unknown) => void
+    try {
+      const pending = new Promise(r => {resolve = r})
+      vi.spyOn(mockFirebaseContext.modules, 'getDocs').mockImplementationOnce(() => pending as ReturnType<FirebaseModules['getDocs']>)
+      saveSessions([{id: 'pending-timeout', date: '2026-10-03T12:00:00Z', minutes: 25, task: 'Keep locally'}])
+      const rejected = expect(adapter.syncAll()).rejects.toThrow('cloud-timeout')
+      await vi.advanceTimersByTimeAsync(60_001)
+      await rejected
+      expect(adapter.getSyncStatus()).toBe('error')
+      expect(localStorage.getItem('ff3_cloud_outbox')).toContain('pending-timeout')
+      expect(loadSessions()[0].id).toBe('pending-timeout')
+    } finally {resolve?.({docs: [], forEach: () => {}}); vi.useRealTimers()}
+  })
+
+  it('keeps synchronizing beyond a minute while requests continue making progress', async () => {
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    vi.useFakeTimers()
+    try {
+      const read = vi.mocked(mockFirebaseContext.modules.getDoc).getMockImplementation()!
+      vi.spyOn(mockFirebaseContext.modules, 'getDoc').mockImplementation(ref => new Promise(resolve => {
+        setTimeout(() => {void read(ref).then(resolve)}, 45_000)
+      }))
+      const start = Date.now()
+      saveSessions([{id: 'slow-progress', date: new Date().toISOString(), minutes: 25, task: null}])
+      const success = expect(adapter.syncAll()).resolves.toBeUndefined()
+      await vi.runAllTimersAsync()
+      await success
+      expect(Date.now() - start).toBeGreaterThan(60_000)
+      expect(adapter.getSyncStatus()).toBe('synced')
+      expect(localStorage.getItem('ff3_cloud_outbox')).toBeNull()
+    } finally {vi.useRealTimers()}
+  })
+
 })
