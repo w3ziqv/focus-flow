@@ -33,7 +33,7 @@ jobs:
           workspaces: src-tauri
       - name: Linux native dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev libdbus-1-dev librsvg2-dev patchelf
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev libdbus-1-dev librsvg2-dev patchelf webkit2gtk-driver xvfb xauth libxtst6
       - run: npm ci
       - run: npm run build:desktop
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
@@ -46,18 +46,24 @@ jobs:
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID }}
       - run: node scripts/checksums.mjs
+      - name: Linux installed application smoke
+        if: runner.os == 'Linux'
+        run: |
+          cargo install tauri-driver --version 2.1.0 --locked
+          ./scripts/test-linux.sh
       - name: Windows installed application smoke
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           ./scripts/test-windows.ps1
-      - name: Windows runtime evidence
-        if: always() && runner.os == 'Windows'
+      - name: Native runtime evidence
+        if: always() && runner.os != 'macOS'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: windows-runtime-evidence
+          name: native-runtime-evidence-${{ runner.os }}
           path: |
             ${{ runner.temp }}/focus-flow-windows*.png
+            ${{ runner.temp }}/focus-flow-linux*.png
             ${{ runner.temp }}/tauri-driver*.log
           if-no-files-found: warn
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
