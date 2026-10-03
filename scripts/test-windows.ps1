@@ -36,6 +36,21 @@ $signature = Get-AuthenticodeSignature $nativeDriver
 if ($signature.Status -ne 'Valid') { throw 'Microsoft WebDriver signature validation failed' }
 $env:FOCUS_FLOW_DIRECT_EDGE_DRIVER = '1'
 $env:FOCUS_FLOW_WEBVIEW_PROFILE = Join-Path $env:RUNNER_TEMP 'focus-flow-webview-profile'
+# Hosted runners are elevated. WebView2 150+ intentionally ignores user-writable
+# WEBVIEW2_* environment overrides in elevated hosts. Use app-specific HKLM
+# policies only in this disposable runner; restore them after the test.
+# https://github.com/MicrosoftEdge/WebView2Feedback/issues/5640
+$policyState = @()
+foreach ($setting in @(
+  @{ Name = 'AdditionalBrowserArguments'; Value = '--remote-debugging-port=0' },
+  @{ Name = 'UserDataFolder'; Value = $env:FOCUS_FLOW_WEBVIEW_PROFILE }
+)) {
+  $policyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\WebView2\$($setting.Name)"
+  $policyKey = New-Item -Path $policyPath -Force
+  $existed = $policyKey.GetValueNames() -contains 'focus-flow.exe'
+  $policyState += @{ Path = $policyPath; Existed = $existed; Value = $policyKey.GetValue('focus-flow.exe'); Kind = $(if ($existed) { $policyKey.GetValueKind('focus-flow.exe') } else { $null }) }
+  New-ItemProperty -Path $policyPath -Name 'focus-flow.exe' -Value $setting.Value -PropertyType String -Force | Out-Null
+}
 $driverLog = Join-Path $env:RUNNER_TEMP 'tauri-driver-native.log'
 $driver = Start-Process -FilePath $nativeDriver -ArgumentList @('--port=4444', '--verbose', "--log-path=$driverLog") -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'tauri-driver.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'tauri-driver-error.log')
 Write-Host "WebView2 $version; EdgeDriver $($signature.SignerCertificate.Subject)"
@@ -53,6 +68,10 @@ try {
 } finally {
   Get-Process -Name focus-flow,msedgewebview2 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,Responding,Path | Format-Table
   Stop-Process -Id $driver.Id -ErrorAction SilentlyContinue
+  foreach ($policy in $policyState) {
+    if ($policy.Existed) { (Get-Item $policy.Path).SetValue('focus-flow.exe', $policy.Value, $policy.Kind) }
+    else { Remove-ItemProperty -Path $policy.Path -Name 'focus-flow.exe' -ErrorAction SilentlyContinue }
+  }
 }
 # This checks a fresh install and native interactions. Real login/autostart,
 # physical sleep/wake, tray shell behavior and update/rollback still need OS acceptance.
