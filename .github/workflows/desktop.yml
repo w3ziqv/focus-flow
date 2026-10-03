@@ -4,10 +4,16 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'Optional existing installer run for runtime-only verification (same app source required)'
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
   native:
+    if: ${{ !inputs.artifact_run_id }}
     strategy:
       fail-fast: false
       matrix:
@@ -46,26 +52,6 @@ jobs:
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID }}
       - run: node scripts/checksums.mjs
-      - name: Linux installed application smoke
-        if: runner.os == 'Linux'
-        run: |
-          cargo install tauri-driver --version 2.1.0 --locked
-          ./scripts/test-linux.sh
-      - name: Windows installed application smoke
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          ./scripts/test-windows.ps1
-      - name: Native runtime evidence
-        if: always() && runner.os != 'macOS'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: native-runtime-evidence-${{ runner.os }}
-          path: |
-            ${{ runner.temp }}/focus-flow-windows*.png
-            ${{ runner.temp }}/focus-flow-linux*.png
-            ${{ runner.temp }}/tauri-driver*.log
-          if-no-files-found: warn
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -77,6 +63,66 @@ jobs:
             src-tauri/target/release/bundle/**/*.dmg
             src-tauri/target/release/bundle/SHA256SUMS.txt
           if-no-files-found: error
+  installed:
+    needs: native
+    if: ${{ always() && (needs.native.result == 'success' || inputs.artifact_run_id) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify reused installer source
+        if: inputs.artifact_run_id
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FOCUS_FLOW_ARTIFACT_RUN: ${{ inputs.artifact_run_id }}
+        run: |
+          artifact_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$FOCUS_FLOW_ARTIFACT_RUN" --jq '.head_sha')
+          git cat-file -e "$artifact_sha^{commit}"
+          git diff --exit-code "$artifact_sha" HEAD -- package.json package-lock.json src src-tauri
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: focus-flow-${{ runner.os }}
+          path: src-tauri/target/release/bundle
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify installer checksums
+        shell: bash
+        run: cd src-tauri/target/release/bundle && sha256sum -c SHA256SUMS.txt
+      - name: Linux runtime dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y webkit2gtk-driver xvfb xauth libxtst6
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d
+        if: runner.os == 'Linux'
+      - name: Linux installed application smoke
+        if: runner.os == 'Linux'
+        run: |
+          cargo install tauri-driver --version 2.1.0 --locked
+          ./scripts/test-linux.sh
+      - name: Windows installed application smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-windows.ps1
+      - name: Native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-runtime-evidence-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/focus-flow-windows*.png
+            ${{ runner.temp }}/focus-flow-linux*.png
+            ${{ runner.temp }}/tauri-driver*.log
+          if-no-files-found: warn
   browser:
     runs-on: ubuntu-24.04
     steps:

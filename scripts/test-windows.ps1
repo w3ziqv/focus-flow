@@ -9,6 +9,24 @@ if (-not (Test-Path $application)) { throw "Installed application missing: $appl
 $runtime = Get-ChildItem "${env:ProgramFiles(x86)}/Microsoft/EdgeWebView/Application/*/msedgewebview2.exe" | Sort-Object { [version] $_.VersionInfo.ProductVersion } -Descending | Select-Object -First 1
 if (-not $runtime) { throw 'WebView2 runtime unavailable; Windows runtime gate remains open' }
 $version = $runtime.VersionInfo.ProductVersion
+# Diagnose application startup separately from a driver's connection timeout.
+$startup = Start-Process -FilePath $application -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'tauri-driver-app.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'tauri-driver-app-error.log')
+Start-Sleep -Seconds 5
+$startup.Refresh()
+if ($startup.HasExited) {
+  Get-Content (Join-Path $env:RUNNER_TEMP 'tauri-driver-app-error.log')
+  throw "Installed application exited before automation: $($startup.ExitCode)"
+}
+try {
+  Add-Type -AssemblyName System.Windows.Forms,System.Drawing
+  $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+  $bitmap = [System.Drawing.Bitmap]::new($bounds.Width, $bounds.Height)
+  $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+  try {
+    $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+    $bitmap.Save((Join-Path $env:RUNNER_TEMP 'focus-flow-windows-startup.png'))
+  } finally { $graphics.Dispose(); $bitmap.Dispose() }
+} finally { Stop-Process -Id $startup.Id -ErrorAction SilentlyContinue }
 $archive = Join-Path $env:RUNNER_TEMP 'edgedriver.zip'
 $driverDirectory = Join-Path $env:RUNNER_TEMP 'edgedriver'
 Invoke-WebRequest "https://msedgedriver.microsoft.com/$version/edgedriver_win64.zip" -OutFile $archive
