@@ -1,0 +1,28 @@
+[
+  {
+    "name": "timer-pl",
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "name": "empty-statistics-pl",
+    "violations": [],
+    "incomplete": []
+  },
+  {
+    "name": "cloud-pl",
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  },
+  {
+    "name": "zoom-200-pl",
+    "violations": [],
+    "incomplete": [
+      "color-contrast"
+    ]
+  }
+]

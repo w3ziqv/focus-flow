@@ -2,7 +2,7 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "2.6.0",
+  "version": "3.0.0-alpha.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,11 +12,25 @@
     "typecheck:node": "npx --package=typescript@5.8 tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "dev:desktop": "vite --mode desktop",
+    "build:desktop": "tsc --noEmit && vite build --mode desktop",
+    "tauri": "tauri",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
+    "verify:builds": "node scripts/verify-builds.mjs",
+    "test:browser": "node scripts/test-browser.mjs",
+    "test:web-offline": "node scripts/test-web-offline.mjs",
+    "test:rules": "node scripts/test-firestore-rules.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",
     "@fontsource-variable/instrument-sans": "^5.2.5",
+    "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/plugin-autostart": "^2.7.0",
+    "@tauri-apps/plugin-dialog": "^2.8.1",
+    "@tauri-apps/plugin-fs": "^2.6.0",
+    "@tauri-apps/plugin-notification": "^2.5.1",
     "firebase": "^12.19.0",
     "lucide-react": "^0.539.0",
     "react": "^19.1.0",
@@ -24,20 +38,22 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^5.0.0",
     "@tailwindcss/vite": "^4.1.11",
+    "@tauri-apps/cli": "^2.12.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.4.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "axe-core": "^4.13.0",
     "eslint": "^10.9.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.5",
     "globals": "^17.11.0",
     "jsdom": "^30.0.1",
     "playwright-core": "^1.62.1",
-    "react-scan": "^0.5.7",
     "tailwindcss": "^4.1.11",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.68.0",
@@ -47,5 +63,8 @@
   },
   "allowScripts": {
     "esbuild@0.28.2": true
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
   }
 }

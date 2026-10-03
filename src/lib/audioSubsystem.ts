@@ -88,6 +88,13 @@ export class AudioSubsystem {
     return { ...this.preferences }
   }
 
+  /** Apply an already persisted remote bundle without re-queuing it for upload. */
+  public reloadPreferences(): void {
+    this.preferences = loadSoundPreferences()
+    this.syncPlayableToEngine()
+    this.notify()
+  }
+
   public getCustomSounds(): CustomSound[] {
     return [...this.customSounds]
   }

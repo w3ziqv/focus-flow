@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
 import {
   Bell,
@@ -35,6 +35,8 @@ import { Modal } from './Modal'
 import { PillButton } from './PillButton'
 import { SegmentedTabs } from './SegmentedTabs'
 import { Switch } from './Switch'
+
+const DesktopSettings = lazy(() => import('./DesktopSettings'))
 
 export type SettingsSection =
   | 'main'
@@ -355,6 +357,8 @@ export function AppSettingsModal({
             </button>
           </div>
 
+          {platform === 'tauri' && <Suspense fallback={null}><DesktopSettings /></Suspense>}
+
           {/* Group 3: Data, Webhook & Notifications */}
           <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
             {onOpenCloudSync && (
@@ -368,8 +372,8 @@ export function AppSettingsModal({
                     <Cloud size={17} aria-hidden="true" />
                   </div>
                   <div>
-                    <div className="text-[14px] font-medium text-ink">Cloud Synchronization</div>
-                    <div className="text-[12px] text-ink-3">Cross-device sync & Google sign-in</div>
+                    <div className="text-[14px] font-medium text-ink">{t('sync.title')}</div>
+                    <div className="text-[12px] text-ink-3">{t('sync.scope')}</div>
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
@@ -393,24 +397,6 @@ export function AppSettingsModal({
               <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
             </button>
 
-            <button
-              type="button"
-              onClick={() => goToSection('webhook')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(201,100,66,0.12)] text-[#c96442]">
-                  <Radio size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('webhookTitle')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">
-                    {webhookSettings.enabled ? 'HTTP POST (Aktywny)' : t('webhookEnabled')}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
 
             <button
               type="button"
@@ -430,6 +416,26 @@ export function AppSettingsModal({
             </button>
           </div>
 
+          <details className="rounded-2xl border border-line bg-card"><summary className="cursor-pointer p-3.5 text-sm text-ink">{t('settings.advanced')}</summary>            <button
+              type="button"
+              onClick={() => goToSection('webhook')}
+              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(201,100,66,0.12)] text-[#c96442]">
+                  <Radio size={17} aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="text-[14px] font-medium text-ink leading-snug">{t('webhookTitle')}</div>
+                  <div className="text-[12px] text-ink-3 leading-snug">
+                    {webhookSettings.enabled ? 'HTTP POST (Aktywny)' : t('webhookEnabled')}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
+            </button>
+
+          </details>
           <p className="mt-3 text-[12px] text-ink-3 text-center">
             Focus Flow v{__APP_VERSION__} · {t(platformLabels[platform])}
           </p>

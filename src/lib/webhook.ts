@@ -17,7 +17,7 @@ export function isValidWebhookUrl(urlString: string): boolean {
   if (!trimmed) return false
   try {
     const parsed = new URL(trimmed)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !parsed.username && !parsed.password
   } catch {
     return false
   }
@@ -70,6 +70,9 @@ export async function dispatchWebhook(
   try {
     const res = await fetch(trimmedUrl, {
       method: 'POST',
+      credentials: 'omit',
+      redirect: 'error',
+      referrerPolicy: 'no-referrer',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -125,6 +128,9 @@ export async function testWebhook(
   try {
     const res = await fetch(trimmedUrl, {
       method: 'POST',
+      credentials: 'omit',
+      redirect: 'error',
+      referrerPolicy: 'no-referrer',
       headers: {
         'Content-Type': 'application/json',
       },

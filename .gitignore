@@ -8,3 +8,11 @@ Thumbs.db
 dist/
 .agents/
 .pi/
+dist-desktop/
+src-tauri/target/
+src-tauri/gen/schemas/
+test-artifacts/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/

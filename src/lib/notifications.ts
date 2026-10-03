@@ -1,3 +1,14 @@
+import { detectPlatform } from './platform'
+
+let nativePermission: NotificationPermissionState = 'default'
+export async function initializeNativeNotifications(): Promise<void> {
+  if (detectPlatform() !== 'tauri') return
+  try {
+    const { isPermissionGranted } = await import('@tauri-apps/plugin-notification')
+    nativePermission = await isPermissionGranted() ? 'granted' : 'default'
+  } catch { nativePermission = 'unsupported' }
+}
+
 /**
  * Notification dispatcher with ServiceWorker showNotification on mobile,
  * haptic feedback, and desktop Notification fallback.
@@ -27,6 +38,7 @@ export const HAPTIC_FEEDBACK_PATTERN: number[] = [300, 150, 300]
  * Checks whether the Notifications API is supported in the current environment.
  */
 export function isNotificationSupported(): boolean {
+  if (detectPlatform() === 'tauri') return true
   return typeof window !== 'undefined' && 'Notification' in window && typeof Notification !== 'undefined'
 }
 
@@ -34,6 +46,7 @@ export function isNotificationSupported(): boolean {
  * Gets the current notification permission state safely.
  */
 export function getNotificationPermission(): NotificationPermissionState {
+  if (detectPlatform() === 'tauri') return nativePermission
   if (!isNotificationSupported() || typeof Notification.permission !== 'string') {
     return 'unsupported'
   }
@@ -44,6 +57,13 @@ export function getNotificationPermission(): NotificationPermissionState {
  * Requests notification permission from the user in a promise-safe manner.
  */
 export async function requestNotificationPermission(): Promise<NotificationPermissionState> {
+  if (detectPlatform() === 'tauri') {
+    try {
+      const { requestPermission } = await import('@tauri-apps/plugin-notification')
+      nativePermission = await requestPermission()
+    } catch { nativePermission = 'unsupported' }
+    return nativePermission
+  }
   if (!isNotificationSupported()) {
     return 'unsupported'
   }
@@ -82,6 +102,14 @@ export async function dispatchNotification(
   title: string,
   options: MobileNotificationOptions = {},
 ): Promise<boolean> {
+  if (detectPlatform() === 'tauri') {
+    try {
+      const { isPermissionGranted, sendNotification } = await import('@tauri-apps/plugin-notification')
+      if (!await isPermissionGranted()) return false
+      sendNotification({ title, body: options.body })
+      return true
+    } catch { return false }
+  }
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
     return false
   }

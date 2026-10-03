@@ -219,7 +219,7 @@ export function ZenMilestones({ stats, sessions }: ZenMilestonesProps): React.JS
                 'flex items-start gap-3.5 rounded-xl border p-3.5 transition-colors ' +
                 (isUnlocked
                   ? 'border-line bg-surface/50 shadow-[0_1px_4px_rgba(20,20,19,0.03)]'
-                  : 'border-line-subtle/80 bg-sunken/30 opacity-70')
+                  : 'border-line-subtle/80 bg-sunken/30')
               }
             >
               <div className="shrink-0 mt-0.5">
@@ -233,7 +233,7 @@ export function ZenMilestones({ stats, sessions }: ZenMilestonesProps): React.JS
                 </div>
                 <p className="text-[12px] leading-relaxed text-ink-3 mt-0.5">{t(def.descKey)}</p>
                 <div className="mt-2 flex items-center justify-between gap-2 text-[10px]">
-                  <span className="text-ink-3/80">{t(def.thresholdKey)}</span>
+                  <span className="text-ink-3">{t(def.thresholdKey)}</span>
                   {isUnlocked && record?.unlockedAt && (
                     <span className="tnum font-medium text-[var(--ac-strong)]">
                       {formatDate(record.unlockedAt, lang)}
