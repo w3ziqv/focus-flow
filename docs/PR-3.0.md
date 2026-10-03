@@ -38,3 +38,9 @@ workflow preparation alone is not verification. Installers are unsigned.
 
 Published as draft PR #4. CI runs are being checked; exact results and remaining
 release gates are recorded in docs/VERIFICATION-3.0.md.
+
+Remote verification: CI and Security passed on `6b556ae`; Desktop browser,
+Linux packaging/optimized GLib test and experimental macOS packaging passed.
+Windows NSIS build/install passed, but session creation timed out before UI checks.
+A test-harness repair is awaiting a fresh run; keep the Windows runtime gate open.
+See the linked report for exact run URLs and environment limitations.

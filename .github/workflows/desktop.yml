@@ -50,7 +50,6 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cargo install tauri-driver --version 2.1.0 --locked
           ./scripts/test-windows.ps1
       - name: Windows runtime evidence
         if: always() && runner.os == 'Windows'

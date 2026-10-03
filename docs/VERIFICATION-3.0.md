@@ -88,10 +88,29 @@ Branch `feature/v3-desktop` is published and [draft PR #4](https://github.com/w3
 is open against `main`. The initial published commit is
 `c0e54eff6336ced472c58d0b3ce7c0b1a06fc534`.
 
-Actual GitHub Actions runs started for that commit:
-- [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37135951709)
-- [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37135951736)
-- [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37135951836)
+Actual GitHub Actions results for documentation commit
+`6b556aefcd525c597a754ef824a14acbbb82f36e` (same application source):
 
-Results are pending; a started workflow is not a pass. No stable tag or release
-has been published. All remaining stable gates above still apply.
+- [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37135996421): passed;
+  755 application tests, npm audit, lint/types and both frontend builds/isolation.
+- [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37135996354): passed;
+  50 Firestore checks, 1105-session integration and Cargo audit.
+- [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37135996363): browser,
+  Ubuntu 24.04 native tests/optimized GLib regression and .deb/AppImage packaging
+  passed; experimental macOS tests/DMG packaging passed. Windows native tests and
+  NSIS build/installation passed, but the WebDriver session timed out before UI
+  assertions. The Windows runtime gate did **not** pass.
+
+Linux .deb/AppImage and experimental macOS DMG were downloaded from that run and
+SHA-256 verified locally. Artifacts are unsigned alpha builds, not a stable release.
+The Windows test harness now retains verbose native EdgeDriver diagnostics and
+waits for the driver's bounded startup response instead of closing its HTTP
+connection early. This repair still requires a successful new Windows run.
+
+A repeat local check of the CI-built Ubuntu executable through relocated WebKit
+libraries on Arch encountered a WebDriver startup failure; the previously tested
+Arch executable also failed that repeat. This extra cross-environment check is
+not claimed as a pass and does not replace native Ubuntu installation acceptance.
+
+No stable tag or release has been published. All remaining stable gates above
+still apply. Later CI runs and exact results are linked in the draft PR body.

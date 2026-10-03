@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import time
 import urllib.request
+import urllib.error
 
 endpoint = os.environ.get('TAURI_DRIVER_URL', 'http://127.0.0.1:4444')
 binary = os.environ['FOCUS_FLOW_BINARY']
@@ -15,10 +16,21 @@ def http(method, url, data=None):
     payload = json.dumps(data).encode() if data is not None else None
     req = urllib.request.Request(url, data=payload, method=method,
                                  headers={'Content-Type': 'application/json'})
-    return json.load(urllib.request.urlopen(req, timeout=35))['value']
+    try:
+        # The native driver can spend up to a minute starting a fresh WebView2.
+        timeout = 120 if method == 'POST' and url.endswith('/session') else 35
+        return json.load(urllib.request.urlopen(req, timeout=timeout))['value']
+    except urllib.error.HTTPError as error:
+        raise RuntimeError(f'{method} {url}: {error.read().decode()}') from error
 
-session = http('POST', endpoint + '/session', {'capabilities': {'alwaysMatch': {
-    'tauri:options': {'application': binary}}}})['sessionId']
+capabilities = {'tauri:options': {'application': binary}}
+if os.environ.get('FOCUS_FLOW_DIRECT_EDGE_DRIVER'):
+    # Native EdgeDriver exposes WebView2 directly; retain verbose driver logs.
+    capabilities = {'browserName': 'webview2', 'ms:edgeOptions': {
+        'binary': binary, 'webviewOptions': {
+            'userDataFolder': os.environ['FOCUS_FLOW_WEBVIEW_PROFILE']}}}
+session = http('POST', endpoint + '/session', {'capabilities': {
+    'alwaysMatch': capabilities}})['sessionId']
 base = endpoint + '/session/' + session
 
 def request(method, path, data=None):
@@ -35,10 +47,17 @@ def invoke(command, args=None, expected=True):
     return result.get('value')
 
 try:
+    startup_error = None
     for _ in range(100):
-        if script('return !!document.querySelector("input")'): break
+        try:
+            if script('return !!document.querySelector("input")'): break
+        except RuntimeError as error:
+            # WebKit can publish its window before the first document exists.
+            # Retry only this startup condition, never a crashed/deleted session.
+            if '"error":"unknown error"' not in str(error): raise
+            startup_error = error
         time.sleep(.1)
-    else: raise AssertionError(script('return document.body.innerText'))
+    else: raise AssertionError(f'Application UI did not load: {startup_error or script("return document.body.innerText")}')
     script('document.querySelector("button[aria-label=Close]")?.click()')
     cloud = invoke('cloud_status')
     assert isinstance(cloud['configured'], bool) and isinstance(cloud['persistent'], bool), cloud

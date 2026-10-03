@@ -16,7 +16,11 @@ Expand-Archive $archive -DestinationPath $driverDirectory -Force
 $nativeDriver = Join-Path $driverDirectory 'msedgedriver.exe'
 $signature = Get-AuthenticodeSignature $nativeDriver
 if ($signature.Status -ne 'Valid') { throw 'Microsoft WebDriver signature validation failed' }
-$driver = Start-Process -FilePath (Join-Path $env:USERPROFILE '.cargo/bin/tauri-driver.exe') -ArgumentList @('--native-driver', $nativeDriver) -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'tauri-driver.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'tauri-driver-error.log')
+$env:FOCUS_FLOW_DIRECT_EDGE_DRIVER = '1'
+$env:FOCUS_FLOW_WEBVIEW_PROFILE = Join-Path $env:RUNNER_TEMP 'focus-flow-webview-profile'
+$driverLog = Join-Path $env:RUNNER_TEMP 'tauri-driver-native.log'
+$driver = Start-Process -FilePath $nativeDriver -ArgumentList @('--port=4444', '--verbose', "--log-path=$driverLog") -PassThru -RedirectStandardOutput (Join-Path $env:RUNNER_TEMP 'tauri-driver.log') -RedirectStandardError (Join-Path $env:RUNNER_TEMP 'tauri-driver-error.log')
+Write-Host "WebView2 $version; EdgeDriver $($signature.SignerCertificate.Subject)"
 try {
   $ready = $false
   for ($attempt = 0; $attempt -lt 100; $attempt++) {
@@ -29,6 +33,7 @@ try {
   python scripts/test-native.py
   if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed native smoke' }
 } finally {
+  Get-Process -Name focus-flow,msedgewebview2 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,Responding,Path | Format-Table
   Stop-Process -Id $driver.Id -ErrorAction SilentlyContinue
 }
 # This checks a fresh install and native interactions. Real login/autostart,
