@@ -36,6 +36,5 @@ login-cycle autostart and hardware sleep/resume; screen-reader acceptance and
 production rule/header review. GitHub CI must run on the published commit;
 workflow preparation alone is not verification. Installers are unsigned.
 
-Once write access is available, push feature/v3-desktop and create a draft PR
-against main with this body. Run CI, resolve failures and record exact run links
-before moving toward the stable release.
+Published as draft PR #4. CI runs are being checked; exact results and remaining
+release gates are recorded in docs/VERIFICATION-3.0.md.

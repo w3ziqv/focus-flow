@@ -81,11 +81,17 @@ Do not merge or publish `v3.0.0` until every stable gate is closed. See
 [ROADMAP.md](ROADMAP.md), [CLOUD-SETUP.md](CLOUD-SETUP.md),
 [INSTALL-UPDATE.md](INSTALL-UPDATE.md) and [security report](../specs/security/SECURITY_REPORT_v3.0.md).
 
-## GitHub publication attempt
+## GitHub publication and CI
 
-Creating the branch through the GitHub connector returned HTTP 403
-`Resource not accessible by integration`, including a retry after reconnection.
-The local environment has no configured Git credential helper, CLI login, SSH key
-or token. Standard Git push also failed because HTTPS credentials are unavailable. No branch/PR was published and no GitHub Actions run was triggered.
-The workflow files are prepared, not a claimed remote CI pass. A ready PR body
-is provided in [PR-3.0.md](PR-3.0.md); publishing requires repository write access.
+GitHub CLI authentication restored repository write access on 2026-10-03.
+Branch `feature/v3-desktop` is published and [draft PR #4](https://github.com/w3ziqv/focus-flow/pull/4)
+is open against `main`. The initial published commit is
+`c0e54eff6336ced472c58d0b3ce7c0b1a06fc534`.
+
+Actual GitHub Actions runs started for that commit:
+- [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37135951709)
+- [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37135951736)
+- [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37135951836)
+
+Results are pending; a started workflow is not a pass. No stable tag or release
+has been published. All remaining stable gates above still apply.
