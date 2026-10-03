@@ -44,7 +44,7 @@ production penetration certificate.
 
 ## Observed evidence
 
-- TypeScript and ESLint passed; 747 unit tests passed. The one emulator-only test
+- TypeScript and ESLint passed; 753 unit tests passed. The one emulator-only test
   skips without an emulator and passed separately against real Firestore rules.
 - 50 real authorization checks passed, including create/update, cross-account,
   anonymous, invalid daily dates/values, server masking and permanent deletion.

@@ -884,6 +884,7 @@ function isSnapshot(value: unknown): SessionSnapshotV2 | null {
     task: typeof v.task === 'string' ? v.task.slice(0, 200) : '',
     taskDone: v.taskDone === true,
   }
+  if (v.phaseSettings) snapshot.phaseSettings = isSettings(v.phaseSettings) ?? undefined
   if (Array.isArray(v.checklist)) {
     const items = isChecklist(v.checklist)
     if (items && items.length > 0) {

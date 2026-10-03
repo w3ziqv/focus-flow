@@ -92,8 +92,8 @@ function getInitialTimerData(): {
 }
 
 export function useTimerEngine(): TimerEngine {
-  const [settings, setSettings] = useState<Settings>(loadSettings)
   const [initialData] = useState(getInitialTimerData)
+  const [settings, setSettings] = useState<Settings>(() => initialData.snapshot?.phaseSettings ?? loadSettings())
 
   const [stats, setStats] = useState<StatsV2>(() => initialData.stats)
   const [wakeNotice, setWakeNotice] = useState<string | null>(() => initialData.wakeNotice)
@@ -125,6 +125,13 @@ export function useTimerEngine(): TimerEngine {
   const modeRef = useRef<Mode>(mode)
   const roundRef = useRef<number>(round)
   const settingsRef = useRef<Settings>(settings)
+  const pendingRemoteSettings = useRef<Settings | null>(snapshot?.phaseSettings ? loadSettings() : null)
+  const applyPendingSettings = useCallback(() => {
+    if (!pendingRemoteSettings.current) return
+    settingsRef.current = pendingRemoteSettings.current
+    setSettings(pendingRemoteSettings.current)
+    pendingRemoteSettings.current = null
+  }, [])
   const statsRef = useRef<StatsV2>(stats)
   const taskRef = useRef<string>(task)
   const taskDoneRef = useRef<boolean>(taskDone)
@@ -139,7 +146,21 @@ export function useTimerEngine(): TimerEngine {
       if (!isRemoteWrite()) return
       const key = (event as CustomEvent).detail
       if (key === 'ff2_stats') {const next = loadStats(); statsRef.current = next; setStats(next)}
-      if (key === 'ff2_settings') {const next = loadSettings(); settingsRef.current = next; setSettings(next)}
+      if (key === 'ff2_settings') {
+        const next = loadSettings()
+        if (runningRef.current || remainingRef.current !== durationOf(settingsRef.current, modeRef.current)) {
+          pendingRemoteSettings.current = next
+          // Upgrade older snapshots before a restart can pick up remote durations.
+          saveSession({phaseSettings: settingsRef.current, mode: modeRef.current, round: roundRef.current, running: runningRef.current, endTs: endTsRef.current, remainingMs: remainingRef.current, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
+        }
+        else {
+          pendingRemoteSettings.current = null
+          settingsRef.current = next; setSettings(next)
+          const remaining = durationOf(next, modeRef.current)
+          remainingRef.current = remaining; setRemainingMs(remaining)
+          saveSession({phaseSettings: next, mode: modeRef.current, round: roundRef.current, running: false, endTs: null, remainingMs: remaining, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
+        }
+      }
       if (key === 'ff2_goals') {const next = loadGoals(); goalsRef.current = next; setGoals(next)}
       // Keep this device's running/paused timer, deadline and active task unchanged.
     }
@@ -188,6 +209,7 @@ export function useTimerEngine(): TimerEngine {
   const persist = useCallback(
     (next: { running: boolean; remainingMs: number; endTs: number | null }) => {
       saveSession({
+        phaseSettings: settingsRef.current,
         mode: modeRef.current,
         round: roundRef.current,
         running: next.running,
@@ -294,7 +316,8 @@ export function useTimerEngine(): TimerEngine {
     const finishedKind: 'focus' | 'break' = currentMode === 'focus' ? 'focus' : 'break'
     setLastEvent({ kind: finishedKind, at: Date.now() })
 
-    const { nextMode, nextRound } = calculateNextPhase(currentMode, roundRef.current, currentSettings.rounds)
+    applyPendingSettings()
+    const { nextMode, nextRound } = calculateNextPhase(currentMode, roundRef.current, settingsRef.current.rounds)
     roundRef.current = nextRound
     setRound(nextRound)
     modeRef.current = nextMode
@@ -308,14 +331,14 @@ export function useTimerEngine(): TimerEngine {
     endTsRef.current = null
     persist({ running: false, remainingMs: nextRemaining, endTs: null })
 
-    if (currentSettings.autoStart) {
+    if (settingsRef.current.autoStart) {
       // Start the next phase after a beat so the completion state is visible.
       autoStartTimer.current = window.setTimeout(() => {
         autoStartTimer.current = null
         if (!runningRef.current) start()
       }, 1200)
     }
-  }, [persist, start, triggerWebhook])
+  }, [persist, start, triggerWebhook, applyPendingSettings])
 
   // Ticker: unthrottled Web Worker ticker with fallback
   useEffect(() => {
@@ -368,6 +391,7 @@ export function useTimerEngine(): TimerEngine {
       // Reconcile persisted snapshot if tab woke with stale state
       const snap = loadSession()
       if (snap?.running === true && snap.endTs !== null && snap.endTs <= now) {
+        applyPendingSettings()
         const lang = loadLang() ?? 'en'
         const reconciliation = reconcileExpiredSession(
           snap,
@@ -427,7 +451,7 @@ export function useTimerEngine(): TimerEngine {
         window.removeEventListener('pageshow', onPageShow)
       }
     }
-  }, [complete])
+  }, [complete, applyPendingSettings])
 
   const reset = useCallback(() => {
     if (autoStartTimer.current !== null) {
@@ -435,6 +459,7 @@ export function useTimerEngine(): TimerEngine {
       autoStartTimer.current = null
     }
     sessionIdRef.current = null
+    applyPendingSettings()
     const next = durationOf(settingsRef.current, modeRef.current)
     endTsRef.current = null
     setRunning(false)
@@ -444,11 +469,12 @@ export function useTimerEngine(): TimerEngine {
     setTaskDone(false)
     taskDoneRef.current = false
     persist({ running: false, remainingMs: next, endTs: null })
-  }, [persist])
+  }, [persist, applyPendingSettings])
 
   const switchMode = useCallback(
     (nextMode: Mode) => {
       if (nextMode === modeRef.current && !runningRef.current) return
+      applyPendingSettings()
       if (autoStartTimer.current !== null) {
         window.clearTimeout(autoStartTimer.current)
         autoStartTimer.current = null
@@ -469,12 +495,13 @@ export function useTimerEngine(): TimerEngine {
       taskDoneRef.current = false
       persist({ running: false, remainingMs: next, endTs: null })
     },
-    [persist],
+    [persist, applyPendingSettings],
   )
 
   const skip = useCallback(() => {
     if (autoStartTimer.current !== null) { window.clearTimeout(autoStartTimer.current); autoStartTimer.current = null }
     sessionIdRef.current = null
+    applyPendingSettings()
     const { nextMode, nextRound } = calculateNextPhase(modeRef.current, roundRef.current, settingsRef.current.rounds)
     modeRef.current = nextMode; roundRef.current = nextRound
     setMode(nextMode); setRound(nextRound)
@@ -482,10 +509,11 @@ export function useTimerEngine(): TimerEngine {
     endTsRef.current = null; runningRef.current = false; remainingRef.current = remaining
     setRunning(false); setRemainingMs(remaining); setTaskDone(false); taskDoneRef.current = false
     persist({running: false, remainingMs: remaining, endTs: null})
-  }, [persist])
+  }, [persist, applyPendingSettings])
 
   const updateSettings = useCallback(
     (next: Settings) => {
+      pendingRemoteSettings.current = null
       setSettings(next)
       settingsRef.current = next
       saveSettings(next)
@@ -506,6 +534,7 @@ export function useTimerEngine(): TimerEngine {
     setTaskState(trimmed)
     taskRef.current = trimmed
     saveSession({
+        phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
       running: runningRef.current,
@@ -522,6 +551,7 @@ export function useTimerEngine(): TimerEngine {
     setChecklistState(sanitized)
     checklistRef.current = sanitized
     saveSession({
+        phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
       running: runningRef.current,
@@ -545,6 +575,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+        phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
       running: runningRef.current,
@@ -563,6 +594,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+        phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
       running: runningRef.current,
@@ -579,6 +611,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+        phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
       running: runningRef.current,

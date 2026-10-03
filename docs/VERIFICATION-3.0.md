@@ -7,9 +7,10 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 | Check | Observed result |
 |---|---|
 | TypeScript, ESLint, build isolation | Passed |
-| Unit suite | 55 suites passed, 747 tests passed; emulator-only suite skipped locally and run separately |
+| Unit suite | 55 suites passed, 753 tests passed; emulator-only suite skipped locally and run separately |
 | Firestore emulator | 50 authorization checks passed, Firebase CLI 15.32.1 / Java 21 |
 | Real shared adapter + Firestore | Two isolated profiles, 1105 sessions, legacy migration/source backup, settings, edit conflict, offline failure/retry, totals, permanent deletion and full-page masking passed |
+| Remote preferences | Sound engine/UI refresh from already saved remote preferences without upload echo; active phase keeps its original settings/duration across pause, restart and closed-app expiry; remote settings apply to the next phase |
 | Partial batch failure | 805-session upload retried without duplicate IDs; six writes per session batch respect rule-access limits |
 | Sync timeout | Slow requests making progress continue beyond one minute; a stalled transport times out without dropping queued sessions |
 | Account isolation | Consent required even without sessions; replace backs up/clears profile and milestones; stale in-flight reply rejected after logout |
@@ -85,6 +86,6 @@ Do not merge or publish `v3.0.0` until every stable gate is closed. See
 Creating the branch through the GitHub connector returned HTTP 403
 `Resource not accessible by integration`, including a retry after reconnection.
 The local environment has no configured Git credential helper, CLI login, SSH key
-or token. No branch/PR was published and no GitHub Actions run was triggered.
+or token. Standard Git push also failed because HTTPS credentials are unavailable. No branch/PR was published and no GitHub Actions run was triggered.
 The workflow files are prepared, not a claimed remote CI pass. A ready PR body
 is provided in [PR-3.0.md](PR-3.0.md); publishing requires repository write access.

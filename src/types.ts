@@ -182,6 +182,7 @@ export interface SessionSnapshot {
 }
 
 export interface SessionSnapshotV2 extends SessionSnapshot {
+  phaseSettings?: Settings
   id?: string
   checklist?: ChecklistItem[]
 }

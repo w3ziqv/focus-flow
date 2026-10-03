@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimerEngine } from './timer'
 import { applyRemote } from './sync/outbox'
-import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats } from './storage'
+import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats, saveSession } from './storage'
 import { audio } from './audio'
 import type { Settings } from '../types'
 
@@ -28,12 +28,61 @@ describe('useTimerEngine', () => {
       saveSettings({...DEFAULT_SETTINGS, focus: 45})
       saveStats({...loadStats(), minutes: 125})
     }))
-    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.settings.focus).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
     expect(result.current.stats.minutes).toBe(125)
     expect(result.current.running).toBe(true)
     expect(result.current.remainingMs).toBe(remaining)
     expect(result.current.task).toBe('Local active task')
   })
+  it.each(['running', 'paused'])('retains %s phase duration across cloud changes and restart, and credits the original minutes', state => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => first.result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45, short: 11})))
+    if (state === 'paused') act(() => first.result.current.pause())
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
+    if (state === 'paused') act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(DEFAULT_SETTINGS.focus * MIN - 5_000))
+    expect(loadSessions().at(-1)?.minutes).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.totalMs).toBe(11 * MIN)
+  })
+
+  it('credits the frozen duration after expiry while the app is closed', () => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => first.result.current.start())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45, short: 11})))
+    first.unmount()
+    act(() => vi.advanceTimersByTime(DEFAULT_SETTINGS.focus * MIN + 1_000))
+    const {result} = renderHook(() => useTimerEngine())
+    expect(loadSessions().at(-1)?.minutes).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.totalMs).toBe(11 * MIN)
+  })
+
+  it('applies cloud settings immediately to an idle full phase and preserves them after restart', () => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45})))
+    expect(first.result.current.remainingMs).toBe(45 * MIN)
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(45 * MIN)
+    expect(result.current.remainingMs).toBe(45 * MIN)
+  })
+
+  it('upgrades a legacy active snapshot before remote settings can change its duration on restart', () => {
+    saveSession({mode: 'focus', round: 0, running: true, endTs: Date.now() + DEFAULT_SETTINGS.focus * MIN, remainingMs: DEFAULT_SETTINGS.focus * MIN, task: 'Legacy task', taskDone: false})
+    const first = renderHook(() => useTimerEngine())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45})))
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
+    expect(result.current.task).toBe('Legacy task')
+  })
+
   it('starts idle in focus mode with a full duration', () => {
     const { result } = renderHook(() => useTimerEngine())
     expect(result.current.mode).toBe('focus')

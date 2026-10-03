@@ -1,4 +1,5 @@
 import { getCloudSyncAdapter } from './lib/sync/adapter'
+import { isRemoteWrite } from './lib/sync/outbox'
 import { useDesktopBridge } from './lib/desktop/bridge'
 import { flushPersistence } from './lib/desktop/runtime'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
@@ -80,10 +81,18 @@ function Shell() {
   // Initialize deep Audio Subsystem and subscribe to updates
   useEffect(() => {
     void audioSubsystem.init()
-    return audioSubsystem.subscribe(() => {
+    const unsubscribe = audioSubsystem.subscribe(() => {
       setSoundPrefs(audioSubsystem.getPreferences())
       setSounds(audioSubsystem.getCustomSounds())
     })
+    const changed = (event: Event) => {
+      if (!isRemoteWrite()) return
+      const key = (event as CustomEvent<string>).detail
+      if (key === 'ff2_sound_prefs') audioSubsystem.reloadPreferences()
+      if (key === 'ff2_interface') setInterfacePrefs(loadInterface())
+    }
+    window.addEventListener('focus-flow:storage', changed)
+    return () => {unsubscribe(); window.removeEventListener('focus-flow:storage', changed)}
   }, [])
 
   // PWA app-shortcut target (/?start=focus): launch straight into a session.
