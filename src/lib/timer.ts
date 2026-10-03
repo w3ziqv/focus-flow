@@ -145,6 +145,14 @@ export function useTimerEngine(): TimerEngine {
     const changed = (event: Event) => {
       if (!isRemoteWrite()) return
       const key = (event as CustomEvent).detail
+      if (key === 'ff2_session') {
+        const local = loadSession()
+        if (local) {
+          taskRef.current = local.task; setTaskState(local.task)
+          taskDoneRef.current = local.taskDone; setTaskDone(local.taskDone)
+          checklistRef.current = local.checklist ?? []; setChecklistState(checklistRef.current)
+        }
+      }
       if (key === 'ff2_stats') {const next = loadStats(); statsRef.current = next; setStats(next)}
       if (key === 'ff2_settings') {
         const next = loadSettings()

@@ -10,6 +10,8 @@ import {
   saveInterface,
   saveLastSyncedUid,
   saveSessions,
+  saveSession,
+  loadSession,
   saveTombstones,
   loadLastSyncedUid,
 } from '../storage'
@@ -410,6 +412,8 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
     mockDocStore.set('users/user-123/stats/summary', source)
     const stats = (await adapter.pullStats())!
     await adapter.pushStats(stats)
+    // Repeated migration must not overwrite the original recovery source.
+    mockDocStore.set('users/user-123/stats/summary', {...source, minutes: 500})
     await adapter.pushStats(stats)
     expect(JSON.parse(localStorage.getItem('ff3_history_source_user-123')!)).toEqual(source)
     expect(mockDocStore.get('users/user-123/daily_history/2015-01-01')?.minutes).toBe(250)
@@ -506,6 +510,19 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
       expect(adapter.getSyncStatus()).toBe('synced')
       expect(localStorage.getItem('ff3_cloud_outbox')).toBeNull()
     } finally {vi.useRealTimers()}
+  })
+
+  it('removes the previous account active task on replacement without stopping its device timer', async () => {
+    saveLastSyncedUid('previous-user')
+    const endTs = Date.now() + 25 * 60_000
+    saveSession({mode: 'focus', round: 0, running: true, endTs, remainingMs: 25 * 60_000, task: 'Old private task', taskDone: false, checklist: [{id: 'step', text: 'Private detail', completed: false}]})
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle(async () => 'replace-local')
+    expect(loadSession()?.task).toBe('')
+    expect(loadSession()?.checklist ?? []).toEqual([])
+    expect(loadSession()?.running).toBe(true)
+    expect(loadSession()?.endTs).toBe(endTs)
+    expect(localStorage.getItem('ff3_account_backup_previous-user')).toContain('Old private task')
   })
 
 })

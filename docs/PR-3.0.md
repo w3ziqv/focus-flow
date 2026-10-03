@@ -15,7 +15,7 @@ P2P/macOS remain experimental.
 
 ## Validation
 
-- TypeScript, ESLint, frontend builds/isolation; 753 unit tests.
+- TypeScript, ESLint, frontend builds/isolation; 755 unit tests.
 - 50 official Firestore emulator authorization checks and real two-profile
   integration with 1105 sessions, legacy totals, offline retry, conflict,
   deletion and full-history masking. Partial batch retry covered separately.

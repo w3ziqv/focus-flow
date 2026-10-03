@@ -7,13 +7,13 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 | Check | Observed result |
 |---|---|
 | TypeScript, ESLint, build isolation | Passed |
-| Unit suite | 55 suites passed, 753 tests passed; emulator-only suite skipped locally and run separately |
+| Unit suite | 55 suites passed, 755 tests passed; emulator-only suite skipped locally and run separately |
 | Firestore emulator | 50 authorization checks passed, Firebase CLI 15.32.1 / Java 21 |
 | Real shared adapter + Firestore | Two isolated profiles, 1105 sessions, legacy migration/source backup, settings, edit conflict, offline failure/retry, totals, permanent deletion and full-page masking passed |
 | Remote preferences | Sound engine/UI refresh from already saved remote preferences without upload echo; active phase keeps its original settings/duration across pause, restart and closed-app expiry; remote settings apply to the next phase |
 | Partial batch failure | 805-session upload retried without duplicate IDs; six writes per session batch respect rule-access limits |
 | Sync timeout | Slow requests making progress continue beyond one minute; a stalled transport times out without dropping queued sessions |
-| Account isolation | Consent required even without sessions; replace backs up/clears profile and milestones; stale in-flight reply rejected after logout |
+| Account isolation | Consent required even without sessions; replace backs up/clears profile, milestones and active task/checklist while keeping the local countdown; stale in-flight reply rejected after logout |
 | npm audit | Zero advisories, including development dependencies |
 | Cargo audit | 578 dependencies, zero vulnerability entries; one unmaintained proc-macro-error notice remains visible |
 | Rust format / Clippy all targets | Passed with project warnings denied; vendored GLib emits upstream compiler lifetime-style warnings |
@@ -28,7 +28,7 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 | Browser / P2P | Timer/navigation/persistence/390px layout, two profiles and bidirectional offline edit/delete conflict convergence passed |
 | Production PWA offline | Reload and timer/statistics/guides/settings worked with network disabled |
 | Accessibility | Polish timer/stats/cloud, keyboard modal trap/return, 200% CSS zoom with no overflow; axe reported no violations in enabled A/AA checks |
-| Installer | Local unsigned Linux .deb built; SHA-256 generated. CI targets Ubuntu .deb/AppImage and Windows NSIS |
+| Installer | Local unsigned Linux .deb built, SHA-256 verified and its extracted release executable passed native smoke. CI targets Ubuntu .deb/AppImage and Windows NSIS |
 
 ## Evidence and environment
 

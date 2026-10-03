@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimerEngine } from './timer'
 import { applyRemote } from './sync/outbox'
-import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats, saveSession } from './storage'
+import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats, saveSession, loadSession } from './storage'
 import { audio } from './audio'
 import type { Settings } from '../types'
 
@@ -81,6 +81,18 @@ describe('useTimerEngine', () => {
     const {result} = renderHook(() => useTimerEngine())
     expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
     expect(result.current.task).toBe('Legacy task')
+  })
+
+  it('clears account-owned active content without resetting the device countdown', () => {
+    const {result} = renderHook(() => useTimerEngine())
+    act(() => result.current.setTask('Private task'))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    const remaining = result.current.remainingMs
+    act(() => applyRemote(() => saveSession({...loadSession()!, task: '', taskDone: false, checklist: []})))
+    expect(result.current.task).toBe('')
+    expect(result.current.running).toBe(true)
+    expect(result.current.remainingMs).toBe(remaining)
   })
 
   it('starts idle in focus mode with a full duration', () => {

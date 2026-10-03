@@ -27,6 +27,7 @@ import {
   loadGoals,
   loadLastSyncedUid,
   loadSessions,
+  loadSession,
   loadSettings,
   loadSoundPreferences,
   loadStats,
@@ -35,6 +36,7 @@ import {
   saveInterface,
   saveLastSyncedUid,
   saveSessions,
+  saveSession,
   saveSettings,
   saveSoundPreferences,
   saveStats,
@@ -263,7 +265,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
           choice = await consentResolver({ previousUid, newUid: user.uid })
         }
         if (choice === 'cancel') { await modules.signOut(auth); throw new Error('account-switch-cancelled') }
-        getPersistence().setItem(`ff3_account_backup_${previousUid}`, JSON.stringify({sessions: loadSessions(), tombstones: loadTombstones(), stats: loadStats(), settings: loadSettings(), sound: loadSoundPreferences(), interface: loadInterface(), outbox: readOutbox()}))
+        getPersistence().setItem(`ff3_account_backup_${previousUid}`, JSON.stringify({session: loadSession(), sessions: loadSessions(), tombstones: loadTombstones(), stats: loadStats(), settings: loadSettings(), sound: loadSoundPreferences(), interface: loadInterface(), outbox: readOutbox()}))
         if (choice === 'replace-local') {
           clearOutbox()
           applyRemote(() => {
@@ -274,6 +276,8 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
           saveSessions([])
           saveTombstones([])
           saveStats({minutes: 0, today: 0, week: 0, streak: 0, history: {}, goals: DEFAULT_GOAL_SETTINGS, milestones: [], date: new Date().toDateString(), weekStart: '', lastDate: null})
+          const active = loadSession()
+          if (active) saveSession({...active, task: '', taskDone: false, checklist: []})
           })
         }
       }
@@ -553,7 +557,8 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     const original = await this.cloudRequest(modules.getDoc(docRef))
     this.assertAccount(epoch, user.uid)
     if (original.exists() && (original.data() as Record<string, unknown>).history) {
-      getPersistence().setItem(`ff3_history_source_${user.uid}`, JSON.stringify(original.data()))
+      const key = `ff3_history_source_${user.uid}`
+      if (!getPersistence().getItem(key)) getPersistence().setItem(key, JSON.stringify(original.data()))
     }
     await this.pushDailyHistory(stats.history)
     rawDoc.schemaVersion = 3
