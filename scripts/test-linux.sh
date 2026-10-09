@@ -5,7 +5,15 @@ installer=$(find src-tauri/target/release/bundle/deb -maxdepth 1 -name '*.deb' -
 [[ -n "$installer" ]] || { echo 'Debian installer was not built' >&2; exit 1; }
 sudo apt-get install -y "$(realpath "$installer")"
 profile=$(mktemp -d)
-trap 'rm -rf "$profile"' EXIT
+cleanup() {
+  # The document portal can outlive its private DBus session and leave a FUSE
+  # mount here. Detach only this mktemp profile's mount before removing it.
+  if mountpoint -q "$profile/runtime/doc"; then
+    fusermount3 -uz "$profile/runtime/doc"
+  fi
+  rm -rf "$profile"
+}
+trap cleanup EXIT
 export XDG_DATA_HOME="$profile/data" XDG_CONFIG_HOME="$profile/config" XDG_CACHE_HOME="$profile/cache"
 export XDG_RUNTIME_DIR="$profile/runtime"
 mkdir -p "$XDG_RUNTIME_DIR"
