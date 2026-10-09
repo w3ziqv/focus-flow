@@ -160,6 +160,16 @@ try:
     time.sleep(.4)
     assert invoke('timer_display')['running']
     request('POST', '/window', {'handle': main})
+    # Exercise both the asynchronous command and the UI-event action path.
+    assert invoke('plugin:window|is_visible', {'label': 'mini'})
+    invoke('desktop_action', {'name': 'mini'})
+    for _ in range(100):
+        if not invoke('plugin:window|is_visible', {'label': 'mini'}): break
+        time.sleep(.1)
+    else: raise AssertionError('Mini action did not hide the window')
+    invoke('toggle_mini')
+    assert invoke('plugin:window|is_visible', {'label': 'mini'})
+    print('PASS: mini command and UI-event action return without blocking')
     invoke('desktop_action', {'name': 'reset'})
     time.sleep(.3)
     assert not invoke('timer_display')['running']

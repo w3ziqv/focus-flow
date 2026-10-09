@@ -29,6 +29,7 @@ pub struct TimerDisplay {
 }
 #[derive(Default)]
 pub struct DesktopState {
+    mini_lock: Mutex<()>,
     timer: Mutex<Option<TimerDisplay>>,
     icon_key: Mutex<String>,
     warnings: Mutex<Vec<String>>,
@@ -85,7 +86,12 @@ fn action(app: &tauri::AppHandle, name: &str) {
         return;
     }
     if name == "mini" {
-        let _ = toggle_mini(app.clone());
+        let handle = app.clone();
+        tauri::async_runtime::spawn_blocking(move || {
+            if let Err(error) = toggle_mini_window(handle.clone()) {
+                let _ = handle.emit_to("main", "desktop-error", format!("Floating timer: {error}"));
+            }
+        });
         return;
     }
     if name == "preferences" || name == "quit" {
@@ -265,7 +271,20 @@ fn publish_timer(
     Ok(())
 }
 #[tauri::command]
-fn toggle_mini(app: tauri::AppHandle) -> Result<(), String> {
+async fn toggle_mini(app: tauri::AppHandle, window: tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("Only main window controls the floating timer".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || toggle_mini_window(app))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+fn toggle_mini_window(app: tauri::AppHandle) -> Result<(), String> {
+    // WebView2 window creation must not block a synchronous command or UI event.
+    // Serialize concurrent shortcut/tray/command requests before checking the ID.
+    let state = app.state::<DesktopState>();
+    let _lock = state.mini_lock.lock().map_err(|e| e.to_string())?;
     if let Some(window) = app.get_webview_window("mini") {
         if window.is_visible().map_err(|e| e.to_string())? {
             window.hide().map_err(|e| e.to_string())?;
