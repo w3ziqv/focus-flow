@@ -42,6 +42,10 @@ requests and main-only authorization. Installed-runtime regression verifies
 both command and event action paths. source-map-js is updated to patched 1.2.2
 for GHSA-68fv-2mgg-jv7q; audit checks remain enforced.
 
-Latest exact commit/run results are kept in the live PR body and the detailed
-verification report. The remaining live cloud and manual OS gates still block
+Full [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37963102559),
+[Security](https://github.com/w3ziqv/focus-flow/actions/runs/37963102580) and
+[Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37963102681) passed on
+`bb110d5`: fresh installed Ubuntu/Windows runtime smoke now passes, including
+mini command/event paths and IPC isolation. SHA-256 for .deb/AppImage/NSIS/DMG
+was verified after download. Later exact head results are tracked in this PR. The remaining live cloud and manual OS gates still block
 stable publication.

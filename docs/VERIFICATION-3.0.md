@@ -61,10 +61,11 @@ The README's unsupported AAA certification badge was removed.
    in legacy aggregates and time-zone changes cannot be inferred perfectly from
    missing historical session IDs. Keep the versioned source backup and verify
    conservative totals before tightening production rules.
-3. **Linux/Windows acceptance:** installer installation/update/rollback with
-   backups, actual tray shell/mini focus, audio output/migration, notification
-   delivery, login-cycle autostart and hardware suspend/resume remain open.
-   CI Windows smoke is a fresh-install test; compilation alone is insufficient.
+3. **Linux/Windows acceptance:** fresh CI installation and timer/mini/IPC tests
+   pass on Ubuntu and Windows runners. End-user desktop installation,
+   update/rollback with backups, actual tray shell/mini focus, audio
+   output/migration, notification delivery, login-cycle autostart and hardware
+   suspend/resume remain open. CI smoke does not reproduce a physical desktop.
 4. **Accessibility:** test real screen readers, browser/OS zoom, high contrast and
    keyboard on supported systems. Some axe contrast nodes require manual checks.
 5. **Production configuration:** no live Firebase rules, Vercel policy or GitHub
@@ -131,9 +132,25 @@ stopped on a newly reviewed high-severity source-map-js advisory
 The lockfile now pins its patched 1.2.2 version; no audit threshold or advisory
 ignore changed. The post-update local npm audit reported zero vulnerabilities.
 
-The latest Windows correction and dependency update still require a fresh full
-CI result. Exact current-commit run links, results and any failures are maintained
-in the draft PR body. Native builds and installed-runtime checks are separate
+The Windows correction and dependency update passed full CI for
+`bb110d5f981bee375dfd760085a9c6105780197a` on 2026-10-09:
+
+| Workflow | Result |
+|---|---|
+| [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37963102559) | Passed: 755 tests, types/lint, npm audit and build isolation |
+| [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37963102580) | Passed: 50 Firestore checks, real adapter integration and Cargo audit |
+| [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37963102681) | Passed: browser/PWA/accessibility, fmt/Clippy, native tests, packaging and fresh installed-runtime tests |
+
+Native Rust suites passed: 7 tests on Linux, 6 on Windows and 6 on experimental
+macOS, plus the optimized GLib regression on Linux. Both installed runtimes
+passed the mini command/event-path regression, timer/persistence, main/mini IPC
+isolation, sound file scope, notification-permission IPC and autostart settings;
+Linux additionally passed the actual X11 shortcut check. Windows screenshot
+[mini](verification/windows-mini-oct9.png) confirms a rendered 220×80 window.
+
+The .deb, AppImage, NSIS and experimental DMG from this run were downloaded and
+all four SHA-256 hashes matched their manifests. Current run results for later
+commits are maintained in the draft PR body. Native builds and installed-runtime checks are separate
 jobs, so a failed runtime check can be repeated without rebuilding installers.
 Reusing a previous run requires identical application source and lockfiles, and
 checks the downloaded installers' SHA-256 before execution.

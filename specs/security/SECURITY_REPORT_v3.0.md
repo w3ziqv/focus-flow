@@ -73,6 +73,14 @@ production penetration certificate.
   Native Linux smoke evidence and environment limits are recorded in
   [VERIFICATION-3.0.md](../../docs/VERIFICATION-3.0.md).
 
+The 2026-10-09 full remote verification passed for
+`bb110d5f981bee375dfd760085a9c6105780197a`: [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37963102559),
+[Security](https://github.com/w3ziqv/focus-flow/actions/runs/37963102580) and
+[Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37963102681).
+This includes real fresh-installed Windows/Ubuntu IPC isolation and the repaired
+mini command/event paths. Four installer SHA-256 manifests were checked after
+download. It does not close the live-cloud or physical OS acceptance gates.
+
 ## Remaining gates and risks
 
 1. Live Google/Firebase configuration is unavailable here. Real desktop login,
