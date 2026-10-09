@@ -36,11 +36,12 @@ login-cycle autostart and hardware sleep/resume; screen-reader acceptance and
 production rule/header review. GitHub CI must run on the published commit;
 workflow preparation alone is not verification. Installers are unsigned.
 
-Published as draft PR #4. CI runs are being checked; exact results and remaining
-release gates are recorded in docs/VERIFICATION-3.0.md.
+Published as draft PR #4. Windows runtime testing exposed a mini-window
+construction deadlock; creation now runs outside the UI thread with serialized
+requests and main-only authorization. Installed-runtime regression verifies
+both command and event action paths. source-map-js is updated to patched 1.2.2
+for GHSA-68fv-2mgg-jv7q; audit checks remain enforced.
 
-Remote verification: CI and Security passed on `6b556ae`; Desktop browser,
-Linux packaging/optimized GLib test and experimental macOS packaging passed.
-Windows NSIS build/install passed, but session creation timed out before UI checks.
-A test-harness repair is awaiting a fresh run; keep the Windows runtime gate open.
-See the linked report for exact run URLs and environment limitations.
+Latest exact commit/run results are kept in the live PR body and the detailed
+verification report. The remaining live cloud and manual OS gates still block
+stable publication.

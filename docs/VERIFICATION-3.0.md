@@ -1,6 +1,6 @@
 # Verification — 3.0.0-alpha.1
 
-Date: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
+Updated: 2026-10-09. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates
 below. GitHub CI results must be recorded for the pushed commit separately.
 
@@ -34,7 +34,7 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 
 Scripts are in `scripts/`: `test-browser.mjs`, `test-web-offline.mjs`,
 `test-accessibility.mjs`, `test-firestore-rules.mjs`, `test-native.py`,
-`test-windows.ps1` and `checksums.mjs`. The real adapter integration is
+`test-linux.sh`, `test-windows.ps1` and `checksums.mjs`. The real adapter integration is
 `src/lib/sync/adapter.emulator.test.ts`. The emulator is loopback-only with the
 demo project; no production Firebase data or credentials were used.
 
@@ -83,34 +83,59 @@ Do not merge or publish `v3.0.0` until every stable gate is closed. See
 
 ## GitHub publication and CI
 
-GitHub CLI authentication restored repository write access on 2026-10-03.
 Branch `feature/v3-desktop` is published and [draft PR #4](https://github.com/w3ziqv/focus-flow/pull/4)
-is open against `main`. The initial published commit is
-`c0e54eff6336ced472c58d0b3ce7c0b1a06fc534`.
+is open against `main`. No stable tag or release has been published.
 
-Actual GitHub Actions results for documentation commit
-`6b556aefcd525c597a754ef824a14acbbb82f36e` (same application source):
+### Confirmed 2026-10-03 remote results
 
-- [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37135996421): passed;
-  755 application tests, npm audit, lint/types and both frontend builds/isolation.
-- [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37135996354): passed;
-  50 Firestore checks, 1105-session integration and Cargo audit.
-- [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37135996363): browser,
-  Ubuntu 24.04 native tests/optimized GLib regression and .deb/AppImage packaging
-  passed; experimental macOS tests/DMG packaging passed. Windows native tests and
-  NSIS build/installation passed, but the WebDriver session timed out before UI
-  assertions. The Windows runtime gate did **not** pass.
+For `751b1e8c9b1807388753c0e2d7e75a57881e8b51`:
 
-Linux .deb/AppImage and experimental macOS DMG were downloaded from that run and
-SHA-256 verified locally. Artifacts are unsigned alpha builds, not a stable release.
-The Windows test harness now retains verbose native EdgeDriver diagnostics and
-waits for the driver's bounded startup response instead of closing its HTTP
-connection early. This repair still requires a successful new Windows run.
+- [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37137515699): passed,
+  including 755 tests, lint/types, npm audit and both frontend builds/isolation.
+- [Security](https://github.com/w3ziqv/focus-flow/actions/runs/37137515648): passed,
+  including 50 Firestore checks, 1105-session integration and Cargo audit.
+- [Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/37137515685): browser,
+  Ubuntu native/optimized GLib tests, .deb/AppImage packaging and fresh .deb
+  installation/runtime smoke passed. Experimental macOS tests/DMG packaging passed.
+  Windows Rust tests and NSIS packaging/installation passed; runtime did not.
 
-A repeat local check of the CI-built Ubuntu executable through relocated WebKit
-libraries on Arch encountered a WebDriver startup failure; the previously tested
-Arch executable also failed that repeat. This extra cross-environment check is
-not claimed as a pass and does not replace native Ubuntu installation acceptance.
+Ubuntu's installed smoke exercised the timer, shared 220×80 mini, main/mini IPC
+isolation, sound-file round trip and scope denial, notification-permission IPC,
+X11 shortcut, autostart settings and discovery lifecycle. It ran with native
+Ubuntu libraries, a fresh Xvfb/DBus profile and the shipped process-sandbox settings.
+No actual notification delivery, audio playback, login-cycle autostart or physical
+sleep/resume is implied. The headless runner lacked a working wake-lock service;
+the application showed a human-readable message and kept its timer usable.
 
-No stable tag or release has been published. All remaining stable gates above
-still apply. Later CI runs and exact results are linked in the draft PR body.
+Linux .deb/AppImage, Windows NSIS and experimental macOS DMG were downloaded and
+SHA-256 verified. They are unsigned alpha artifacts. A repeat of relocated WebKit
+on Arch failed even for the previously tested local executable; this extra
+cross-environment check is not a pass and is separate from native Ubuntu smoke.
+
+### 2026-10-09 continuation
+
+The Windows diagnosis separated two issues:
+
+1. Elevated CI hosts ignore user-writable WebView2 debug environment overrides
+   by design. The test harness uses app-specific HKLM automation policies on the
+   disposable runner and restores the original values afterward. Production
+   source does not enable remote debugging or weaken WebView2's elevation checks.
+2. Once the harness connected, mini creation stalled. Tauri documents a Windows
+   deadlock when constructing a WebView in a synchronous command/UI event.
+   Creation now runs in a blocking worker, with serialized requests and an
+   explicit main-window guard. Regression smoke covers command and event paths.
+
+The initial resumed [CI](https://github.com/w3ziqv/focus-flow/actions/runs/37962604149)
+stopped on a newly reviewed high-severity source-map-js advisory
+[GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+The lockfile now pins its patched 1.2.2 version; no audit threshold or advisory
+ignore changed. The post-update local npm audit reported zero vulnerabilities.
+
+The latest Windows correction and dependency update still require a fresh full
+CI result. Exact current-commit run links, results and any failures are maintained
+in the draft PR body. Native builds and installed-runtime checks are separate
+jobs, so a failed runtime check can be repeated without rebuilding installers.
+Reusing a previous run requires identical application source and lockfiles, and
+checks the downloaded installers' SHA-256 before execution.
+
+All outstanding stable gates above still apply, even after a green runtime smoke.

@@ -1,6 +1,6 @@
 # Security audit — Focus Flow 3.0.0-alpha.1
 
-Date: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
+Updated: 2026-10-09. Local audit baseline: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
 base `a2f5f22`. Supersedes historical 2.x reports. Scope: source, local builds,
 isolated browser/native tests and the official Firestore emulator. This is not a
 production penetration certificate.
@@ -41,6 +41,20 @@ production penetration certificate.
   for RUSTSEC-2024-0429; an optimized 10,000-iteration regression covers iterator
   operations. No advisory ignore or unsupported version substitution is used.
   See [vendor evidence](../../src-tauri/vendor/README.md).
+
+## Follow-up dependency and CI boundaries
+
+- Updated source-map-js 1.2.1 to patched 1.2.2 after the 2026-10-09 audit
+  stopped on [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+  The lockfile change is scoped to that package; npm audit again reports zero
+  vulnerabilities. Audit failure thresholds remain enforced.
+- Installed CI tests consume checksummed .deb/NSIS artifacts with read-only
+  Actions access. Runtime-only rechecks reject artifacts from differing source
+  or lockfiles. Windows debug policies are scoped to focus-flow.exe on a
+  disposable elevated runner and restored; no production debug switch is added.
+- Mini-window construction runs off the UI thread and serializes concurrent
+  requests. The async command retains main-window-only authorization; mini
+  windows still cannot invoke privileged cloud/storage/quit/reset commands.
 
 ## Observed evidence
 
