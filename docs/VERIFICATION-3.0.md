@@ -110,7 +110,9 @@ The README's unsupported AAA certification badge was removed.
 ## Outstanding stable release gates
 
 1. **Live cloud/OAuth:** isolated web Firebase is configured; live acceptance is
-   pending. The Desktop OAuth client is not available. Test system-browser login, state/PKCE callback,
+   confirmed for initial web synchronization, with full two-device acceptance
+   pending. A Desktop OAuth client was created in the isolated test project on
+   2026-10-10. Test system-browser login, state/PKCE callback,
    credential-store refresh after restart, revocation and memory-only fallback on
    both supported OS. Then run the documented two-device scenarios against
    staging/live configuration, not just emulator-authenticated profiles.

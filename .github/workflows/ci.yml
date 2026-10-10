@@ -23,6 +23,7 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
+      - run: node --test scripts/test-desktop-cloud-config.mjs
       - run: npm run test:run
       - run: npm run build
       - run: npm run build:desktop

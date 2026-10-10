@@ -58,7 +58,7 @@ jobs:
       - run: npm ci
       - name: Validate desktop cloud target
         run: |
-          node --test scripts/desktop-cloud-config.test.mjs
+          node --test scripts/test-desktop-cloud-config.mjs
           node scripts/desktop-cloud-config.mjs
       - run: npm run build:desktop
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
