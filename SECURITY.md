@@ -57,6 +57,14 @@ Review and remove that override when Firebase ships a compatible patched pin.
   Cloud-enabled CI candidates require an explicit test-mode dispatch on the
   isolated test branch. Ordinary CI remains offline; frontend and Rust receive
   the same validated public project configuration.
+  Google's Desktop token exchange also requires its issued client parameter.
+  CI transports it through an Actions secret; only Rust embeds and sends it to
+  Google's fixed HTTPS endpoint. It is excluded from WebView configuration,
+  manifests, authorization URLs and logs. Installed applications cannot keep
+  this constant confidential; PKCE/state/consent and private user tokens are the
+  security boundary. Web/server secrets and service-account keys are forbidden.
+  On Linux, browser children exclude AppImage library/plugin/interpreter paths;
+  Focus Flow retains its own media runtime and never changes global host state.
 - The desktop main window owns persistence, exit, and discovery. Mini receives
   only timer display and start/pause/show actions. Filesystem access is restricted
   to application sound files. Native builds have no remote network CSP allowance.

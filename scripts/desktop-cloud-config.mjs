@@ -9,6 +9,7 @@ const fields = [
   'VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_AUTH_DOMAIN',
   'VITE_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_MESSAGING_SENDER_ID',
   'VITE_FIREBASE_APP_ID', 'FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID',
+  'FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET',
 ]
 
 export function validateDesktopCloud(env) {
@@ -19,7 +20,7 @@ export function validateDesktopCloud(env) {
     return { mode, projectId: null, clientId: null }
   }
   assert.equal(env.GITHUB_REF, 'refs/heads/test/v3.0-cloud', 'Test cloud requires the isolated test branch')
-  for (const name of fields) assert.ok(env[name]?.trim(), `Missing public build configuration: ${name}`)
+  for (const name of fields) assert.ok(env[name]?.trim(), `Missing build configuration: ${name}`)
   assert.equal(env.VITE_FIREBASE_PROJECT_ID, testProject, 'Unexpected Firebase project')
   assert.equal(env.VITE_FIREBASE_AUTH_DOMAIN, `${testProject}.firebaseapp.com`)
   assert.equal(env.VITE_FIREBASE_MESSAGING_SENDER_ID, testNumber)

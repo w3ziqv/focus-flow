@@ -43,6 +43,14 @@ production penetration certificate.
   old unscoped entries require reconnection. Desktop disconnect removes native
   credentials even before the lazy transport has loaded. Credential deletion
   failures remain visible rather than reporting successful logout.
+  AppImage browser launch excludes bundled loader, plugin and interpreter paths
+  only in the child, preventing host GLib/NSS/Python incompatibilities. Regression
+  coverage includes actual host probes and an installed OAuth-launch substitute.
+  Google's test Desktop client rejects token exchanges lacking its issued client
+  parameter. This Rust-only application constant is supplied via Actions secrets
+  and omitted from frontend/manifests/logs. It is extractable from native binaries
+  and is not treated as a confidential authentication boundary; PKCE and private
+  refresh tokens remain mandatory. Provisioning and real OAuth acceptance are pending.
 - Explicit Tauri command permissions and runtime guards isolate the mini window.
   Atomic snapshots are private before writing (Unix 0600), retain backups and
   preserve corrupted source. File access is limited to application sound files.

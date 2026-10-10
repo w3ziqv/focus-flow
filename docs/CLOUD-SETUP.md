@@ -6,14 +6,18 @@ unavailability and data stays local. Firebase client configuration is public;
 never include service accounts or private keys in the repository or application.
 
 Desktop requires `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID` and a separate
-`FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID` of type **Desktop app** from the same project.
+`FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID` of type **Desktop app** from the same project,
+plus its issued `FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET` token-exchange parameter.
 Pass them to Cargo/Tauri at build time; Vite's `.env.local` alone does not configure
 Rust. CI test builds read the seven `DESKTOP_TEST_*` public repository variables
-only after an explicit `cloud_mode=test` Desktop workflow dispatch on
+and the `DESKTOP_TEST_GOOGLE_CLIENT_SECRET` Actions secret only after an explicit
+`cloud_mode=test` Desktop workflow dispatch on
 `test/v3.0-cloud`. Ordinary CI and main builds remain offline. The same environment
 is passed to frontend and Rust compilation. A bundled `desktop-build.json` records
 the public project/client identity and source commit; runtime smoke checks the
-actual native cloud status against that target. No secret or token is recorded.
+actual native cloud status against that target. The manifest excludes the client
+parameter and tokens. Missing parameters fail the build preflight; native cloud
+controls report unavailable instead of starting a broken login.
 Enable the Google
 provider in Firebase Auth, configure audiences/testers on the Google consent
 screen and authorize the web application's domains in Firebase Auth.
@@ -34,6 +38,17 @@ restored sessions must contain the matching project ID. Unscoped legacy sessions
 require sign-in again; they are not automatically imported into another project.
 Test both normal storage and the unavailable-store path.
 Protocol reference: [Google OAuth for native applications](https://developers.google.com/identity/protocols/oauth2/native-app).
+
+The test client's token endpoint was probed with a deliberately invalid code on
+2026-10-10; it returned `invalid_request` / `client_secret is missing`. Google's
+native-app guide describes this parameter as optional across client types, but
+this Desktop client requires it. It goes only in Rust's HTTPS token POST, never
+the authorization URL, WebView, installer metadata or logs. Transport it through
+Actions secrets and keep source placeholders empty. It is extractable from a
+distributed native binary: Google explicitly notes that installed applications
+cannot keep a client secret confidential. It grants no user access alone; PKCE,
+state, consent and private OS-stored refresh tokens remain the security boundary.
+Never substitute a web/server client secret or service-account key.
 
 Test the new rules and client together in a test project before production
 deployment. Arbitrary legacy history maps are no longer accepted for writes.
@@ -69,5 +84,7 @@ For the live web Preview and its acceptance status, see [TESTING-CLOUD.md](TESTI
 
 The test Desktop app client `Focus Flow 3 Desktop Test` was created on 2026-10-10
 in `focus-flow-v3-test-20261010` with the owner's action-time approval. The public
-client ID is stored in `DESKTOP_TEST_GOOGLE_CLIENT_ID`; no client secret is used.
+client ID is stored in `DESKTOP_TEST_GOOGLE_CLIENT_ID`. The issued client parameter
+was not retained at creation and Google now displays it only once; replacement
+parameter provisioning is pending owner approval. No actual value is committed.
 This configures a test candidate, not production or successful OAuth acceptance.

@@ -11,10 +11,12 @@ const configured = {
   VITE_FIREBASE_MESSAGING_SENDER_ID: '711549076713',
   VITE_FIREBASE_APP_ID: '1:711549076713:web:synthetic',
   FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: '711549076713-synthetic.apps.googleusercontent.com',
+  FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: 'synthetic-desktop-client-parameter',
 }
 test('offline builds reject accidentally inherited cloud variables', () => {
   assert.equal(validateDesktopCloud({}).projectId, null)
   assert.throws(() => validateDesktopCloud({ VITE_FIREBASE_API_KEY: 'accidental' }))
+  assert.throws(() => validateDesktopCloud({ FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: 'accidental' }))
 })
 test('test cloud requires the test branch and one coherent Firebase project', () => {
   assert.equal(validateDesktopCloud(configured).projectId, configured.VITE_FIREBASE_PROJECT_ID)
@@ -24,5 +26,11 @@ test('test cloud requires the test branch and one coherent Firebase project', ()
     { VITE_FIREBASE_APP_ID: '1:123:web:different' },
     { FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: '123-other.apps.googleusercontent.com' },
     { VITE_FIREBASE_API_KEY: '' }, { FOCUS_FLOW_CLOUD_MODE: 'production' },
+    { FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: '' },
   ]) assert.throws(() => validateDesktopCloud({ ...configured, ...replacement }))
+})
+test('installer metadata excludes the desktop client parameter', () => {
+  const result = validateDesktopCloud(configured)
+  assert.deepEqual(Object.keys(result).sort(), ['clientId', 'mode', 'projectId'])
+  assert.ok(!JSON.stringify(result).includes(configured.FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET))
 })

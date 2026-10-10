@@ -14,6 +14,13 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   only to browser child commands, with Rust environment regressions and an
   installed Linux OAuth-launch probe. Rebuilt installer CI and real Google
   sign-in are pending; the previous successful CI did not test this boundary.
+- A token-endpoint probe using a deliberately invalid diagnostic code returned
+  `invalid_request` / `client_secret is missing` for the created Desktop client.
+  No user code/token was supplied or received. The Rust exchange now includes
+  this parameter alongside PKCE; build validation rejects missing values and
+  metadata excludes it. Google only displays issued secrets once, and the original
+  creation value was not retained. Provisioning a replacement is awaiting owner
+  approval. Launcher CI at `8f60301` does not prove a successful token exchange.
 
 - A subsequent failed attempt exposed a cache boundary: stored Google identity
   was not scoped to a Firebase project, and startup sync could issue requests

@@ -29,6 +29,7 @@ jobs:
       VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_MESSAGING_SENDER_ID || '' }}
       VITE_FIREBASE_APP_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_APP_ID || '' }}
       FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_GOOGLE_CLIENT_ID || '' }}
+      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ inputs.cloud_mode == 'test' && secrets.DESKTOP_TEST_GOOGLE_CLIENT_SECRET || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -61,6 +62,8 @@ jobs:
           node --test scripts/test-desktop-cloud-config.mjs
           node scripts/desktop-cloud-config.mjs
       - run: npm run build:desktop
+      - name: Verify Rust-only desktop client parameter
+        run: node scripts/check-desktop-client-parameter.mjs
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings

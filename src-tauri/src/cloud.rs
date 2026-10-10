@@ -2,6 +2,8 @@
 #[cfg(target_os = "linux")]
 #[path = "browser_environment.rs"]
 mod browser_environment;
+#[path = "oauth_token.rs"]
+mod oauth_token;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::blocking::{Client, Response};
 use serde::{Deserialize, Serialize};
@@ -68,8 +70,10 @@ fn config() -> Result<(&'static str, &'static str, &'static str), String> {
     let api = option_env!("VITE_FIREBASE_API_KEY").unwrap_or("");
     let project = option_env!("VITE_FIREBASE_PROJECT_ID").unwrap_or("");
     let client = option_env!("FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID").unwrap_or("");
+    let client_secret = option_env!("FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET").unwrap_or("");
     if api.is_empty()
         || client.is_empty()
+        || client_secret.is_empty()
         || !project
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-')
@@ -268,13 +272,13 @@ fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
     let http = client()?;
     let tokens = response(
         http.post("https://oauth2.googleapis.com/token")
-            .form(&[
-                ("code", code.as_str()),
-                ("client_id", oauth_client),
-                ("redirect_uri", redirect.as_str()),
-                ("grant_type", "authorization_code"),
-                ("code_verifier", verifier.as_str()),
-            ])
+            .form(&oauth_token::form(
+                &code,
+                oauth_client,
+                option_env!("FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET").unwrap_or(""),
+                &redirect,
+                &verifier,
+            ))
             .send(),
     )?;
     let google_token = tokens["id_token"].as_str().ok_or("oauth-invalid-token")?;
