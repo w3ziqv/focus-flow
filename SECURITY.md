@@ -74,6 +74,13 @@ account credential. Never commit server keys. Deployment still requires a review
 of the live Firebase rules, authorized domains, API restrictions/App Check, Vercel
 headers, and GitHub repository policy. Local files do not update those services.
 
+On 2026-10-10, GitHub API read-back verified protection of `main`: PRs and
+up-to-date `ci`, `firestore`, `rust`, `browser`, and installed Linux/Windows checks
+are required from the GitHub Actions app. Administrators are included; force
+pushes and branch deletion are disabled, and review conversations must be
+resolved. No additional reviewer is required. This protects source integration;
+it does not certify the remaining manual release gates or production Firebase.
+
 Cloud error details expose only allowlisted error identifiers. Structured SDK
 codes survive retries and reopening without retaining arbitrary SDK messages,
 URLs or credentials. Access-denied errors are distinguished from network errors.

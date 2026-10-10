@@ -124,6 +124,13 @@ download. It does not close the live-cloud or physical OS acceptance gates.
 
 ## Remaining gates and risks
 
+GitHub repository policy was inspected and corrected on 2026-10-10. `main` now
+requires a PR and current trusted GitHub Actions CI/security/browser/installed
+Linux/Windows checks, including for administrators. Force pushes/deletion are
+disabled and review conversations must be resolved; no additional reviewer is
+required. API read-back verified the applied policy. Production Firebase and
+Vercel certification remain separate gates below.
+
 1. Isolated web Firebase is configured; live two-profile acceptance remains open.
    A test Desktop app OAuth client was created with action-time owner approval
    on 2026-10-10; configured installer and live OAuth acceptance remain pending.

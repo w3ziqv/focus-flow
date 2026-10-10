@@ -127,8 +127,11 @@ The README's unsupported AAA certification badge was removed.
    suspend/resume remain open. CI smoke does not reproduce a physical desktop.
 4. **Accessibility:** test real screen readers, browser/OS zoom, high contrast and
    keyboard on supported systems. Some axe contrast nodes require manual checks.
-5. **Production configuration:** no live Firebase rules, Vercel policy or GitHub
-   branch protection changes are certified. Deploy only after staging review.
+5. **Production configuration:** production Firebase rules and Vercel policy
+   remain uncertified. On 2026-10-10 GitHub API read-back verified `main` protection:
+   required PR, up-to-date trusted CI/security/browser/installed Linux/Windows
+   checks, administrator enforcement and blocked force pushes/deletion. This
+   closes only the repository-policy portion. Deploy after staging review.
 6. **Distribution:** installers are unsigned. SHA-256 checks integrity, not
    publisher identity. The local Arch-built .deb does not establish Ubuntu ABI
    support; use and test the Ubuntu CI artifact. Release size/idle CPU/RAM goals
@@ -253,3 +256,12 @@ refresh/revocation and unavailable-store acceptance remain pending. Saved
 credentials now carry project identity and use project-specific OS store entries.
 Two Rust regressions cover equal-UID project isolation and legacy/empty credentials;
 their results must be recorded from the new source revision before acceptance.
+
+The final native-cloud preparation source `67da862` also fixes disconnect before
+the lazy native transport loads: OS credentials must be removed before local
+login state is cleared, and removal failures stay visible. Its 799 application
+tests pass locally (one emulator-only skip), with TypeScript/ESLint passing.
+GitHub CI `38067563930` and Security `38067563906` pass. The Node configuration
+regressions run explicitly with Node, avoiding the corrected initial Node/Vitest
+runner conflict. Cloud-configured Desktop run `38067589265` and offline Desktop
+run `38067563901` are still packaging/testing; live OAuth is not accepted yet.
