@@ -20,6 +20,8 @@ import {
 import { MAX_SESSION_BATCH_WRITES, CloudSyncAdapterImpl, resetCloudSyncAdapter } from './adapter'
 import type { FirebaseContext, FirebaseModules } from './firebase'
 import * as firebaseMod from './firebase'
+import * as platformMod from '../platform'
+import * as nativeRuntime from '../desktop/runtime'
 
 describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
   let mockFirebaseContext: FirebaseContext
@@ -174,6 +176,29 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
     expect(adapter.getAuthState().user?.uid).toBe('cached-user-456')
     expect(adapter.getSyncStatus()).toBe('synced')
     expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+  })
+
+  it('clears native credentials when disconnecting a restored login before loading the transport', async () => {
+    vi.spyOn(platformMod, 'detectPlatform').mockReturnValue('tauri')
+    const invoke = vi.spyOn(nativeRuntime, 'nativeInvoke').mockResolvedValue(undefined)
+    saveCloudSyncState({status: 'synced', uid: 'cached-user', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signOut()
+    expect(invoke).toHaveBeenCalledExactlyOnceWith('cloud_sign_out')
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+    expect(loadCloudSyncState()).toBeNull()
+    expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+  })
+
+  it('keeps a restored login visible when native credential removal fails', async () => {
+    vi.spyOn(platformMod, 'detectPlatform').mockReturnValue('tauri')
+    vi.spyOn(nativeRuntime, 'nativeInvoke').mockRejectedValue('credential-delete-failed')
+    saveCloudSyncState({status: 'synced', uid: 'cached-user', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    await expect(adapter.signOut()).rejects.toBe('credential-delete-failed')
+    expect(adapter.getAuthState().user?.uid).toBe('cached-user')
+    expect(loadCloudSyncState()?.uid).toBe('cached-user')
+    expect(adapter.getSyncStatus()).toBe('error')
   })
 
   it('drops a legacy account/error after switching Firebase projects without touching local data or the outbox', () => {

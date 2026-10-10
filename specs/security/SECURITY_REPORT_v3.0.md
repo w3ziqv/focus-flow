@@ -38,6 +38,11 @@ production penetration certificate.
   or visible memory-only fallback. No plaintext token file or remote CSP allowance.
   Typed main-only commands validate account/path/collection, payload and batch
   bounds; HTTPS requests target fixed Google/Firebase hosts without redirects.
+  OS credential entries and stored sessions include Firebase project identity.
+  Equal-UID accounts in different projects cannot share restored credentials;
+  old unscoped entries require reconnection. Desktop disconnect removes native
+  credentials even before the lazy transport has loaded. Credential deletion
+  failures remain visible rather than reporting successful logout.
 - Explicit Tauri command permissions and runtime guards isolate the mini window.
   Atomic snapshots are private before writing (Unix 0600), retain backups and
   preserve corrupted source. File access is limited to application sound files.
@@ -120,7 +125,9 @@ download. It does not close the live-cloud or physical OS acceptance gates.
 ## Remaining gates and risks
 
 1. Isolated web Firebase is configured; live two-profile acceptance remains open.
-   The Desktop OAuth client is still unavailable. Real desktop login,
+   A test Desktop app OAuth client was created with action-time owner approval
+   on 2026-10-10; configured installer and live OAuth acceptance remain pending.
+   Real desktop login,
    refresh/revocation/keyring behavior and two physical devices remain release
    gates. Deploy new rules only after staged migration/export comparison.
 2. Older aggregate history lacks IDs for some sessions; unknown overlaps and

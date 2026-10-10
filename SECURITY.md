@@ -52,6 +52,8 @@ Review and remove that override when Firebase ships a compatible patched pin.
   Credential entries and serialized sessions are scoped to the Firebase project;
   legacy entries without project identity require reconnection. Test installers
   cannot restore or delete a production project's saved session.
+  Disconnect also clears native credentials before the lazy transport loads;
+  a credential-store deletion failure is reported without pretending to log out.
   Cloud-enabled CI candidates require an explicit test-mode dispatch on the
   isolated test branch. Ordinary CI remains offline; frontend and Rust receive
   the same validated public project configuration.

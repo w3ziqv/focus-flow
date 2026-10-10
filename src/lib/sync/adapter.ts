@@ -339,6 +339,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     try {
       if (this.firebaseCtx) {
         await this.firebaseCtx.modules.signOut(this.firebaseCtx.auth)
+      } else if (detectPlatform() === 'tauri') {
+        // A restored login can be disconnected before the lazy transport loads.
+        await nativeInvoke('cloud_sign_out')
       }
     } catch (failure) {
       this.setSyncStatus('error', failure)
