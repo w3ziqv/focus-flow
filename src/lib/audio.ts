@@ -270,6 +270,9 @@ export class AudioEngine {
 
   private currentTextureChannel: ActiveChannel | null = null
   private fadingTextureChannels: ActiveChannel[] = []
+  private textureRequest = 0
+  private recordingLoad: AbortController | null = null
+  private recordings = new Map<'rain' | 'waves', AudioBuffer>()
 
   private binauralLeftOsc: OscillatorNode | null = null
   private binauralRightOsc: OscillatorNode | null = null
@@ -377,14 +380,11 @@ export class AudioEngine {
    */
   public setAmbient(sound: BaseSoundTexture | AmbientSound, customSounds?: CustomSound[] | PlayableSound[]): void {
     const activeTexture: BaseSoundTexture = sound === 'noise' ? 'brown' : (sound as BaseSoundTexture)
+    const request = ++this.textureRequest
+    this.recordingLoad?.abort()
+    this.recordingLoad = null
     this.preferences.baseTexture = activeTexture
     const ctx = this.ensureContext()
-
-    if (this.currentTextureChannel) {
-      const oldChannel = this.currentTextureChannel
-      this.currentTextureChannel = null
-      this.fadeOutAndCleanChannel(oldChannel, 2.0)
-    }
 
     if (this.loopEl) {
       this.loopEl.pause()
@@ -393,10 +393,12 @@ export class AudioEngine {
     }
 
     if (activeTexture === 'none' || !ctx) {
+      this.fadeCurrentTexture()
       return
     }
 
     if (activeTexture.startsWith('custom:')) {
+      this.fadeCurrentTexture()
       const id = activeTexture.slice(7)
       const record = customSounds?.find((s) => s.id === id)
       if (record) {
@@ -411,6 +413,29 @@ export class AudioEngine {
       return
     }
 
+    if (activeTexture === 'rain' || activeTexture === 'waves') {
+      const cached = this.recordings.get(activeTexture)
+      if (cached) {
+        this.startTexture(ctx, cached)
+      } else {
+        const controller = new AbortController()
+        this.recordingLoad = controller
+        void this.loadRecording(ctx, activeTexture, controller).then((buffer) => {
+          // A late decode must not restart a sound after switching or disposal.
+          if (request !== this.textureRequest || ctx !== this.ctx) return
+          this.recordingLoad = null
+          this.startTexture(ctx, buffer)
+        }).catch(() => {
+          if (request !== this.textureRequest || ctx !== this.ctx) return
+          this.recordingLoad = null
+          // Offline first visits, unsupported codecs and failed downloads retain audio.
+          const buffer = activeTexture === 'rain' ? generateRainBuffer(ctx) : generateWavesBuffer(ctx)
+          this.startTexture(ctx, buffer)
+        })
+      }
+      return
+    }
+
     let buffer: AudioBuffer | null = null
     let spatialLfo = false
 
@@ -419,13 +444,37 @@ export class AudioEngine {
     } else if (activeTexture === 'brown') {
       buffer = generateBrownNoiseBuffer(ctx)
       spatialLfo = true
-    } else if (activeTexture === 'rain') {
-      buffer = generateRainBuffer(ctx)
-    } else if (activeTexture === 'waves') {
-      buffer = generateWavesBuffer(ctx)
     }
 
     if (!buffer) return
+    this.startTexture(ctx, buffer, spatialLfo)
+  }
+
+  private async loadRecording(ctx: AudioContext, sound: 'rain' | 'waves', controller: AbortController): Promise<AudioBuffer> {
+    const timeout = setTimeout(() => controller.abort(), 8000)
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}sounds/moodist/${sound}.mp3`, { signal: controller.signal })
+      if (!response.ok) throw new Error('Recording unavailable')
+      const bytes = await response.arrayBuffer()
+      if (bytes.byteLength > 2 * 1024 * 1024) throw new Error('Recording exceeds its asset budget')
+      const buffer = await ctx.decodeAudioData(bytes)
+      if (controller.signal.aborted) throw new Error('Recording load cancelled')
+      this.recordings.set(sound, buffer)
+      return buffer
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  private fadeCurrentTexture(): void {
+    if (!this.currentTextureChannel) return
+    const oldChannel = this.currentTextureChannel
+    this.currentTextureChannel = null
+    this.fadeOutAndCleanChannel(oldChannel, 2.0)
+  }
+
+  private startTexture(ctx: AudioContext, buffer: AudioBuffer, spatialLfo = false): void {
+    this.fadeCurrentTexture()
 
     const source = ctx.createBufferSource()
     source.buffer = buffer
@@ -755,6 +804,7 @@ export class AudioEngine {
 
   public dispose(): void {
     this.stopAmbient()
+    this.recordings.clear()
     this.stopBinaural()
     if (this.masterGain) {
       try {

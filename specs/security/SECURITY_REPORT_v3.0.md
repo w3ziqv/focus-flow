@@ -51,7 +51,24 @@ production penetration certificate.
   Previously a valid canonical value could hide a malformed legacy value (or
   vice versa) in the owner's own settings. Identity isolation remained enforced;
   replacement and partial-update regressions now reject both combinations.
-  These are repository rules; live deployment is still unverified.
+  These rules have now been deployed and read back in the isolated test project;
+  production retains its older rules pending migration acceptance.
+
+- Live inspection on 2026-10-10 found that production v2.6 rules omit
+  `daily_history`, explaining the owner's v3 `permission-denied` report for
+  that path. The live rules source was backed up. With the owner's approval,
+  `focus-flow-v3-test-20261010` was provisioned separately (Standard, default
+  database, europe-west1, free tier). Syntax validation and source read-back
+  passed. Six Vercel Preview overrides target only `test/v3.0-cloud`; production
+  configuration/rules/data were preserved. Google login is enabled and only the
+  exact stable Preview host plus local/default Firebase hosts are authorized.
+  Auth preflight passed. Actual user login and two-profile sync remain open.
+- Moodist-derived rain/wave loops are pinned, hashed, bundled locally and
+  precached. No third-party audio host, new CSP destination or native command
+  permission was added. Downloads have an eight-second timeout and a 2 MiB
+  bound; failures retain a generated fallback. Selection/disposal guards prevent
+  late recordings from restarting the wrong sound. Third-party audio licenses
+  and the upstream's missing per-recording attribution are explicitly retained.
 
 - Updated source-map-js 1.2.1 to patched 1.2.2 after the 2026-10-09 audit
   stopped on [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
@@ -92,7 +109,8 @@ download. It does not close the live-cloud or physical OS acceptance gates.
 
 ## Remaining gates and risks
 
-1. Live Google/Firebase configuration is unavailable here. Real desktop login,
+1. Isolated web Firebase is configured; live two-profile acceptance remains open.
+   The Desktop OAuth client is still unavailable. Real desktop login,
    refresh/revocation/keyring behavior and two physical devices remain release
    gates. Deploy new rules only after staged migration/export comparison.
 2. Older aggregate history lacks IDs for some sessions; unknown overlaps and

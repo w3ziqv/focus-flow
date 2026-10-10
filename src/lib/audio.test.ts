@@ -125,6 +125,7 @@ class MockAudioContext {
   createBuffer = vi.fn(
     (channels: number, length: number, rate: number) => new MockAudioBuffer(channels, length, rate),
   )
+  decodeAudioData = vi.fn().mockResolvedValue(new MockAudioBuffer(2, 44100, 44100))
 
   resume = vi.fn().mockResolvedValue(undefined)
   suspend = vi.fn().mockResolvedValue(undefined)
@@ -220,6 +221,8 @@ describe('AudioEngine Web Audio Graph & Dynamics', () => {
 
   afterEach(() => {
     engine.dispose()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
     const win = window as unknown as { AudioContext?: unknown }
     delete win.AudioContext
   })
@@ -277,6 +280,98 @@ describe('AudioEngine Web Audio Graph & Dynamics', () => {
     // Switch to none stops ambient
     engine.setAmbient('none')
     expect(engine.getPreferences().baseTexture).toBe('none')
+  })
+
+  it('plays bundled recordings through the existing filter and caches successful decodes', async () => {
+    const fetchRecording = vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) })
+    vi.stubGlobal('fetch', fetchRecording)
+    engine.setAmbient('rain')
+    await vi.waitFor(() => expect(mockCtx.createdBufferSources).toHaveLength(1))
+    expect(fetchRecording).toHaveBeenCalledWith('/sounds/moodist/rain.mp3', { signal: expect.any(AbortSignal) })
+    expect(mockCtx.createdBufferSources[0].buffer).toBe(await mockCtx.decodeAudioData.mock.results[0].value)
+    expect(mockCtx.createdGains[1].connect).toHaveBeenCalledWith(mockCtx.createdFilters[0])
+    engine.setAmbient('brown')
+    engine.setAmbient('rain')
+    expect(fetchRecording).toHaveBeenCalledTimes(1)
+    expect(mockCtx.decodeAudioData).toHaveBeenCalledTimes(1)
+    expect(mockCtx.createdBufferSources[2].loop).toBe(true)
+  })
+
+  it('keeps the previous texture playing until the recording is ready to crossfade', async () => {
+    let finish!: (value: ArrayBuffer) => void
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: () => new Promise<ArrayBuffer>(resolve => { finish = resolve }) }))
+    engine.setAmbient('brown')
+    const oldGain = mockCtx.createdGains[1]
+    engine.setAmbient('waves')
+    await vi.waitFor(() => expect(finish).toBeDefined())
+    expect(oldGain.gain.exponentialRampToValueAtTime).not.toHaveBeenCalledWith(0.0001, 2)
+    finish(new ArrayBuffer(8))
+    await vi.waitFor(() => expect(mockCtx.createdBufferSources).toHaveLength(2))
+    expect(oldGain.gain.exponentialRampToValueAtTime).toHaveBeenCalledWith(0.0001, 2)
+  })
+
+  it.each(['none', 'pink'] as const)('ignores a late recording decode after switching to %s', async (next) => {
+    let finish!: (value: MockAudioBuffer) => void
+    mockCtx.decodeAudioData.mockImplementationOnce(() => new Promise<MockAudioBuffer>(resolve => { finish = resolve }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }))
+    engine.setAmbient('rain')
+    await vi.waitFor(() => expect(finish).toBeDefined())
+    engine.setAmbient(next)
+    finish(new MockAudioBuffer(2, 44100, 44100))
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(mockCtx.createdBufferSources).toHaveLength(next === 'none' ? 0 : 1)
+    expect(engine.getPreferences().baseTexture).toBe(next)
+  })
+
+  it('does not reopen an audio context when a recording resolves after disposal', async () => {
+    let finish!: (value: MockAudioBuffer) => void
+    mockCtx.decodeAudioData.mockImplementationOnce(() => new Promise<MockAudioBuffer>(resolve => { finish = resolve }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }))
+    engine.setAmbient('waves')
+    await vi.waitFor(() => expect(finish).toBeDefined())
+    engine.dispose()
+    finish(new MockAudioBuffer(2, 44100, 44100))
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(mockCtx.createdBufferSources).toHaveLength(0)
+    expect(mockCtx.close).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['network', 'http', 'codec', 'oversize'])('falls back to synthesis after a %s recording failure', async (failure) => {
+    vi.stubGlobal('fetch', failure === 'network'
+      ? vi.fn().mockRejectedValue(new Error('offline'))
+      : vi.fn().mockResolvedValue({ ok: failure !== 'http', arrayBuffer: async () => new ArrayBuffer(failure === 'oversize' ? 3 * 1024 * 1024 : 8) }))
+    if (failure === 'codec') mockCtx.decodeAudioData.mockRejectedValueOnce(new Error('unsupported codec'))
+    engine.setAmbient('rain')
+    await vi.waitFor(() => expect(mockCtx.createdBufferSources).toHaveLength(1))
+    expect(mockCtx.createdBufferSources[0].buffer?.length).toBe(441000)
+    expect(engine.getPreferences().baseTexture).toBe('rain')
+  })
+
+  it('aborts a stalled download and falls back without dropping the selected texture', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('fetch', vi.fn((_url, { signal }: { signal: AbortSignal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true })
+    })))
+    engine.setAmbient('waves')
+    await vi.advanceTimersByTimeAsync(8000)
+    expect(mockCtx.createdBufferSources).toHaveLength(1)
+    expect(engine.getPreferences().baseTexture).toBe('waves')
+  })
+
+  it('does not undo a pause or change master volume when a recording becomes ready', async () => {
+    let finish!: (value: MockAudioBuffer) => void
+    mockCtx.decodeAudioData.mockImplementationOnce(() => new Promise<MockAudioBuffer>(resolve => { finish = resolve }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }))
+    engine.setAmbient('rain')
+    engine.startSession()
+    await vi.waitFor(() => expect(finish).toBeDefined())
+    engine.pauseSession()
+    const master = mockCtx.createdGains[0]
+    const gainCalls = master.gain.exponentialRampToValueAtTime.mock.calls.length
+    finish(new MockAudioBuffer(2, 44100, 44100))
+    await vi.waitFor(() => expect(mockCtx.createdBufferSources).toHaveLength(1))
+    expect(master.gain.exponentialRampToValueAtTime).toHaveBeenCalledTimes(gainCalls)
+    expect(master.gain.value).toBe(0.0001)
   })
 
   it('configures Binaural Beats entrainment for Alpha Focus (10 Hz detune)', () => {

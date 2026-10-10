@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6.svg)](tsconfig.json)
 
-A quiet, local-first Pomodoro companion designed to stay out of your way while you work. Focus Flow pairs a warm editorial aesthetic with real-time procedural soundscapes, ephemeral task intentions, and zero-telemetry offline storage.
+A quiet, local-first Pomodoro companion designed to stay out of your way while you work. Focus Flow pairs a warm editorial aesthetic with ambient recordings and generated soundscapes, ephemeral task intentions, and zero-telemetry offline storage.
 
 The web/PWA works offline without an account. Optional Google/Firebase sync shares
 completed history, settings and goals; task/checklist content is included by default
@@ -36,7 +36,7 @@ Automated accessibility checks do not constitute WCAG certification.
 - **Ephemeral Micro-Steps**: Up to 3 lightweight checklist items attached to the active session. Completed steps are logged with the session, while incomplete items reset cleanly so you don't accumulate backlog debt.
 
 ### 🎧 Procedural Acoustic Soundscapes
-- **Mathematical Sound Synthesis (0 KB Assets)**: Generates pink noise, leaky brown noise, soft rain, and ocean wave textures in real time using the Web Audio API without downloading static audio files.
+- **Ambient Sound**: Offline rain and ocean recordings curated by Moodist, with smooth transitions, generated pink/brown noise and procedural fallbacks. See [audio sources and licensing](public/sounds/SOUNDS.md).
 - **Tone Warmth Filter**: Lowpass biquad filter with adjustable cutoff frequency (200–1200 Hz) to shape the sound texture to your preference.
 - **Binaural Beat Entrainment**: Stereo carriers supporting 10 Hz Alpha (Focus) and 6 Hz Theta (Rest) modes.
 - **Tibetan Singing Bowl Chime**: Five inharmonic modal partials with acoustic beating shimmer and mallet transient burst for session completion alerts.

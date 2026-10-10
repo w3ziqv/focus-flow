@@ -82,7 +82,7 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+          globPatterns: ['**/*.{js,css,html,svg,woff2}', 'sounds/moodist/*.{mp3,txt,json}'],
           navigateFallback: '/index.html',
         },
       }),

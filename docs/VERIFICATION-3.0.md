@@ -1,8 +1,33 @@
 # Verification — 3.0.0-alpha.1
 
-Updated: 2026-10-09. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
+Updated: 2026-10-10. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates
 below. GitHub CI results must be recorded for the pushed commit separately.
+
+## 2026-10-10 isolated cloud and recording follow-up
+
+- Actual deployed production rules omit `daily_history`; the owner's v3 sync
+  attempt returned `permission-denied`. Production rules were backed up and
+  preserved. With the owner's approval, a separate Standard test Firebase
+  project was provisioned in europe-west1. Reviewed rules passed syntax validation
+  and exact authenticated read-back. Google sign-in and the stable Preview domain
+  are configured; six Vercel variables are scoped only to `test/v3.0-cloud`.
+  The rebuilt `f463935` Preview `dpl_3qVP9keLp6kwx8fHcZ7GHFnBdWRr` is READY.
+  Auth preflight passed; live user login/two-profile sync remain unverified.
+- Local follow-up: **778 tests passed**, one emulator-only test skipped;
+  TypeScript and ESLint passed. Web/desktop builds and isolation passed, including
+  identical bundled audio assets, the 2 MiB per-file budget and actual service
+  worker precache entries for recordings/attribution. FFmpeg fully decoded both
+  58-second, 32 kHz stereo files and verified their manifest SHA-256 hashes.
+- The browser sound picker selected rain and waves and displayed the source/
+  license disclosure without console warnings/errors. This does not certify
+  audible hardware output. Screenshot capture was unavailable for this check.
+- Eleven new audio regressions cover caching, delayed decode/switch/disposal,
+  pause, preserving the previous texture, failed network/HTTP/codec/oversized
+  assets and timeouts. Existing zero-asset checks were replaced by a bounded
+  two-recording palette check. CI now also exercises actual offline PWA decoding
+  and bundled MP3 decoding in installed Linux/Windows WebViews; record their
+  results for the new head before claiming those runtime checks passed.
 
 | Check | Observed result |
 |---|---|
@@ -52,8 +77,8 @@ The README's unsupported AAA certification badge was removed.
 
 ## Outstanding stable release gates
 
-1. **Live cloud/OAuth:** public Firebase configuration and Desktop OAuth client
-   are not available here. Test system-browser login, state/PKCE callback,
+1. **Live cloud/OAuth:** isolated web Firebase is configured; live acceptance is
+   pending. The Desktop OAuth client is not available. Test system-browser login, state/PKCE callback,
    credential-store refresh after restart, revocation and memory-only fallback on
    both supported OS. Then run the documented two-device scenarios against
    staging/live configuration, not just emulator-authenticated profiles.

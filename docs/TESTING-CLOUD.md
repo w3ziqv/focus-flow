@@ -9,13 +9,28 @@ Branch pushes produce Preview deployments. Do not promote them to production.
 
 ## Environment boundaries
 
-Vercel has six public `VITE_FIREBASE_*` variables for Preview and Production.
-Both environments use **the same Firebase project, `focus-flow-70527`**.
-A separate branch and Vercel hostname do not create an isolated database.
-Do not test deletion, masking or migration on an ordinary account with history.
-Use a separate Google account without Focus Flow data, or a separate Firebase
-project with Preview configuration scoped to this branch.
+The owner selected an isolated Firebase project for this branch on 2026-10-10.
+Six public `VITE_FIREBASE_*` Preview overrides scoped exactly to
+`test/v3.0-cloud` now target **`focus-flow-v3-test-20261010`**. Production and
+other previews retain `focus-flow-70527`. The test database is `(default)`,
+Standard edition, Firestore Native, `europe-west1`, with the free tier enabled.
+Google sign-in and the exact stable Preview hostname are configured there.
+Changing variables requires a new Preview build before the new project is used.
+Sign in again after that rebuild: Firebase accounts and cloud history are
+independent between projects. Existing production data was not copied or changed.
+Use synthetic data for deletion, masking and migration acceptance.
 Never commit private keys, service accounts, tokens or login credentials.
+
+To redeploy reviewed rules to this test backend, use an explicit target:
+
+```bash
+npx -y firebase-tools@latest deploy --only firestore:rules \
+  --project focus-flow-v3-test-20261010 --config firebase.test.json
+```
+
+Do not substitute the production project or deploy unrelated services.
+The Standard edition deliberately mirrors the existing app's tested SDK/rules
+behavior; this is not a migration to Firestore Enterprise or MongoDB.
 
 ## Observed results — 2026-10-10
 
@@ -34,6 +49,16 @@ The in-app browser retry remained at Connecting, with no observable Google popup
 Actual Google sign-in and live synchronization remain **unverified**, pending
 user login in an ordinary browser and acceptance on a disposable test account.
 No user Firestore data was read or modified during these checks.
+
+After the diagnostic UI was deployed, the owner confirmed `permission-denied`.
+Authenticated inspection of production found deployed v2.6 rules with no
+`daily_history` match; v3 requests to that path were therefore denied. The live
+source was backed up locally. Replacing those rules would also reject legacy
+v2 `stats.history` writes, so production rules were preserved.
+The isolated test project now has the reviewed v3 rules. Firebase syntax
+validation passed; an authenticated read-back exactly matched the repository
+source. Actual Google login and two-profile sync against this new backend still
+need acceptance; configuration and emulator results are not a live sync pass.
 
 The owner subsequently reported “Could not synchronize. Check your connection
 and retry. Changes remain saved locally.” This confirms a failed attempt, not
@@ -58,7 +83,7 @@ clear browser storage, delete cloud history or paste tokens/full console logs.
 - `unauthenticated` or an `auth/` code: inspect the sign-in/refresh path.
 
 Vercel web client variables do not grant Firebase administrative access. Reading
-the deployed rules requires a maintainer's Firebase/Google Cloud authentication.
+the deployed rules required the maintainer's Firebase CLI authentication.
 Do not deploy new rules blindly to the shared production project to remove an error.
 
 ## Configuration preflight

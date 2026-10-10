@@ -64,6 +64,27 @@ try:
     if not cloud['configured']:
         invoke('cloud_sign_in', expected=False)
         assert cloud['user'] is None
+    recordings = request('POST', '/execute/async', {
+        'script': """const done=arguments[arguments.length-1];(async()=>{
+          const ctx=new AudioContext();
+          try {
+            const results=[];
+            for (const sound of ['rain','waves']) {
+              const response=await fetch(`/sounds/moodist/${sound}.mp3`);
+              if (!response.ok) throw Error(`Missing recording: ${sound}`);
+              const buffer=await ctx.decodeAudioData(await response.arrayBuffer());
+              results.push({sound,duration:buffer.duration,channels:buffer.numberOfChannels});
+            }
+            const notice=await fetch('/sounds/moodist/NOTICE.txt');
+            if (!notice.ok || !(await notice.text()).includes('Pixabay')) throw Error('Missing attribution');
+            return results;
+          } finally {await ctx.close();}
+        })().then(value=>done({ok:true,value})).catch(error=>done({ok:false,error:String(error)}))""",
+        'args': []})
+    assert recordings['ok'], recordings
+    for recording in recordings['value']:
+        assert abs(recording['duration'] - 58) < .1 and recording['channels'] == 2, recording
+    print('PASS: bundled rain/wave MP3s decode in the native WebView; attribution is embedded')
     current = invoke('timer_display')
     if current['running']: invoke('desktop_action', {'name': 'toggle'})
     invoke('desktop_action', {'name': 'reset'})

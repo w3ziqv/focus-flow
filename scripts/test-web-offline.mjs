@@ -23,10 +23,29 @@ try {
   await page.waitForFunction(() => !!navigator.serviceWorker.controller)
   await context.setOffline(true)
   await page.reload()
+  const recordings = await page.evaluate(async () => {
+    const ctx = new AudioContext()
+    try {
+      const results = []
+      for (const sound of ['rain', 'waves']) {
+        const response = await fetch(`/sounds/moodist/${sound}.mp3`)
+        if (!response.ok) throw Error(`Missing offline recording: ${sound}`)
+        const decoded = await ctx.decodeAudioData(await response.arrayBuffer())
+        results.push({ sound, duration: decoded.duration, channels: decoded.numberOfChannels })
+      }
+      const notice = await fetch('/sounds/moodist/NOTICE.txt')
+      if (!notice.ok || !(await notice.text()).includes('Pixabay')) throw Error('Missing offline attribution')
+      return results
+    } finally { await ctx.close() }
+  })
+  for (const recording of recordings) {
+    assert.ok(Math.abs(recording.duration - 58) < 0.1, `${recording.sound} must decode completely offline`)
+    assert.equal(recording.channels, 2)
+  }
   await page.getByRole('button',{name:'Start',exact:true}).waitFor()
   await page.getByRole('button',{name:'Statistics',exact:true}).click()
   await page.getByRole('button',{name:'Guides',exact:true}).click()
   await page.getByRole('button',{name:'App',exact:true}).click()
   assert.deepEqual(errors,[])
-  console.log('PASS: production PWA reload, timer/navigation/settings offline, no page errors')
+  console.log('PASS: production PWA reload, timer/navigation/settings, rain/wave decoding and attribution offline, no page errors')
 } finally { await browser?.close(); server?.kill() }
