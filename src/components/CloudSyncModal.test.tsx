@@ -92,4 +92,16 @@ describe('CloudSyncModal (Tier 2 Elevated Dialog)', () => {
       expect(signOutSpy).toHaveBeenCalled()
     })
   })
+
+  it('shows permission diagnostics without misreporting a network failure or exposing SDK data', async () => {
+    saveCloudSyncState({status: 'error', uid: 'test-user', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: 'permission-denied'})
+    const adapter = getCloudSyncAdapter()
+    vi.spyOn(adapter, 'syncAll').mockRejectedValue(Object.assign(new Error('Private SDK details token=secret'), {code: 'permission-denied'}))
+    render(<CloudSyncModal open onClose={vi.fn()}/> )
+    expect(screen.getByRole('alert').textContent).toContain('The cloud denied access')
+    fireEvent.click(screen.getByRole('button', {name: 'Sync Now'}))
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('permission-denied'))
+    expect(screen.getByRole('alert').textContent).not.toContain('Check your connection')
+    expect(screen.getByRole('alert').textContent).not.toContain('secret')
+  })
 })

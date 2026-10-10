@@ -42,6 +42,15 @@ try {
   const settingsRef = doc(owner, 'users/alice/settings/current')
   await check('current settings schema succeeds', () => assertSucceeds(setDoc(settingsRef, settings)))
   await check('legacy break names succeed', () => assertSucceeds(setDoc(settingsRef, { focus: 25, shortBreak: 5, longBreak: 15, rounds: 4, autoStart: false })))
+  await setDoc(settingsRef, settings)
+  for (const [field, value] of Object.entries({shortBreak: 'invalid', longBreak: 121})) {
+    await check(`valid canonical values do not bypass invalid ${field} on replace`, () => assertFails(setDoc(settingsRef, {...settings, [field]: value})))
+    await check(`valid canonical values do not bypass invalid ${field} on update`, () => assertFails(updateDoc(settingsRef, {[field]: value})))
+  }
+  const legacySettings = {focus: 25, shortBreak: 5, longBreak: 15, rounds: 4, autoStart: false}
+  for (const [field, value] of Object.entries({short: 61, long: 'invalid'})) {
+    await check(`valid legacy values do not bypass invalid ${field}`, () => assertFails(setDoc(settingsRef, {...legacySettings, [field]: value})))
+  }
   await check('singleton ID enforced', () => assertFails(setDoc(doc(owner, 'users/alice/settings/arbitrary'), settings)))
   await check('opaque nested settings rejected', () => assertFails(setDoc(settingsRef, { ...settings, interface: { arbitrary: Array(100).fill('junk') } })))
   const stats = { minutes: 25, today: 1, week: 1, streak: 1, milestones: [], goals: { enabled: true, dailyTargetMinutes: 60 }, schemaVersion: 3 }

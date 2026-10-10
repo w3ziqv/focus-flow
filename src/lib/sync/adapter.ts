@@ -50,6 +50,7 @@ import { historyDays, mergeDailyHistory } from './history'
 import { nativeInvoke } from '../desktop/runtime'
 import { getFirebaseConfig, initFirebase, type FirebaseContext } from './firebase'
 import { mergeSessions } from './merge'
+import { syncErrorCode } from './errors'
 import type {
   AccountSwitchChoice,
   AccountSwitchEvent,
@@ -118,6 +119,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
         },
       }
       this.syncStatus = cached.status === 'error' ? 'error' : 'synced'
+      this.syncError = cached.status === 'error' ? syncErrorCode(cached.error) : null
     }
   }
 
@@ -186,9 +188,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     return () => this.stateListeners.delete(callback)
   }
 
-  private setSyncStatus(status: SyncStatus, error: string | null = null): void {
+  private setSyncStatus(status: SyncStatus, error: unknown = null): void {
     this.syncStatus = status
-    this.syncError = error
+    this.syncError = error === null ? null : syncErrorCode(error)
     this.notifySyncListeners()
   }
 
@@ -299,9 +301,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
       return cloudUser
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Google authentication failed'
+      const message = syncErrorCode(err)
       if (this.authState.status !== 'authenticated') this.setAuthState({ status: 'error', error: message })
-      this.setSyncStatus('error', message)
+      this.setSyncStatus('error', err)
       throw err
     }
   }
@@ -313,7 +315,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
         await this.firebaseCtx.modules.signOut(this.firebaseCtx.auth)
       }
     } catch (failure) {
-      this.setSyncStatus('error', String(failure))
+      this.setSyncStatus('error', failure)
       throw failure
     }
     {
@@ -799,8 +801,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       this.lastSyncedAt = new Date().toISOString()
       this.setSyncStatus('synced')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Sync failed'
-      if (epoch === this.authEpoch) this.setSyncStatus('error', msg)
+      if (epoch === this.authEpoch) this.setSyncStatus('error', err)
       throw err
     }
   }
@@ -844,8 +845,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       saveLastSyncedUid(null)
       await this.signOut()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Purge cloud data failed'
-      this.setSyncStatus('error', msg)
+      this.setSyncStatus('error', err)
       throw err
     }
   }
@@ -937,11 +937,12 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     const poll = setInterval(() => {
       if (this.authState.status !== 'authenticated' || !navigator.onLine || document.hidden || this.inFlight) return
       const user = this.authState.user
+      const epoch = this.authEpoch
       void this.getFirebase().then(async ({db, modules}) => {
         const snapshot = await this.cloudRequest(modules.getDoc(modules.doc(db, 'users', user.uid, 'metadata', 'sync')))
         const timestamp = snapshot.exists() ? snapshot.data().lastSyncedAt : null
         if (typeof timestamp === 'string' && timestamp > (this.lastSyncedAt ?? '')) schedule()
-      }).catch(() => this.setSyncStatus('error', 'cloud-network-error'))
+      }).catch(error => {if (epoch === this.authEpoch) this.setSyncStatus('error', error)})
     }, 60_000)
     // Restore only an explicitly connected account; anonymous startup stays offline.
     if (this.authState.status === 'authenticated') schedule()

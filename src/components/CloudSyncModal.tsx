@@ -4,6 +4,7 @@ import { getCloudSyncAdapter } from '../lib/sync/adapter'
 import { loadInterface, saveInterface } from '../lib/storage'
 import { useI18n } from '../lib/i18n'
 import type { AccountSwitchChoice, AccountSwitchEvent } from '../lib/sync/types'
+import { isSyncCancelled, syncErrorCode, syncErrorMessageKey } from '../lib/sync/errors'
 import { Modal } from './Modal'
 import { PillButton } from './PillButton'
 import { Switch } from './Switch'
@@ -32,8 +33,7 @@ function Content({onSyncComplete}: Pick<Props, 'onSyncComplete'>): React.JSX.Ele
     setBusy(true); setError(null)
     try { await work(); onSyncComplete?.(t('sync.success')) }
     catch (failure) {
-      const message = String(failure)
-      if (!/popup-closed|cancelled/.test(message)) setError(t(/not.configured|cloud-not-configured/.test(message) ? 'sync.error.config' : /auth\/|oauth-|sign-in|account-mismatch/.test(message) ? 'sync.error.login' : 'sync.error.network'))
+      if (!isSyncCancelled(failure)) setError(syncErrorCode(failure))
     } finally { setBusy(false); setSwitchAccount(null) }
   }
   const signIn = () => run(() => adapter.signInWithGoogle(event => new Promise(resolve => {if (!mounted.current) {resolve('cancel'); return} consent.current = resolve; setSwitchAccount({event, resolve})})))
@@ -44,8 +44,13 @@ function Content({onSyncComplete}: Pick<Props, 'onSyncComplete'>): React.JSX.Ele
     if (state.uid) void run(() => adapter.syncAll())
   }
   const connected = !!state.uid
+  const failure = error ?? (state.status === 'error' ? state.error : null)
+  const showError = (error !== null || state.status === 'error') && !isSyncCancelled(failure)
   return <div className="space-y-5 text-sm text-ink-2">
-    {(error || state.status === 'error') && <p role="alert" className="rounded-xl border border-line bg-sunken p-3 text-ink">{error ?? t('sync.error.network')}</p>}
+    {showError && <div role="alert" className="rounded-xl border border-line bg-sunken p-3 text-ink">
+      <p>{t(syncErrorMessageKey(failure))}</p>
+      <details className="mt-2 text-xs text-ink-2"><summary>{t('sync.error.details')}</summary><p className="mt-1">{t('sync.error.code')} <code>{syncErrorCode(failure)}</code></p></details>
+    </div>}
     {switchAccount && <section className="rounded-xl border border-line p-4">
       <h3 className="font-medium text-ink">{t('sync.account')}</h3><p className="mt-2">{t('sync.accountDescription')}</p>
       <div className="mt-3 flex flex-col gap-2"><PillButton onClick={() => switchAccount.resolve('replace-local')}>{t('sync.replace')}</PillButton><PillButton variant="secondary" onClick={() => switchAccount.resolve('merge')}>{t('sync.merge')}</PillButton></div>

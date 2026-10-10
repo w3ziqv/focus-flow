@@ -65,10 +65,12 @@ service cloud.firestore {
                'updatedLocallyAt', 'schemaVersion', 'deviceId'
              ]) &&
              data.focus is number && data.focus >= 1 && data.focus <= 120 &&
-             ((('short' in data) && data.short is number && data.short >= 1 && data.short <= 60) ||
-              (('shortBreak' in data) && data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
-             ((('long' in data) && data.long is number && data.long >= 1 && data.long <= 120) ||
-              (('longBreak' in data) && data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
+             (!('short' in data) || (data.short is number && data.short >= 1 && data.short <= 60)) &&
+             (!('shortBreak' in data) || (data.shortBreak is number && data.shortBreak >= 1 && data.shortBreak <= 60)) &&
+             (!('long' in data) || (data.long is number && data.long >= 1 && data.long <= 120)) &&
+             (!('longBreak' in data) || (data.longBreak is number && data.longBreak >= 1 && data.longBreak <= 120)) &&
+             ('short' in data || 'shortBreak' in data) &&
+             ('long' in data || 'longBreak' in data) &&
              data.rounds is number && data.rounds >= 1 && data.rounds <= 20 &&
              data.autoStart is bool && validRevision(data) &&
              (!('updatedLocallyAt' in data) || (data.updatedLocallyAt is string && data.updatedLocallyAt.size() <= 40));

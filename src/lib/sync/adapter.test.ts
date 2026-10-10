@@ -144,6 +144,17 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
     expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
   })
 
+  it('retains the structured permission code through initial login sync and reopening', async () => {
+    const failure = Object.assign(new Error('Missing or insufficient permissions.'), {code: 'permission-denied'})
+    vi.mocked(mockFirebaseContext.modules.getDoc).mockRejectedValueOnce(failure)
+    const adapter = new CloudSyncAdapterImpl()
+    await expect(adapter.signInWithGoogle()).rejects.toBe(failure)
+    expect(adapter.getAuthState().status).toBe('authenticated')
+    expect(adapter.getDetailedSyncState().error).toBe('permission-denied')
+    expect(loadCloudSyncState()?.error).toBe('permission-denied')
+    expect(new CloudSyncAdapterImpl().getDetailedSyncState().error).toBe('permission-denied')
+  })
+
   it('restores previous authenticated state from localStorage cache without network calls', () => {
     saveCloudSyncState({
       status: 'synced',

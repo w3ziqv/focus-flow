@@ -34,6 +34,8 @@ Review and remove that override when Firebase ships a compatible patched pin.
 - Firestore denies access by default and isolates each account by authenticated
   UID. Settings are singletons; sessions require bounded list queries. Nested
   checklists, milestones, goals, and preferences have explicit schemas.
+  Canonical and legacy break-duration aliases are each validated, including when
+  both are supplied; a valid alias cannot hide an invalid second value.
 - New cloud history uses versioned daily documents with calendar-valid IDs and
   bounded integer minutes. Legacy summary maps are read for migration, backed up
   locally per UID, and cannot be written under the new rules. Compare exports on
@@ -63,6 +65,10 @@ Firebase browser configuration is public client configuration, not a service
 account credential. Never commit server keys. Deployment still requires a review
 of the live Firebase rules, authorized domains, API restrictions/App Check, Vercel
 headers, and GitHub repository policy. Local files do not update those services.
+
+Cloud error details expose only allowlisted error identifiers. Structured SDK
+codes survive retries and reopening without retaining arbitrary SDK messages,
+URLs or credentials. Access-denied errors are distinguished from network errors.
 
 ## Native dependency backport
 

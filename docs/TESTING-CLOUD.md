@@ -35,6 +35,32 @@ Actual Google sign-in and live synchronization remain **unverified**, pending
 user login in an ordinary browser and acceptance on a disposable test account.
 No user Firestore data was read or modified during these checks.
 
+The owner subsequently reported “Could not synchronize. Check your connection
+and retry. Changes remain saved locally.” This confirms a failed attempt, not
+its cause. The earlier UI mapped permission and service failures to that same
+network message and discarded structured Firebase codes from stored state.
+The test branch now preserves an allowlisted error code across retries/reloads
+and separates access, service, quota, login and network messages. Unknown errors
+have a general message; raw SDK messages, URLs and account data are not displayed.
+
+## Diagnosing a failed attempt
+
+Reopen the updated Preview and use Sync Now. Expand **Error details** and report
+only **Error code**, together with whether the account is connected. Do not
+clear browser storage, delete cloud history or paste tokens/full console logs.
+
+- `permission-denied`: inspect the live rules, authenticated UID and App Check/API
+  restrictions. The code alone does not distinguish these causes. Repository
+  rules and passing emulator checks do not prove the live rules match.
+- `failed-precondition` or `not-found`: check database/service setup or any missing
+  index reported privately by the SDK. Do not expose generated console URLs.
+- `unavailable`, `cloud-timeout` or `cloud-offline`: check connectivity and retry.
+- `unauthenticated` or an `auth/` code: inspect the sign-in/refresh path.
+
+Vercel web client variables do not grant Firebase administrative access. Reading
+the deployed rules requires a maintainer's Firebase/Google Cloud authentication.
+Do not deploy new rules blindly to the shared production project to remove an error.
+
 ## Configuration preflight
 
 In the intended Firebase project, use Authentication → Settings → Authorized

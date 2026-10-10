@@ -1,6 +1,6 @@
 # Security audit — Focus Flow 3.0.0-alpha.1
 
-Updated: 2026-10-09. Local audit baseline: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
+Updated: 2026-10-10. Local audit baseline: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
 base `a2f5f22`. Supersedes historical 2.x reports. Scope: source, local builds,
 isolated browser/native tests and the official Firestore emulator. This is not a
 production penetration certificate.
@@ -43,6 +43,15 @@ production penetration certificate.
   See [vendor evidence](../../src-tauri/vendor/README.md).
 
 ## Follow-up dependency and CI boundaries
+
+- Sync diagnostics preserve allowlisted structured Firebase error codes, including
+  initial reconciliation, background polling and cached-error restoration. Raw
+  SDK messages are excluded from persisted errors and visible error details.
+- Both canonical and legacy break-duration aliases are independently validated.
+  Previously a valid canonical value could hide a malformed legacy value (or
+  vice versa) in the owner's own settings. Identity isolation remained enforced;
+  replacement and partial-update regressions now reject both combinations.
+  These are repository rules; live deployment is still unverified.
 
 - Updated source-map-js 1.2.1 to patched 1.2.2 after the 2026-10-09 audit
   stopped on [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
