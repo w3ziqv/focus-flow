@@ -207,7 +207,26 @@ try:
     print('WebRTC capability:', capability)
     script('document.querySelector("button[aria-label=App]").click()')
     time.sleep(.5)
+    assert 'does not support WebRTC' not in script('return document.body.innerText'), 'Advanced pairing details leaked into the main list'
+    if output:
+        p = Path(output)
+        p.with_name(p.stem + '-settings.png').write_bytes(base64.b64decode(request('GET', '/screenshot')))
+    script('Array.from(document.querySelectorAll("button")).find(button=>button.textContent.includes("Desktop application")).click()')
+    for _ in range(50):
+        if 'Only while the timer is running.' in script('return document.body.innerText'): break
+        time.sleep(.1)
+    else: raise AssertionError('Desktop settings detail did not load')
+    assert script('return document.querySelectorAll("button[role=switch]").length') == 2
+    if output:
+        p = Path(output)
+        p.with_name(p.stem + '-desktop-settings.png').write_bytes(base64.b64decode(request('GET', '/screenshot')))
+    script('Array.from(document.querySelectorAll("button")).find(button=>button.textContent.trim()==="Back").click()')
+    print('PASS: desktop settings detail navigation and advanced pairing separation')
     if capability == 'undefined':
+        script('document.querySelector("summary").click();Array.from(document.querySelectorAll("button")).find(button=>button.textContent.includes("Local synchronization")).click()')
+        for _ in range(50):
+            if 'does not support WebRTC' in script('return document.body.innerText'): break
+            time.sleep(.1)
         assert 'does not support WebRTC' in script('return document.body.innerText')
         assert script('return Array.from(document.querySelectorAll("button[role=switch]")).some(button=>button.disabled)')
         print('PASS: unsupported WebRTC is explained and pairing is disabled')

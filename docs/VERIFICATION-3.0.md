@@ -213,3 +213,27 @@ Reusing a previous run requires identical application source and lockfiles, and
 checks the downloaded installers' SHA-256 before execution.
 
 All outstanding stable gates above still apply, even after a green runtime smoke.
+
+## Arch/Hyprland acceptance and AppImage follow-up (2026-10-10)
+
+The owner tested the SHA-256-verified `381608a` Ubuntu AppImage on Arch Linux
+with Hyprland/Wayland and confirmed the native window and timer work. The test
+uses a separate XDG data/config/cache profile; no daily profile is modified.
+Runtime logs exposed missing GStreamer `appsink`, `appsrc` and `autoaudiosink`.
+The AppImage contained core libraries but omitted plugins; the existing CI
+installed-runtime check exercised only the `.deb` and did not cover that gap.
+
+The follow-up enables Tauri's `bundleMediaFramework` and adds a separate
+AppImage runtime smoke with bundled plugins/scanner and host plugin discovery
+excluded. This must pass in actual GitHub CI and audible playback must then
+be checked on the owner's machine. The AppImage may be larger.
+
+Desktop controls now open as a compact settings detail with the same icon,
+card, typography and spacing patterns as other settings. Experimental local
+pairing moves to Advanced integrations; unsupported WebRTC remains clearly
+explained with a disabled switch. Three added navigation regressions pass;
+local totals are 797 passed and one emulator-only skip, with TypeScript,
+ESLint and the desktop frontend build passing. Native Linux/Windows smoke
+now verifies the detail navigation and captures settings screenshots. Those
+updated runtime checks and manual visual/audio acceptance remain pending.
+Desktop Google OAuth still requires its own Desktop app client configuration.

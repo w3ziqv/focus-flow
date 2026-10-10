@@ -11,6 +11,8 @@ import {
   FileText,
   Globe,
   Keyboard,
+  Link2,
+  Monitor,
   Palette,
   Radio,
   Table,
@@ -47,6 +49,8 @@ export type SettingsSection =
   | 'data'
   | 'webhook'
   | 'notifications'
+  | 'desktop'
+  | 'peer'
 
 interface AppSettingsModalProps {
   open: boolean
@@ -246,7 +250,11 @@ export function AppSettingsModal({
                 ? t('data.title')
                 : section === 'webhook'
                   ? t('webhookTitle')
-                  : t('settings.notifications')
+                  : section === 'desktop'
+                    ? t('desktop.title')
+                    : section === 'peer'
+                      ? t('peer.title')
+                      : t('settings.notifications')
 
   return (
     <Modal open={open} onClose={onClose} title={modalTitle}>
@@ -357,7 +365,26 @@ export function AppSettingsModal({
             </button>
           </div>
 
-          {platform === 'tauri' && <Suspense fallback={null}><DesktopSettings /></Suspense>}
+          {platform === 'tauri' && (
+            <div className="rounded-2xl border border-line bg-card overflow-hidden">
+              <button
+                type="button"
+                onClick={() => goToSection('desktop')}
+                className="flex w-full items-center justify-between gap-3 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                    <Monitor size={17} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-medium text-ink leading-snug">{t('desktop.title')}</div>
+                    <div className="text-[12px] text-ink-3 leading-snug">{t('desktop.summary')}</div>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="shrink-0 text-ink-3" aria-hidden="true" />
+              </button>
+            </div>
+          )}
 
           {/* Group 3: Data, Webhook & Notifications */}
           <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
@@ -416,7 +443,26 @@ export function AppSettingsModal({
             </button>
           </div>
 
-          <details className="rounded-2xl border border-line bg-card"><summary className="cursor-pointer p-3.5 text-sm text-ink">{t('settings.advanced')}</summary>            <button
+          <details className="rounded-2xl border border-line bg-card overflow-hidden"><summary className="cursor-pointer p-3.5 text-sm text-ink">{t('settings.advanced')}</summary>
+            {platform === 'tauri' && (
+              <button
+                type="button"
+                onClick={() => goToSection('peer')}
+                className="flex w-full items-center justify-between gap-3 border-t border-line/60 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-sunken text-ink-2">
+                    <Link2 size={17} aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-medium text-ink leading-snug">{t('peer.title')}</div>
+                    <div className="text-[12px] text-ink-3 leading-snug">{t('peer.summary')}</div>
+                  </div>
+                </div>
+                <ChevronRight size={16} className="shrink-0 text-ink-3" aria-hidden="true" />
+              </button>
+            )}
+            <button
               type="button"
               onClick={() => goToSection('webhook')}
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -759,6 +805,10 @@ export function AppSettingsModal({
       )}
 
       {/* Subview: Notifications */}
+      {platform === 'tauri' && (section === 'desktop' || section === 'peer') && (
+        <Suspense fallback={null}><DesktopSettings section={section} /></Suspense>
+      )}
+
       {section === 'notifications' && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-3">

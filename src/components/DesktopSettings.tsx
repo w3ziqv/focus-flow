@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
+import { Keyboard, Moon, PanelsTopLeft, Power } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 import { getPersistence, nativeInvoke } from '../lib/desktop/runtime'
 import { Switch } from './Switch'
@@ -7,7 +8,7 @@ import { PillButton } from './PillButton'
 import { LocalPeer, type PeerStatus } from '../lib/desktop/peer'
 
 interface DiscoveredPeer { id: string; name: string }
-export default function DesktopSettings(): JSX.Element {
+export default function DesktopSettings({ section = 'desktop' }: { section?: 'desktop' | 'peer' }): JSX.Element {
   const { t } = useI18n()
   const [autostart, setAutostart] = useState(false)
   const [awake, setAwake] = useState(() => getPersistence().getItem('ff3_awake') !== 'false')
@@ -21,10 +22,11 @@ export default function DesktopSettings(): JSX.Element {
   const [incoming, setIncoming] = useState('')
   const peer = useRef<LocalPeer | null>(null)
   useEffect(() => {
+    if (section !== 'desktop') return
     let cancelled = false
     void import('@tauri-apps/plugin-autostart').then(async ({ isEnabled }) => { const value = await isEnabled(); if (!cancelled) setAutostart(value) }).catch(failure => { if (!cancelled) setError(String(failure)) })
     return () => { cancelled = true }
-  }, [])
+  }, [section])
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
@@ -53,28 +55,55 @@ export default function DesktopSettings(): JSX.Element {
     try { await work() } catch (failure) { setError(String(failure)) }
     finally { setBusy(false) }
   }
-  return <section className="rounded-2xl border border-line bg-card p-4 text-body-sm text-ink">
-    <h2 className="mb-3 font-serif text-h2">{t('desktop.title')}</h2>
-    <Switch disabled={busy} label={t('desktop.autostart')} checked={autostart} onChange={value => { void run(async () => {
+  return <div className="space-y-3.5 text-body-sm text-ink">
+    {section === 'desktop' && <>
+    <div className="overflow-hidden rounded-2xl border border-line bg-card divide-y divide-line/60">
+    <div className="flex items-center justify-between gap-3 p-3.5">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"><Power size={17} aria-hidden="true" /></div>
+        <div><div className="text-[14px] font-medium leading-snug">{t('desktop.autostart')}</div><p className="text-[12px] leading-snug text-ink-3">{t('desktop.autostartDescription')}</p></div>
+      </div>
+    <Switch hideLabel disabled={busy} label={t('desktop.autostart')} checked={autostart} onChange={value => { void run(async () => {
       const plugin = await import('@tauri-apps/plugin-autostart')
       if (value) await plugin.enable(); else await plugin.disable()
       setAutostart(await plugin.isEnabled())
     }) }}/>
-    <Switch disabled={busy} label={t('desktop.awake')} checked={awake} onChange={value => {
+    </div>
+    <div className="flex items-center justify-between gap-3 p-3.5">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--color-break-soft)] text-[var(--color-break)]"><Moon size={17} aria-hidden="true" /></div>
+        <div><div className="text-[14px] font-medium leading-snug">{t('desktop.awake')}</div><p className="text-[12px] leading-snug text-ink-3">{t('desktop.awakeDescription')}</p></div>
+      </div>
+    <Switch hideLabel disabled={busy} label={t('desktop.awake')} checked={awake} onChange={value => {
       getPersistence().setItem('ff3_awake', String(value)); setAwake(value)
       void run(async () => {
         const timer = await nativeInvoke<{running: boolean} | null>('timer_display')
         await nativeInvoke('set_awake', {active: value && timer?.running === true})
       })
     }}/>
-    <PillButton variant="secondary" className="my-3" onClick={() => { void run(async () => { await nativeInvoke('toggle_mini') }) }}>{t('desktop.mini')}</PillButton>
-    <p className="text-caption text-ink-2">{t('desktop.hotkeys')}</p>
-    <div className="mt-5 border-t border-line pt-4">
-      <h3 className="font-serif text-h2">{t('peer.title')}</h3>
-      <p className="my-2 text-body-sm text-ink-2">{t('peer.description')}</p>
-      {!peerSupported && <p role="status" className="my-2 text-body-sm text-ink-2">{t('peer.unsupported')}</p>}
-      <p className="text-xs text-ink-3">{t('peer.experimental')}</p>
-      <Switch disabled={busy || !peerSupported} label={t('peer.enable')} checked={enabled} onChange={value => { setEnabled(value); setOutgoing(''); setIncoming(''); setPeers([]); setError(null); setStatus('disconnected') }}/>
+    </div>
+    </div>
+    <div className="overflow-hidden rounded-2xl border border-line bg-card">
+      <button type="button" disabled={busy} className="flex min-h-[52px] w-full items-center gap-3 p-3.5 text-left transition-colors hover:bg-sunken/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50" onClick={() => { void run(async () => { await nativeInvoke('toggle_mini') }) }}>
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"><PanelsTopLeft size={17} aria-hidden="true" /></div>
+        <div><div className="text-[14px] font-medium leading-snug">{t('desktop.mini')}</div><p className="text-[12px] leading-snug text-ink-3">{t('desktop.miniDescription')}</p></div>
+      </button>
+    </div>
+    <details className="overflow-hidden rounded-2xl border border-line bg-card">
+      <summary className="min-h-[52px] cursor-pointer p-3.5 text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Keyboard size={17} className="mr-2 inline-block text-ink-2" aria-hidden="true" />{t('desktop.shortcuts')}</summary>
+      <p className="border-t border-line/60 p-3.5 text-caption leading-relaxed text-ink-2">{t('desktop.hotkeys')}</p>
+    </details>
+    </>}
+    {section === 'peer' && <>
+      <p className="text-body-sm leading-relaxed text-ink-2">{t('peer.description')}</p>
+      <div className="rounded-2xl border border-line bg-card p-3.5 space-y-3">
+      <p className="text-caption text-ink-3">{t('peer.experimental')}</p>
+      {!peerSupported && <p role="status" className="text-body-sm leading-relaxed text-ink-2">{t('peer.unsupported')}</p>}
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[14px] font-medium leading-snug">{t('peer.enable')}</span>
+        <Switch hideLabel disabled={busy || !peerSupported} label={t('peer.enable')} checked={enabled} onChange={value => { setEnabled(value); setOutgoing(''); setIncoming(''); setPeers([]); setError(null); setStatus('disconnected') }}/>
+      </div>
+      </div>
       {enabled && <div className="mt-3 space-y-3">
         <p role="status">{t(`peer.status.${status}`)}</p>
         <p className="text-caption text-ink-2">{peers.length ? `${t('peer.nearby')}: ${peers.map(item => item.name).join(', ')}` : t('peer.none')}</p>
@@ -94,7 +123,7 @@ export default function DesktopSettings(): JSX.Element {
         </div>
         <p className="text-caption text-ink-2">{t('peer.scope')}</p>
       </div>}
-    </div>
+    </>}
     {error && <p role="alert" className="mt-3 break-words text-body-sm text-ink">{t('desktop.error.operation')}</p>}
-  </section>
+  </div>
 }

@@ -20,12 +20,11 @@ mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 export GDK_BACKEND=x11 XDG_SESSION_TYPE=x11 XDG_CURRENT_DESKTOP=GNOME
 unset WAYLAND_DISPLAY
-export FOCUS_FLOW_BINARY=/usr/bin/focus-flow
 export FOCUS_FLOW_TEST_AUTOSTART=1 FOCUS_FLOW_TEST_HOTKEYS=1
-export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux.png"
-xvfb-run -a dbus-run-session -- bash -c '
+native_smoke() {
+  xvfb-run -a dbus-run-session -- bash -c '
   set -euo pipefail
-  tauri-driver --native-driver /usr/bin/WebKitWebDriver > "${RUNNER_TEMP:-/tmp}/tauri-driver-linux.log" 2>&1 &
+  tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
   driver_pid=$!
   trap "kill $driver_pid 2>/dev/null || true" EXIT
   for attempt in {1..100}; do
@@ -35,5 +34,37 @@ xvfb-run -a dbus-run-session -- bash -c '
   curl -fsS http://127.0.0.1:4444/status >/dev/null
   python3 scripts/test-native.py
 '
+}
+export FOCUS_FLOW_BINARY=/usr/bin/focus-flow
+export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux.png"
+export FOCUS_FLOW_DRIVER_LOG="${RUNNER_TEMP:-/tmp}/tauri-driver-linux.log"
+native_smoke
+
+# Exercise the portable package too. The installed .deb uses host GStreamer,
+# which previously hid the AppImage's missing media plugins on minimal systems.
+appimage=$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' -print -quit)
+[[ -n "$appimage" ]] || { echo 'AppImage installer was not built' >&2; exit 1; }
+appimage=$(realpath "$appimage")
+chmod u+x "$appimage"
+mkdir -p "$profile/appimage-package"
+(cd "$profile/appimage-package" && "$appimage" --appimage-extract > /dev/null)
+appdir="$profile/appimage-package/squashfs-root"
+for plugin in app autodetect audioconvert audioresample pulseaudio; do
+  [[ -f "$appdir/usr/lib/gstreamer-1.0/libgst$plugin.so" ]] || {
+    echo "AppImage is missing the $plugin media plugin" >&2; exit 1;
+  }
+done
+[[ -x "$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner" ]]
+[[ -f "$appdir/apprun-hooks/linuxdeploy-plugin-gstreamer.sh" ]]
+# Exclude host plugin discovery even if the runtime runner has codecs installed.
+export GST_PLUGIN_SYSTEM_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
+export GST_PLUGIN_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
+export GST_PLUGIN_SCANNER_1_0="$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
+export XDG_DATA_HOME="$profile/appimage-data" XDG_CONFIG_HOME="$profile/appimage-config" XDG_CACHE_HOME="$profile/appimage-cache"
+export FOCUS_FLOW_BINARY="$appdir/AppRun"
+export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux-appimage.png"
+export FOCUS_FLOW_DRIVER_LOG="${RUNNER_TEMP:-/tmp}/tauri-driver-linux-appimage.log"
+native_smoke
+echo 'PASS: AppImage native smoke with bundled GStreamer and host plugins excluded'
 # Shell tray/audio/notification delivery, update/rollback and physical sleep
 # remain separate OS acceptance gates even after this installed smoke passes.

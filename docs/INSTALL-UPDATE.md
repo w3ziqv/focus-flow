@@ -21,6 +21,15 @@ If the distribution requires FUSE, use its FUSE package or the `.deb` on Ubuntu.
 A local Arch-built `.deb` proves packaging, not Ubuntu ABI compatibility;
 distribution uses the Ubuntu runner artifact.
 
+AppImage bundles its GStreamer media framework, plugins and scanner, so rain,
+waves and timer sounds do not depend on host codec packages. CI separately
+exercises the `.deb` and extracted AppImage, with host plugin discovery excluded
+for the latter. The initial `381608a` AppImage omitted those plugins: a real
+Arch/Hyprland launch reported missing `appsink`, `appsrc` and `autoaudiosink`.
+The owner confirmed that its window and timer worked, but audio remains pending
+until the corrected package is tested on that machine. Do not treat successful
+MP3 decoding in a `.deb` as AppImage playback acceptance.
+
 Windows: CI produces an NSIS `.exe` installer. Close the application, run the
 installer as the current user and preserve the same installation scope when
 updating. Check the source, version and file hash before responding to OS warnings.
