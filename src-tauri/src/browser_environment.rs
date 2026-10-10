@@ -18,6 +18,11 @@ pub(super) fn prepare(
                     | "GIO_EXTRA_MODULES"
                     | "GTK_PATH"
                     | "XDG_DATA_DIRS"
+                    | "GI_TYPELIB_PATH"
+                    | "PYTHONHOME"
+                    | "PYTHONPATH"
+                    | "PERLLIB"
+                    | "PERL5LIB"
                     | "QT_PLUGIN_PATH"
                     | "QML2_IMPORT_PATH"
                     | "GST_PLUGIN_PATH"
@@ -48,6 +53,7 @@ pub(super) fn prepare(
                     | "GDK_PIXBUF_MODULEDIR"
                     | "GST_PLUGIN_SCANNER"
                     | "GST_PLUGIN_SCANNER_1_0"
+                    | "GST_PTP_HELPER_1_0"
             )
         ) && Path::new(&value).starts_with(appdir)
         {
@@ -66,7 +72,7 @@ mod tests {
         let mut child = Command::new("/bin/sh");
         child.args([
             "-c",
-            "printf '%s\\n' \"$LD_LIBRARY_PATH\" \"${GIO_MODULE_DIR-unset}\" \"$PATH\" \"$DBUS_SESSION_BUS_ADDRESS\" \"$XDG_CONFIG_HOME\" \"$1\"",
+            "printf '%s\\n' \"$LD_LIBRARY_PATH\" \"${GIO_MODULE_DIR-unset}\" \"$PATH\" \"$DBUS_SESSION_BUS_ADDRESS\" \"$XDG_CONFIG_HOME\" \"${PYTHONHOME-unset}\" \"$PYTHONPATH\" \"$1\"",
             "browser-test",
             "https://accounts.google.com/o/oauth2/v2/auth?state=test&code_challenge=test",
         ]);
@@ -79,6 +85,11 @@ mod tests {
             ),
             ("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus"),
             ("XDG_CONFIG_HOME", "/tmp/test-profile/config"),
+            ("PYTHONHOME", "/tmp/App Image/usr"),
+            (
+                "PYTHONPATH",
+                "/tmp/App Image/usr/lib/python:/opt/host/python",
+            ),
         ];
         child.envs(variables);
         prepare(
@@ -93,6 +104,7 @@ mod tests {
             concat!(
                 "/opt/host/lib\nunset\n/usr/bin:/tmp/App Image-host/bin\n",
                 "unix:path=/run/user/1000/bus\n/tmp/test-profile/config\n",
+                "unset\n/opt/host/python\n",
                 "https://accounts.google.com/o/oauth2/v2/auth?state=test&code_challenge=test\n"
             )
         );
