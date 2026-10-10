@@ -66,6 +66,7 @@ const KEYS = {
   tombstones: `${PREFIX}session_tombstones`,
   cloudSync: `${PREFIX}cloud_sync`,
   lastSyncedUid: `${PREFIX}last_synced_uid`,
+  lastSyncedProjectId: `${PREFIX}last_synced_project_id`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
@@ -510,6 +511,7 @@ export function loadCloudSyncState(): CloudSyncState | null {
     }
     return {
       status: v.status,
+      firebaseProjectId: typeof v.firebaseProjectId === 'string' ? v.firebaseProjectId : undefined,
       uid: typeof v.uid === 'string' ? v.uid : null,
       email: typeof v.email === 'string' ? v.email : null,
       displayName: typeof v.displayName === 'string' ? v.displayName : null,
@@ -542,6 +544,15 @@ export function saveLastSyncedUid(uid: string | null): void {
   } else {
     getPersistence().setItem(KEYS.lastSyncedUid, uid)
   }
+}
+
+export function loadLastSyncedProjectId(): string | null {
+  return readString(KEYS.lastSyncedProjectId)
+}
+
+export function saveLastSyncedProjectId(projectId: string | null): void {
+  if (projectId === null) getPersistence().removeItem(KEYS.lastSyncedProjectId)
+  else getPersistence().setItem(KEYS.lastSyncedProjectId, projectId)
 }
 
 export function loadGoals(): GoalSettings {

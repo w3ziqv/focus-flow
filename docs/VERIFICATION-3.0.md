@@ -6,6 +6,23 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 
 ## 2026-10-10 isolated cloud and recording follow-up
 
+- A subsequent failed attempt exposed a cache boundary: stored Google identity
+  was not scoped to a Firebase project, and startup sync could issue requests
+  before Firebase Auth restored its session. The new test project's authenticated
+  user listing was empty; an unauthenticated SDK metadata read reproduced
+  `permission-denied` without writing data. These observations support a missing
+  test login, but do not prove the cause of every denied request.
+- Cached connections now include project identity. A backend change requests
+  Google reconnection without clearing local history, settings or the upload queue.
+  Startup sync/polling await Auth restoration and reject a missing or mismatched
+  identity before Firestore access. The local-data consent boundary also includes
+  project identity, even for identical UIDs. Error details show only the public
+  project ID and an allowlisted error code. Live acceptance remains pending.
+- Local cache/auth follow-up: **787 tests passed**, one emulator-only test skipped;
+  TypeScript, ESLint, web/desktop builds and build isolation passed. New regressions
+  cover project changes, equal UIDs across backends, preserved local data/queue,
+  delayed or missing Auth restoration and mismatched authenticated accounts.
+
 - Actual deployed production rules omit `daily_history`; the owner's v3 sync
   attempt returned `permission-denied`. Production rules were backed up and
   preserved. With the owner's approval, a separate Standard test Firebase

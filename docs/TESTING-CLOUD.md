@@ -70,9 +70,18 @@ have a general message; raw SDK messages, URLs and account data are not displaye
 
 ## Diagnosing a failed attempt
 
-Reopen the updated Preview and use Sync Now. Expand **Error details** and report
-only **Error code**, together with whether the account is connected. Do not
+Reload the updated Preview and sign in through Google again when requested.
+Choose whether to merge the preserved local profile into the test account or
+replace it with the test cloud profile. Then use Sync Now. Expand **Error details**
+and report **Error code** and **Cloud environment**, together with whether the account is connected. Do not
 clear browser storage, delete cloud history or paste tokens/full console logs.
+
+Expected test environment: `focus-flow-v3-test-20261010`. A Firebase project
+change invalidates only the cached connection, preserving local data and queued
+changes. `cloud-backend-changed` requests reconnection; `unauthenticated` means
+Auth restoration found no valid session. Startup sync and metadata polling wait
+for Auth restoration before reading Firestore. Account merge/replacement consent
+is required across projects even if their UIDs happen to be identical.
 
 - `permission-denied`: inspect the live rules, authenticated UID and App Check/API
   restrictions. The code alone does not distinguish these causes. Repository

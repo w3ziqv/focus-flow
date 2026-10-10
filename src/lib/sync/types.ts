@@ -153,6 +153,8 @@ export interface CloudSyncMetadataDocument {
 }
 
 export interface CloudSyncState {
+  /** Cache identity must include the backend, not just an account UID. */
+  readonly firebaseProjectId?: string
   readonly pendingChanges?: number
   readonly status: 'disconnected' | 'idle' | 'syncing' | 'synced' | 'error'
   readonly uid: string | null

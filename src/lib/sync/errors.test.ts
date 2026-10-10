@@ -16,6 +16,7 @@ describe('sync error diagnostics', () => {
     ['auth/network-request-failed', 'sync.error.network'],
     ['cloud-http-403', 'sync.error.permission'],
     ['cloud-http-401', 'sync.error.login'],
+    ['cloud-backend-changed', 'sync.error.reconnect'],
   ])('distinguishes %s', (code, key) => {
     expect(syncErrorMessageKey({code})).toBe(key)
   })

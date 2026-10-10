@@ -7,7 +7,7 @@ const codes = [
   'auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/popup-blocked',
   'auth/unauthorized-domain', 'auth/operation-not-allowed', 'auth/network-request-failed',
   'auth/user-disabled', 'auth/user-token-expired', 'auth/invalid-user-token',
-  'cloud-not-configured', 'cloud-account-mismatch', 'cloud-account-changed',
+  'cloud-not-configured', 'cloud-account-mismatch', 'cloud-account-changed', 'cloud-backend-changed',
   'cloud-network-error', 'cloud-offline', 'cloud-timeout',
   'cloud-http-400', 'cloud-http-401', 'cloud-http-403', 'cloud-http-404',
   'cloud-http-409', 'cloud-http-429', 'cloud-http-500', 'cloud-http-503',
@@ -32,6 +32,7 @@ export function syncErrorCode(error: unknown): string {
 
 export function syncErrorMessageKey(error: unknown): TranslationKey {
   const code = syncErrorCode(error)
+  if (code === 'cloud-backend-changed') return 'sync.error.reconnect'
   if (code === 'cloud-not-configured') return 'sync.error.config'
   if (code === 'permission-denied' || code === 'cloud-http-403') return 'sync.error.permission'
   if (['failed-precondition', 'not-found', 'cloud-http-404'].includes(code)) return 'sync.error.service'

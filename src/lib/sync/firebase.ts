@@ -60,6 +60,7 @@ export interface FirebaseContext {
 
 let cachedModules: FirebaseModules | null = null
 let cachedContext: FirebaseContext | null = null
+export const LEGACY_FIREBASE_PROJECT_ID = 'focus-flow-70527'
 
 /**
  * Resolves Firebase web client configuration.
@@ -67,7 +68,7 @@ let cachedContext: FirebaseContext | null = null
  * has safe defaults so local-first mode can still boot without Firebase configured.
  */
 export function getFirebaseConfig(): FirebaseConfig {
-  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-70527'
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || LEGACY_FIREBASE_PROJECT_ID
 
   return {
     // API credentials must come from .env.local or Vercel environment variables.

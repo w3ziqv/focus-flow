@@ -14,6 +14,8 @@ import {
   loadSession,
   saveTombstones,
   loadLastSyncedUid,
+  loadLastSyncedProjectId,
+  saveLastSyncedProjectId,
 } from '../storage'
 import { MAX_SESSION_BATCH_WRITES, CloudSyncAdapterImpl, resetCloudSyncAdapter } from './adapter'
 import type { FirebaseContext, FirebaseModules } from './firebase'
@@ -25,6 +27,7 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
   let mockCollectionStore: Map<string, Map<string, Record<string, unknown>>>
 
   beforeEach(() => {
+    vi.unstubAllEnvs()
     localStorage.clear()
     resetCloudSyncAdapter()
     vi.restoreAllMocks()
@@ -171,6 +174,106 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
     expect(adapter.getAuthState().user?.uid).toBe('cached-user-456')
     expect(adapter.getSyncStatus()).toBe('synced')
     expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+  })
+
+  it('drops a legacy account/error after switching Firebase projects without touching local data or the outbox', () => {
+    const session = {id: 'local-pending', date: '2026-10-10T10:00:00Z', minutes: 25, task: 'Keep this task'}
+    saveSessions([session])
+    saveLastSyncedUid('old-project-user')
+    saveCloudSyncState({status: 'error', uid: 'old-project-user', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: 'permission-denied'})
+    const snapshot = Object.fromEntries(Object.keys(localStorage).filter(key => !key.includes('cloud_sync')).map(key => [key, localStorage.getItem(key)]))
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'focus-flow-test-new')
+    const adapter = new CloudSyncAdapterImpl()
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+    expect(adapter.getDetailedSyncState().error).toBe('cloud-backend-changed')
+    expect(adapter.getDetailedSyncState().firebaseProjectId).toBe('focus-flow-test-new')
+    expect(loadCloudSyncState()).toBeNull()
+    expect(loadSessions()).toEqual([session])
+    expect(loadLastSyncedUid()).toBe('old-project-user')
+    for (const [key, value] of Object.entries(snapshot)) expect(localStorage.getItem(key)).toBe(value)
+    expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+  })
+
+  it('distinguishes cached accounts in different backends even when their UID is equal', () => {
+    saveCloudSyncState({firebaseProjectId: 'previous-backend', status: 'synced', uid: 'same-uid', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+    expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+  })
+
+  it('persists and restores the current backend identity with the cached account', async () => {
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'focus-flow-current-test')
+    const adapter = new CloudSyncAdapterImpl()
+    await adapter.signInWithGoogle()
+    expect(loadCloudSyncState()?.firebaseProjectId).toBe('focus-flow-current-test')
+    vi.mocked(firebaseMod.initFirebase).mockClear()
+    expect(new CloudSyncAdapterImpl().getAuthState().user?.uid).toBe('user-123')
+    expect(firebaseMod.initFirebase).not.toHaveBeenCalled()
+    adapter.dispose()
+  })
+
+  it('keeps Google reconnection enabled when a restored account has no Firebase Auth session', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', 'test-public-key')
+    vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app-id')
+    saveSessions([{id: 'pending-local', date: '2026-10-10T10:00:00Z', minutes: 25, task: null}])
+    saveCloudSyncState({status: 'synced', uid: 'user-123', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    Object.assign(mockFirebaseContext.auth, {currentUser: null, authStateReady: vi.fn().mockResolvedValue(undefined)})
+    const adapter = new CloudSyncAdapterImpl()
+    expect(await adapter.getAvailability()).toEqual({configured: true, persistent: true})
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+    expect(adapter.getDetailedSyncState().error).toBe('unauthenticated')
+    expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+    expect(loadSessions()[0].id).toBe('pending-local')
+    adapter.dispose()
+  })
+
+  it('waits for Firebase Auth restoration before the background metadata read', async () => {
+    vi.useFakeTimers()
+    let restore!: () => void
+    const ready = new Promise<void>(resolve => {restore = resolve})
+    Object.assign(mockFirebaseContext.auth, {currentUser: null, authStateReady: () => ready})
+    saveCloudSyncState({status: 'synced', uid: 'user-123', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    const stop = adapter.startBackground()
+    try {
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+      restore()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+      expect(adapter.getAuthState().status).toBe('unauthenticated')
+      expect(adapter.getDetailedSyncState().error).toBe('unauthenticated')
+    } finally {stop(); adapter.dispose(); vi.useRealTimers()}
+  })
+
+  it('rejects a cached UID belonging to another authenticated account before a Firestore request', async () => {
+    saveCloudSyncState({status: 'synced', uid: 'old-user', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    await expect(adapter.syncAll()).rejects.toThrow('cloud-account-mismatch')
+    expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+    expect(adapter.getAuthState().status).toBe('unauthenticated')
+    expect(adapter.getDetailedSyncState().error).toBe('cloud-account-mismatch')
+    adapter.dispose()
+  })
+
+  it('continues background synchronization when Firebase finishes restoring the matching account', async () => {
+    vi.useFakeTimers()
+    let restore!: () => void
+    const ready = new Promise<void>(resolve => {restore = resolve})
+    Object.assign(mockFirebaseContext.auth, {currentUser: null, authStateReady: () => ready})
+    saveCloudSyncState({status: 'synced', uid: 'user-123', email: null, displayName: null, photoURL: null, lastSyncedAt: null, error: null})
+    const adapter = new CloudSyncAdapterImpl()
+    const stop = adapter.startBackground()
+    try {
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+      Object.assign(mockFirebaseContext.auth, {currentUser: {uid: 'user-123'}})
+      restore()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(mockFirebaseContext.modules.getDoc).toHaveBeenCalled()
+      expect(adapter.getAuthState().user?.uid).toBe('user-123')
+      expect(adapter.getSyncStatus()).toBe('synced')
+    } finally {stop(); adapter.dispose(); vi.useRealTimers()}
   })
 
   it('completes Google sign-in and notifies subscribers', async () => {
@@ -333,6 +436,26 @@ describe('CloudSyncAdapter & Reconciler (src/lib/sync/adapter.ts)', () => {
   })
 
   describe('Multi-Account Consent Guard', () => {
+    it('requires consent across projects even for the same UID, without uploading before consent', async () => {
+      vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'new-backend')
+      saveLastSyncedUid('user-123')
+      saveLastSyncedProjectId('old-backend')
+      saveSessions([{id: 'private-old-backend', date: '2026-10-10T10:00:00Z', minutes: 25, task: 'Keep private'}])
+      const adapter = new CloudSyncAdapterImpl()
+      await expect(adapter.signInWithGoogle()).rejects.toThrow('account-switch-consent-required')
+      expect(mockFirebaseContext.modules.getDoc).not.toHaveBeenCalled()
+      expect(mockFirebaseContext.modules.writeBatch).not.toHaveBeenCalled()
+      expect(loadLastSyncedProjectId()).toBe('old-backend')
+      expect(loadSessions()[0].task).toBe('Keep private')
+      const resolver = vi.fn().mockResolvedValue('merge')
+      await adapter.signInWithGoogle(resolver)
+      expect(resolver).toHaveBeenCalledWith({previousUid: 'user-123', newUid: 'user-123'})
+      expect(loadLastSyncedProjectId()).toBe('new-backend')
+      expect(localStorage.getItem('ff3_account_backup_old-backend_user-123')).toContain('Keep private')
+      expect(mockDocStore.has('users/user-123/sessions/private-old-backend')).toBe(true)
+      adapter.dispose()
+    })
+
     it('prompts consent resolver when signing into a different Google account and local sessions exist', async () => {
       saveLastSyncedUid('previous-user-999')
       saveStats({...loadStats(), milestones: [{id: 'first_session', unlockedAt: '2026-01-01T12:00:00Z', seen: true}]})

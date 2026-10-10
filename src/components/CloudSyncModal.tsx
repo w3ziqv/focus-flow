@@ -49,7 +49,7 @@ function Content({onSyncComplete}: Pick<Props, 'onSyncComplete'>): React.JSX.Ele
   return <div className="space-y-5 text-sm text-ink-2">
     {showError && <div role="alert" className="rounded-xl border border-line bg-sunken p-3 text-ink">
       <p>{t(syncErrorMessageKey(failure))}</p>
-      <details className="mt-2 text-xs text-ink-2"><summary>{t('sync.error.details')}</summary><p className="mt-1">{t('sync.error.code')} <code>{syncErrorCode(failure)}</code></p></details>
+      <details className="mt-2 text-xs text-ink-2"><summary>{t('sync.error.details')}</summary><p className="mt-1">{t('sync.error.code')} <code>{syncErrorCode(failure)}</code></p><p className="mt-1">{t('sync.error.project')} <code>{state.firebaseProjectId}</code></p></details>
     </div>}
     {switchAccount && <section className="rounded-xl border border-line p-4">
       <h3 className="font-medium text-ink">{t('sync.account')}</h3><p className="mt-2">{t('sync.accountDescription')}</p>

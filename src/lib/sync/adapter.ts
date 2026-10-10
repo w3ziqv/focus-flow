@@ -26,6 +26,7 @@ import {
   loadInterface,
   loadGoals,
   loadLastSyncedUid,
+  loadLastSyncedProjectId,
   loadSessions,
   loadSession,
   loadSettings,
@@ -35,6 +36,7 @@ import {
   saveCloudSyncState,
   saveInterface,
   saveLastSyncedUid,
+  saveLastSyncedProjectId,
   saveSessions,
   saveSession,
   saveSettings,
@@ -48,7 +50,7 @@ import { getPersistence } from '../desktop/runtime'
 import { applyRemote, isRemoteWrite, readOutbox, acknowledgeOutbox, clearOutbox } from './outbox'
 import { historyDays, mergeDailyHistory } from './history'
 import { nativeInvoke } from '../desktop/runtime'
-import { getFirebaseConfig, initFirebase, type FirebaseContext } from './firebase'
+import { getFirebaseConfig, initFirebase, LEGACY_FIREBASE_PROJECT_ID, type FirebaseContext } from './firebase'
 import { mergeSessions } from './merge'
 import { syncErrorCode } from './errors'
 import type {
@@ -108,6 +110,14 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     // Restore cached sync state if available, but DO NOT fetch firebase yet (cold-boot invariant)
     const cached = loadCloudSyncState()
     if (cached?.uid) {
+      if ((cached.firebaseProjectId ?? LEGACY_FIREBASE_PROJECT_ID) !== getFirebaseConfig().projectId) {
+        // A Vercel backend change must not restore another project's identity/error.
+        // Keep history, settings, previous owner and the upload queue for consent.
+        saveCloudSyncState(null)
+        this.syncStatus = 'error'
+        this.syncError = 'cloud-backend-changed'
+        return
+      }
       this.lastSyncedAt = cached.lastSyncedAt
       this.authState = {
         status: 'authenticated',
@@ -126,6 +136,16 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
   async getAvailability(): Promise<{configured: boolean; persistent: boolean}> {
     if (detectPlatform() === 'tauri') return nativeInvoke('cloud_status')
     const config = getFirebaseConfig()
+    if (config.apiKey && config.appId && this.authState.status === 'authenticated') {
+      const epoch = this.authEpoch
+      const user = this.authState.user
+      try {
+        await this.validateRestoredAuth(await this.getFirebase(), epoch, user.uid)
+      } catch (failure) {
+        // Reconnection remains available when the cached login has expired.
+        if (!['unauthenticated', 'cloud-account-mismatch', 'cloud-account-changed'].includes(syncErrorCode(failure))) throw failure
+      }
+    }
     return {configured: !!config.apiKey && !!config.appId, persistent: true}
   }
 
@@ -157,6 +177,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
     return {
       status,
+      firebaseProjectId: getFirebaseConfig().projectId,
       uid: user?.uid ?? null,
       email: user?.email ?? null,
       displayName: user?.displayName ?? null,
@@ -260,14 +281,18 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       const user = result.user
 
       const previousUid = loadLastSyncedUid()
-      if (previousUid && previousUid !== user.uid) {
+      const projectId = getFirebaseConfig().projectId
+      const previousProjectId = loadLastSyncedProjectId() ?? LEGACY_FIREBASE_PROJECT_ID
+      const ownerChanged = previousUid !== user.uid || previousProjectId !== projectId
+      if (previousUid && ownerChanged) {
         if (!consentResolver) { await modules.signOut(auth); throw new Error('account-switch-consent-required') }
         let choice: AccountSwitchChoice = 'replace-local'
         if (consentResolver) {
           choice = await consentResolver({ previousUid, newUid: user.uid })
         }
         if (choice === 'cancel') { await modules.signOut(auth); throw new Error('account-switch-cancelled') }
-        getPersistence().setItem(`ff3_account_backup_${previousUid}`, JSON.stringify({session: loadSession(), sessions: loadSessions(), tombstones: loadTombstones(), stats: loadStats(), settings: loadSettings(), sound: loadSoundPreferences(), interface: loadInterface(), outbox: readOutbox()}))
+        const backupOwner = previousProjectId === projectId ? previousUid : `${encodeURIComponent(previousProjectId)}_${previousUid}`
+        getPersistence().setItem(`ff3_account_backup_${backupOwner}`, JSON.stringify({session: loadSession(), sessions: loadSessions(), tombstones: loadTombstones(), stats: loadStats(), settings: loadSettings(), sound: loadSoundPreferences(), interface: loadInterface(), outbox: readOutbox()}))
         if (choice === 'replace-local') {
           clearOutbox()
           applyRemote(() => {
@@ -283,8 +308,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
           })
         }
       }
-      if (previousUid !== user.uid) this.lastSyncedAt = null
+      if (ownerChanged) this.lastSyncedAt = null
       saveLastSyncedUid(user.uid)
+      saveLastSyncedProjectId(projectId)
 
       const cloudUser: CloudUser = {
         uid: user.uid,
@@ -748,8 +774,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     try {
       const user = this.ensureAuthenticatedUser()
       const context = await this.getFirebase()
-      if (typeof context.auth.authStateReady === 'function') await context.auth.authStateReady()
-      if (context.auth.currentUser?.uid !== user.uid) throw new Error('cloud-account-mismatch')
+      await this.validateRestoredAuth(context, epoch, user.uid)
       this.assertAccount(epoch, user.uid)
       if (!navigator.onLine) throw new Error('cloud-offline')
       const outbox = readOutbox()
@@ -843,6 +868,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       }
 
       saveLastSyncedUid(null)
+      saveLastSyncedProjectId(null)
       await this.signOut()
     } catch (err) {
       this.setSyncStatus('error', err)
@@ -851,6 +877,18 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
   }
 
   // --- Internal Helpers ---
+
+  private async validateRestoredAuth(context: FirebaseContext, epoch: number, uid: string): Promise<void> {
+    if (typeof context.auth.authStateReady === 'function') await context.auth.authStateReady()
+    this.assertAccount(epoch, uid)
+    if (context.auth.currentUser?.uid === uid) return
+    const code = context.auth.currentUser ? 'cloud-account-mismatch' : 'unauthenticated'
+    // Reject the cache before issuing any Firestore request. Preserve local data.
+    this.authEpoch++
+    this.setAuthState({status: 'unauthenticated'})
+    this.setSyncStatus('error', code)
+    throw new Error(code)
+  }
 
   private async cloudRequest<T>(operation: Promise<T>): Promise<T> {
     const epoch = this.authEpoch
@@ -938,7 +976,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       if (this.authState.status !== 'authenticated' || !navigator.onLine || document.hidden || this.inFlight) return
       const user = this.authState.user
       const epoch = this.authEpoch
-      void this.getFirebase().then(async ({db, modules}) => {
+      void this.getFirebase().then(async (context) => {
+        await this.validateRestoredAuth(context, epoch, user.uid)
+        const {db, modules} = context
         const snapshot = await this.cloudRequest(modules.getDoc(modules.doc(db, 'users', user.uid, 'metadata', 'sync')))
         const timestamp = snapshot.exists() ? snapshot.data().lastSyncedAt : null
         if (typeof timestamp === 'string' && timestamp > (this.lastSyncedAt ?? '')) schedule()

@@ -23,6 +23,12 @@ production penetration certificate.
   requires consent even with no visible sessions, backs up the former profile
   including its queue, and clears account-owned state. Epoch guards reject stale
   replies after logout/account changes. The active timer stays device-local.
+- Firebase connection caches and local-profile ownership include project identity.
+  Changing Preview backends invalidates the connection without deleting local
+  data; migration requires consent even when UIDs match across projects. Startup
+  sync and polling await Firebase Auth restoration and reject missing/mismatched
+  identities before Firestore access. Diagnostics expose only an allowlisted code
+  and public project ID, with no tokens or raw SDK messages.
 - Native OAuth: external browser, random single-use loopback listener, state and
   S256 PKCE. Firebase identity/refresh tokens remain in Rust; OS credential store
   or visible memory-only fallback. No plaintext token file or remote CSP allowance.
