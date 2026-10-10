@@ -64,6 +64,12 @@ try:
     script('document.querySelector("button[aria-label=Close]")?.click()')
     cloud = invoke('cloud_status')
     assert isinstance(cloud['configured'], bool) and isinstance(cloud['persistent'], bool), cloud
+    expected_project = os.environ.get('FOCUS_FLOW_EXPECT_CLOUD_PROJECT')
+    if 'FOCUS_FLOW_CLOUD_MODE' in os.environ:
+        assert cloud['configured'] == bool(expected_project), cloud
+        assert cloud['projectId'] == (expected_project or None), cloud
+        assert cloud['user'] is None, 'Fresh test profile must start signed out'
+        print(f'PASS: native cloud configuration matches {expected_project or "offline"}')
     if not cloud['configured']:
         invoke('cloud_sign_in', expected=False)
         assert cloud['user'] is None

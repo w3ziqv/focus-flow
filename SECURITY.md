@@ -49,6 +49,12 @@ Review and remove that override when Firebase ships a compatible patched pin.
   Firebase tokens and authenticated requests stay in Rust. Refresh tokens use the
   OS credential store; its absence means a visibly memory-only session. Only the
   main window can call typed, account-scoped cloud commands.
+  Credential entries and serialized sessions are scoped to the Firebase project;
+  legacy entries without project identity require reconnection. Test installers
+  cannot restore or delete a production project's saved session.
+  Cloud-enabled CI candidates require an explicit test-mode dispatch on the
+  isolated test branch. Ordinary CI remains offline; frontend and Rust receive
+  the same validated public project configuration.
 - The desktop main window owns persistence, exit, and discovery. Mini receives
   only timer display and start/pause/show actions. Filesystem access is restricted
   to application sound files. Native builds have no remote network CSP allowance.

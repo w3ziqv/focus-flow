@@ -225,8 +225,11 @@ installed-runtime check exercised only the `.deb` and did not cover that gap.
 
 The follow-up enables Tauri's `bundleMediaFramework` and adds a separate
 AppImage runtime smoke with bundled plugins/scanner and host plugin discovery
-excluded. This must pass in actual GitHub CI and audible playback must then
-be checked on the owner's machine. The AppImage may be larger.
+excluded. Desktop runtime run `38065252932` passed both Linux packages and
+installed Windows, using source-verified installers from `38063630235`.
+The initial packaging run's overall result was a failure from AppImage driver
+HTTP resets; the corrected runtime harness retained every assertion and passed.
+The AppImage may be larger.
 
 Desktop controls now open as a compact settings detail with the same icon,
 card, typography and spacing patterns as other settings. Experimental local
@@ -234,6 +237,17 @@ pairing moves to Advanced integrations; unsupported WebRTC remains clearly
 explained with a disabled switch. Three added navigation regressions pass;
 local totals are 797 passed and one emulator-only skip, with TypeScript,
 ESLint and the desktop frontend build passing. Native Linux/Windows smoke
-now verifies the detail navigation and captures settings screenshots. Those
-updated runtime checks and manual visual/audio acceptance remain pending.
-Desktop Google OAuth still requires its own Desktop app client configuration.
+now verifies the detail navigation and captures settings screenshots. On
+2026-10-10 the owner quit the older application and launched the SHA-256-verified
+`ba300dc` AppImage using the same isolated profile after a full native data
+directory backup. Startup no longer reported missing GStreamer plugins. The
+owner explicitly accepted the new settings appearance and audible playback.
+This is Linux acceptance for those checks, not Windows hardware acceptance.
+
+A separate Desktop app OAuth client has now been created in the test project
+with action-time owner approval. CI configuration is being prepared for an
+explicit isolated test-cloud build. System-browser login, keyring restoration,
+refresh/revocation and unavailable-store acceptance remain pending. Saved
+credentials now carry project identity and use project-specific OS store entries.
+Two Rust regressions cover equal-UID project isolation and legacy/empty credentials;
+their results must be recorded from the new source revision before acceptance.

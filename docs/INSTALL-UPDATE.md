@@ -26,9 +26,12 @@ waves and timer sounds do not depend on host codec packages. CI separately
 exercises the `.deb` and extracted AppImage, with host plugin discovery excluded
 for the latter. The initial `381608a` AppImage omitted those plugins: a real
 Arch/Hyprland launch reported missing `appsink`, `appsrc` and `autoaudiosink`.
-The owner confirmed that its window and timer worked, but audio remains pending
-until the corrected package is tested on that machine. Do not treat successful
-MP3 decoding in a `.deb` as AppImage playback acceptance.
+The owner confirmed that its window and timer worked. On 2026-10-10 the corrected
+`ba300dc` AppImage was launched with the same isolated profile after backing up
+its data directory; the owner accepted the settings appearance and audible
+playback. The prior installer was retained. This does not replace physical
+Windows audio or full installer update/rollback acceptance. Do not treat MP3
+decoding in a `.deb` as AppImage playback acceptance.
 
 Windows: CI produces an NSIS `.exe` installer. Close the application, run the
 installer as the current user and preserve the same installation scope when

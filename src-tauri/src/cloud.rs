@@ -24,6 +24,8 @@ pub struct User {
 }
 #[derive(Clone, Serialize, Deserialize)]
 struct Session {
+    #[serde(default, rename = "projectId")]
+    project_id: String,
     user: User,
     refresh: String,
     #[serde(skip)]
@@ -38,6 +40,7 @@ pub struct Cloud(Arc<Mutex<Option<Session>>>);
 pub struct Status {
     user: Option<User>,
     configured: bool,
+    project_id: Option<String>,
     persistent: bool,
 }
 #[derive(Deserialize)]
@@ -103,8 +106,21 @@ fn response(res: Result<Response, reqwest::Error>) -> Result<Value, String> {
     serde_json::from_slice(&bytes).map_err(|_| "cloud-invalid-response".into())
 }
 fn credential() -> Result<keyring::Entry, String> {
-    keyring::Entry::new("ink.focusflow.desktop", "firebase-refresh")
-        .map_err(|_| "credential-store-unavailable".into())
+    let (_, project, _) = config()?;
+    keyring::Entry::new(
+        "ink.focusflow.desktop",
+        &format!("firebase-refresh:{project}"),
+    )
+    .map_err(|_| "credential-store-unavailable".into())
+}
+fn stored_session(value: &str, project: &str) -> Option<Session> {
+    serde_json::from_str::<Session>(value)
+        .ok()
+        .filter(|session| {
+            session.project_id == project
+                && !session.user.uid.is_empty()
+                && !session.refresh.is_empty()
+        })
 }
 fn persist(session: &Session) -> bool {
     credential()
@@ -140,7 +156,7 @@ impl Drop for AuthGuard {
 }
 
 fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
-    let (api, _, oauth_client) = config()?;
+    let (api, project, oauth_client) = config()?;
     let listener = TcpListener::bind("127.0.0.1:0").map_err(|_| "oauth-listener-error")?;
     listener
         .set_nonblocking(true)
@@ -243,6 +259,7 @@ fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
         .append_pair("providerId", "google.com");
     let firebase = response(http.post(format!("https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key={api}")).json(&json!({"postBody": post_body.query().unwrap(), "requestUri":"http://localhost", "returnSecureToken":true})).send())?;
     let session = Session {
+        project_id: project.into(),
         user: User {
             uid: firebase["localId"]
                 .as_str()
@@ -272,15 +289,18 @@ fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
     Ok(user)
 }
 fn authenticated(cloud: &Cloud) -> Result<Session, String> {
-    let (api, _, _) = config()?;
+    let (api, project, _) = config()?;
     let mut guard = cloud.0.lock().map_err(|_| "cloud-lock-error")?;
     if guard.is_none() {
         *guard = credential()
             .ok()
             .and_then(|entry| entry.get_password().ok())
-            .and_then(|secret| serde_json::from_str(&secret).ok());
+            .and_then(|secret| stored_session(&secret, project));
     }
     let session = guard.as_mut().ok_or("cloud-sign-in-required")?;
+    if session.project_id != project {
+        return Err("cloud-sign-in-required".into());
+    }
     if session.expires < now() + 60 {
         let result = response(
             client()?
@@ -413,7 +433,11 @@ pub fn cloud_status(
     let stored = credential()
         .ok()
         .and_then(|entry| entry.get_password().ok())
-        .and_then(|value| serde_json::from_str::<Session>(&value).ok());
+        .and_then(|value| {
+            config()
+                .ok()
+                .and_then(|(_, project, _)| stored_session(&value, project))
+        });
     let persistent = stored.is_some();
     let mut guard = state.0.lock().map_err(|_| "cloud-lock-error")?;
     if guard.is_none() && persistent {
@@ -422,6 +446,7 @@ pub fn cloud_status(
     Ok(Status {
         user: guard.as_ref().map(|session| session.user.clone()),
         configured: config().is_ok(),
+        project_id: config().ok().map(|(_, project, _)| project.into()),
         persistent: stored
             .as_ref()
             .zip(guard.as_ref())
@@ -646,5 +671,30 @@ mod tests {
             )),
             "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
         );
+    }
+    #[test]
+    fn stored_credentials_are_scoped_to_the_firebase_project() {
+        let value = json!({
+            "projectId": "test-project",
+            "user": {"uid":"same-uid","email":null,"displayName":null,"photoURL":null},
+            "refresh":"test-refresh"
+        })
+        .to_string();
+        assert!(stored_session(&value, "test-project").is_some());
+        assert!(stored_session(&value, "production-project").is_none());
+    }
+    #[test]
+    fn legacy_or_incomplete_credentials_require_reconnection() {
+        let mut value = json!({
+            "user": {"uid":"same-uid","email":null,"displayName":null,"photoURL":null},
+            "refresh":"test-refresh"
+        });
+        assert!(stored_session(&value.to_string(), "test-project").is_none());
+        value["projectId"] = json!("test-project");
+        value["refresh"] = json!("");
+        assert!(stored_session(&value.to_string(), "test-project").is_none());
+        value["refresh"] = json!("test-refresh");
+        value["user"]["uid"] = json!("");
+        assert!(stored_session(&value.to_string(), "test-project").is_none());
     }
 }
