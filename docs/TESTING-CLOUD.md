@@ -1,73 +1,75 @@
-# Testowanie chmury 3.0 na osobnej gałęzi
+# Cloud testing on a separate 3.0 branch
 
-Gałąź: `test/v3.0-cloud`, utworzona ze sprawdzonego `adea12b`.
-Stały podgląd Vercel:
+Branch: `test/v3.0-cloud`, created from verified `adea12b`.
+Stable Vercel Preview:
 <https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app>.
-Projekt Vercel: `focus-flow`, zespół `w3ziqvs-projects`.
-Podgląd pozostaje chroniony dostępem Vercel; zaloguj się jako członek zespołu.
-Nowe commity należy wdrażać jako Preview, bez promocji do produkcji.
+Vercel project: `focus-flow`; team: `w3ziqvs-projects`.
+The Preview retains Vercel access protection; sign in as a team member.
+Branch pushes produce Preview deployments. Do not promote them to production.
 
-## Granice środowiska
+## Environment boundaries
 
-Vercel ma sześć publicznych zmiennych `VITE_FIREBASE_*` dla Preview i Production.
-Oba środowiska wskazują na **ten sam Firebase `focus-flow-70527`**.
-Osobna gałąź i adres Vercel nie tworzą osobnej bazy danych.
-Nie testuj usunięć, maskowania ani migracji na zwykłym koncie z historią.
-Użyj odrębnego konta Google bez danych Focus Flow albo oddzielnego projektu
-Firebase, z konfiguracją Preview ograniczoną do tej gałęzi.
-Nie zapisuj kluczy prywatnych, kont usług, tokenów ani danych logowania w repo.
+Vercel has six public `VITE_FIREBASE_*` variables for Preview and Production.
+Both environments use **the same Firebase project, `focus-flow-70527`**.
+A separate branch and Vercel hostname do not create an isolated database.
+Do not test deletion, masking or migration on an ordinary account with history.
+Use a separate Google account without Focus Flow data, or a separate Firebase
+project with Preview configuration scoped to this branch.
+Never commit private keys, service accounts, tokens or login credentials.
 
-## Wynik sprawdzenia 2026-10-10
+## Observed results — 2026-10-10
 
-Preview `dpl_HZJ4wuB32aKszZVJoBHSPZwzNcm8` dla `adea12b` osiągnął READY.
-W przeglądarce: onboarding, start/pauza, zachowanie zadania i pauzy po
-przeładowaniu oraz dostępność przycisku Google z prawdziwą konfiguracją przeszły.
-Pierwszy klik Start po edycji zadania nie rozpoczął sesji; kolejny rozpoczął.
-Ten przypadek wymaga odtworzenia w zwykłej przeglądarce przed uznaniem go za
-błąd produktu lub automatyzacji.
+Preview `dpl_HZJ4wuB32aKszZVJoBHSPZwzNcm8` for `adea12b` reached READY;
+the subsequent Git deployment `dpl_Hc1Nf8BD7Hx2V1ZfLaLfsBSa5Xpp` for `267a85d`
+also reached READY. Browser checks confirmed onboarding, start/pause, task and
+paused-timer persistence after reload, and the configured Google sign-in control.
+The first Start click immediately after editing the task did not start a session;
+the next click did. Reproduce this in an ordinary browser before attributing it
+to the product or automation.
 
-Logowanie jest **zablokowane**: Firebase Auth odpowiada, ale w authorized domains
-brakuje `focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app`.
-Potwierdzono też ostrzeżenie SDK i użytkowy komunikat błędu w interfejsie.
-Żadnych danych użytkowników Firestore nie czytano ani nie zmieniano.
-Nie potwierdzono logowania Google ani synchronizacji na żywej chmurze.
+Initially, the Preview hostname was absent from Firebase Auth authorized domains.
+The SDK warning and recoverable account-connection message confirmed that blocker.
+After the owner added the exact host, the read-only preflight returned PASS.
+The in-app browser retry remained at Connecting, with no observable Google popup.
+Actual Google sign-in and live synchronization remain **unverified**, pending
+user login in an ordinary browser and acceptance on a disposable test account.
+No user Firestore data was read or modified during these checks.
 
-## Odblokowanie i kontrola konfiguracji
+## Configuration preflight
 
-W konsoli właściwego Firebase: Authentication → Settings → Authorized domains
-→ Add domain. Dodaj tylko stały host Preview, bez protokołu i portu.
-Nie dodawaj wildcardów ani domen każdego losowego wdrożenia.
-Nie zmieniaj reguł produkcyjnego Firestore w ramach tego kroku.
+In the intended Firebase project, use Authentication → Settings → Authorized
+domains → Add domain to authorize only the stable Preview host, without protocol
+or port. Do not add wildcards or every random deployment hostname. This step
+does not require changing production Firestore rules.
 
-Zmiennymi Preview zarządzaj w Vercel. Po zmianie konfiguracji zbuduj nowy Preview;
-Vite osadza publiczne wartości podczas kompilacji.
-Sprawdzenie bez zapisu danych (Node 20+):
+Manage Preview variables in Vercel. Rebuild the Preview after configuration
+changes: Vite embeds public configuration at build time.
+Read-only check (Node 20+):
 
 ```bash
 FOCUS_FLOW_TEST_URL=https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app \
   node --env-file=.env.preview.local scripts/check-cloud-preview.mjs
 ```
 
-`.env.preview.local` jest lokalnym, ignorowanym plikiem z publiczną konfiguracją
-klienta Firebase; nie dodawaj go do Git. Preflight nie wypisuje wartości kluczy,
-nie loguje użytkownika i nie zapisuje nic w Firebase. Jego PASS nie oznacza
-zaliczenia logowania ani synchronizacji.
+`.env.preview.local` is an ignored local file containing public Firebase client
+configuration; do not commit it. Preflight prints no key values, signs in no user
+and writes nothing to Firebase. PASS does not prove login or synchronization.
 
-## Odbiór na koncie testowym
+## Test-account acceptance
 
-1. Otwórz podgląd w dwóch niezależnych profilach przeglądarki. Użyj wyłącznie
-   danych syntetycznych, np. zadań z prefiksem `TEST`. Timer pozostaje lokalny.
-2. Zaloguj się sam przez Google. Zatwierdź właściwe konto i decyzję o scaleniu
-   danych. Sprawdź ostatnią synchronizację i odświeżenie po ponownym otwarciu.
-3. Przenieś testową historię ponad 500 sesji i ustawienia. Porównaj sumy oraz
-   identyfikatory w obu profilach, także poza limitem 1000 widocznych sesji.
-4. Odłącz sieć w jednym profilu, zmień zadanie, połącz ponownie. Sprawdź
-   oczekujące zmiany, ponowienie, konflikt, trwałe usunięcie i brak duplikatów.
-5. Na danych testowych sprawdź maskowanie wcześniej przesłanych tytułów i
-   checklist oraz izolację po wylogowaniu/zmianie konta.
-6. Gdy pojawi się błąd reguł, zapisz jego kod i zatrzymaj odbiór. Nowe reguły
-   sprawdzaj na osobnym Firebase, zanim zostaną rozważone dla produkcji.
+1. Open Preview in two independent browser profiles. Use synthetic data only,
+   such as tasks prefixed with `TEST`. The active timer stays device-local.
+2. Complete Google login yourself. Confirm the intended account and local-data
+   merge decision. Check last successful synchronization and refresh after reopening.
+3. Transfer test history exceeding 500 sessions and settings. Compare totals and
+   IDs between profiles, including history beyond the 1,000-row visible limit.
+4. Disconnect one profile, edit a task and reconnect. Check pending changes,
+   retry, conflict, permanent deletion and absence of duplicates.
+5. On disposable data, check removal of previously uploaded titles/checklists
+   through masking and isolation after logout/account switch.
+6. If rules reject a request, record its error code and stop acceptance. Test new
+   rules in a separate Firebase project before considering production deployment.
 
-Konfiguracja web z Vercel nie zawiera klienta Desktop OAuth. Opublikowane
-instalatory alpha pozostają offline; logowanie desktopowe wymaga osobnego
-Client ID typu Desktop app i ponownej kompilacji. Zobacz [CLOUD-SETUP.md](CLOUD-SETUP.md).
+Vercel's web configuration does not include a Desktop OAuth client. Published
+alpha installers remain offline; desktop login requires a separate Client ID
+of type Desktop app and a new build. See [CLOUD-SETUP.md](CLOUD-SETUP.md).

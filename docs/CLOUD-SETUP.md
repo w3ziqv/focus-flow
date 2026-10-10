@@ -1,50 +1,53 @@
-# Konfiguracja i odbiór chmury 3.0
+# Cloud configuration and acceptance for 3.0
 
-Web/PWA korzysta z konfiguracji `.env.example` w `.env.local` lub zmiennych Vercel.
-Bez niej konto jest opcjonalne, przycisk chmury pokazuje niedostępność, a dane
-pozostają lokalne. Klucze konfiguracji Firebase klienta są publiczne; nie dodawaj
-kont usług ani kluczy prywatnych do repozytorium lub paczki aplikacji.
+Web/PWA uses the variables in `.env.example`, supplied through `.env.local` or
+Vercel. Without configuration, accounts remain optional, cloud controls report
+unavailability and data stays local. Firebase client configuration is public;
+never include service accounts or private keys in the repository or application.
 
-Desktop potrzebuje `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID` i oddzielnego
-`FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID` typu **Desktop app** z tego samego projektu.
-Przekaż je do procesu Cargo/Tauri podczas kompilacji; sam plik `.env.local` Vite
-nie konfiguruje Rust. CI czyta publiczne wartości ze zmiennych repozytorium.
-Google provider musi być włączony w Firebase Auth. Zatwierdź odbiorców/testerów
-na ekranie zgody Google i domeny aplikacji web w Firebase Auth.
+Desktop requires `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID` and a separate
+`FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID` of type **Desktop app** from the same project.
+Pass them to Cargo/Tauri at build time; Vite's `.env.local` alone does not configure
+Rust. CI reads the public values from repository variables. Enable the Google
+provider in Firebase Auth, configure audiences/testers on the Google consent
+screen and authorize the web application's domains in Firebase Auth.
 
-OAuth używa przeglądarki systemowej, PKCE S256, losowego `state`, jednorazowego
-callbacku na `127.0.0.1:<losowy-port>` i limitu oczekiwania. Kod i tokeny wymienia
-Rust; WebView nie otrzymuje tokenów i zachowuje CSP ograniczone do lokalnego IPC.
-Firebase refresh token trafia do Secret Service/keyring na Linux lub Credential
-Manager na Windows. Brak magazynu oznacza jawny tryb pamięciowy. Sprawdź to na
-normalnym systemie oraz z niedostępnym magazynem.
-Źródło protokołu: [Google OAuth dla aplikacji desktopowych](https://developers.google.com/identity/protocols/oauth2/native-app).
+OAuth uses the system browser, PKCE S256, random `state`, a single-use callback at
+`127.0.0.1:<random-port>` and a deadline. Rust exchanges codes and tokens; the
+WebView receives no tokens and retains a CSP restricted to local IPC.
+Firebase refresh tokens use Secret Service/keyring on Linux or Credential Manager
+on Windows. If storage is unavailable, the application explicitly reports a
+memory-only session. Test both normal storage and the unavailable-store path.
+Protocol reference: [Google OAuth for native applications](https://developers.google.com/identity/protocols/oauth2/native-app).
 
-Nowe reguły i klient muszą być sprawdzone razem na projekcie testowym przed
-wdrożeniem produkcyjnym. Dawne dowolne mapy historii nie są już dopuszczalne przy
-zapisie. Migracja czyta starszy dokument, zachowuje jego lokalną kopię, zapisuje
-zwalidowane dni w paczkach i dopiero wtedy oznacza podsumowanie schematem 3.
-Przerwana migracja może być ponowiona. Nie usuwaj starej historii ani jej kopii
-ręcznie. Starszy klient może wymagać trybu offline po zmianie reguł.
+Test the new rules and client together in a test project before production
+deployment. Arbitrary legacy history maps are no longer accepted for writes.
+Migration reads the older document, preserves a local source copy, writes
+validated daily documents in batches and only then marks the summary as schema 3.
+Interrupted migration can be repeated. Do not manually remove legacy history or
+its backup. Older clients may require offline operation after the rule change.
 
-Zapis sesji jest identyfikowany trwałym ID. Reguły odrzucają ponowne utworzenie
-trwale usuniętego ID. Paczka sesji ma najwyżej 6 zapisów: sprawdzenia osobnych
-tombstones i wspólnej polityki prywatności muszą zmieścić się w limicie 20 odczytów
-reguł Firestore dla jednej paczki bez zakładania współdzielonego cache odczytów. Pozostałe paczki mają najwyżej 400 zapisów. Kolejka zachowuje niepotwierdzone
-sesje także poza widocznym limitem 1000; serwer jest czytany w ograniczonych
-stronach. Maskowanie usuwa również dawniej wysłane checklisty/tytuły i jest
-wymuszane przez reguły przy kolejnych zapisach. Wyłączenie maskowania nie może
-odtworzyć treści, której żadne urządzenie już lokalnie nie zachowuje.
-Usunięte ID pozostają usunięte niezależnie od czasu offline. Zmiana konta wymaga
-jawnej decyzji i zachowuje kopię danych poprzedniego konta.
+Sessions have permanent IDs. Rules reject recreating permanently deleted IDs.
+Session batches contain at most six writes: separate tombstone checks and the
+shared privacy policy must fit Firestore's 20 rule-access calls per batch without
+assuming a shared read cache. Other batches contain at most 400 writes. The queue
+retains unacknowledged sessions beyond the 1,000-row visible limit; server reads
+use bounded pages. Masking also removes previously uploaded titles/checklists,
+and rules enforce it on later writes. Disabling masking cannot restore content
+that no device still retains locally. Deleted IDs stay deleted regardless of
+offline duration. Switching accounts requires an explicit decision and preserves
+a backup of the previous account's local data.
 
-Odbiór: dwa niezależne urządzenia, Google logowanie/wylogowanie/restart/odświeżenie,
->500 sesji, offline i częściowy błąd, konflikt tytułu, usunięcie po długim offline,
-maskowanie >1000 zapisów, zmiana konta, starsze sumy. Emulator testuje adapter
-na prawdziwym Firestore, ale nie potwierdza działania produkcyjnego Google OAuth,
-restrykcji API, domen ani konfiguracji wdrożonego projektu.
+Acceptance requires two independent devices: Google login/logout/restart/refresh,
+more than 500 sessions, offline operation and partial failure, title conflict,
+deletion after extended offline use, masking more than 1,000 records, account
+switching and older totals. The emulator exercises the adapter against real
+Firestore emulation; it does not verify production Google OAuth, API restrictions,
+authorized domains or the deployed project's configuration.
 
-Legacy agregaty bez identyfikatorów sesji nie pozwalają ustalić, czy niezależne
-kopie dawnych sum opisują tę samą pracę. Migracja zachowuje źródła i konserwatywnie
-scala pokrywające się sumy; odbiór powinien porównać je z eksportami użytkownika,
-zwłaszcza przy danych importowanych i zmianach stref czasowych.
+Legacy aggregates without session IDs cannot establish whether independent copies
+of older totals describe the same work. Migration preserves sources and merges
+overlapping totals conservatively. Compare results with real user exports,
+especially imported data and time-zone changes.
+
+For the live web Preview and its acceptance status, see [TESTING-CLOUD.md](TESTING-CLOUD.md).
