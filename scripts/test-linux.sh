@@ -24,9 +24,28 @@ export FOCUS_FLOW_TEST_AUTOSTART=1 FOCUS_FLOW_TEST_HOTKEYS=1
 native_smoke() {
   xvfb-run -a dbus-run-session -- bash -c '
   set -euo pipefail
-  tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
+  # Provide a private audio server instead of probing absent hardware/OpenAL.
+  export PULSE_SERVER="unix:$XDG_RUNTIME_DIR/pulse/native"
+  pulseaudio --daemonize=no --file=/dev/null --exit-idle-time=-1 \
+    --load=module-native-protocol-unix \
+    --load="module-null-sink sink_name=focus_flow_ci" > "$FOCUS_FLOW_DRIVER_LOG.pulse.log" 2>&1 &
+  pulse_pid=$!
+  driver_pid=""
+  trap "kill ${driver_pid:-} $pulse_pid 2>/dev/null || true" EXIT
+  for attempt in {1..100}; do
+    [[ -S "$XDG_RUNTIME_DIR/pulse/native" ]] && break
+    sleep .1
+  done
+  [[ -S "$XDG_RUNTIME_DIR/pulse/native" ]]
+  driver_env=()
+  if [[ -n "${FOCUS_FLOW_NATIVE_LIBRARY_PATH:-}" ]]; then
+    # The portable app and automation driver must load the same WebKit runtime.
+    driver_env+=("LD_LIBRARY_PATH=$FOCUS_FLOW_NATIVE_LIBRARY_PATH")
+    env "${driver_env[@]}" ldd /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG.libraries.log"
+  fi
+  env "${driver_env[@]}" tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
   driver_pid=$!
-  trap "kill $driver_pid 2>/dev/null || true" EXIT
+  trap "kill $driver_pid $pulse_pid 2>/dev/null || true" EXIT
   for attempt in {1..100}; do
     if curl -fsS http://127.0.0.1:4444/status >/dev/null; then break; fi
     sleep .1
@@ -61,6 +80,7 @@ export GST_PLUGIN_SYSTEM_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER_1_0="$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
 export APPDIR="$appdir"
+export FOCUS_FLOW_NATIVE_LIBRARY_PATH="$appdir/usr/lib"
 export XDG_DATA_HOME="$profile/appimage-data" XDG_CONFIG_HOME="$profile/appimage-config" XDG_CACHE_HOME="$profile/appimage-cache"
 export FOCUS_FLOW_BINARY="$appdir/AppRun"
 export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux-appimage.png"

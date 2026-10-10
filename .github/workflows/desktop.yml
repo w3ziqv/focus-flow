@@ -103,7 +103,7 @@ jobs:
         run: cd src-tauri/target/release/bundle && sha256sum -c SHA256SUMS.txt
       - name: Linux runtime dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y webkit2gtk-driver xvfb xauth libxtst6
+        run: sudo apt-get update && sudo apt-get install -y webkit2gtk-driver xvfb xauth libxtst6 pulseaudio
       - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d
         if: runner.os == 'Linux'
       - name: Linux installed application smoke
