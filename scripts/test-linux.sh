@@ -43,7 +43,13 @@ native_smoke() {
     driver_env+=("LD_LIBRARY_PATH=$FOCUS_FLOW_NATIVE_LIBRARY_PATH")
     env "${driver_env[@]}" ldd /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG.libraries.log"
   fi
-  env "${driver_env[@]}" tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
+  if [[ "${FOCUS_FLOW_DIRECT_WEBKIT_DRIVER:-}" == "1" ]]; then
+    # Avoid the proxy connection-pool reset while retaining all native assertions.
+    env "${driver_env[@]}" TAURI_AUTOMATION=true TAURI_WEBVIEW_AUTOMATION=true \
+      /usr/bin/WebKitWebDriver --port=4444 --host=127.0.0.1 > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
+  else
+    env "${driver_env[@]}" tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
+  fi
   driver_pid=$!
   trap "kill $driver_pid $pulse_pid 2>/dev/null || true" EXIT
   for attempt in {1..100}; do
@@ -81,6 +87,7 @@ export GST_PLUGIN_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER_1_0="$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
 export APPDIR="$appdir"
 export FOCUS_FLOW_NATIVE_LIBRARY_PATH="$appdir/usr/lib"
+export FOCUS_FLOW_DIRECT_WEBKIT_DRIVER=1
 export XDG_DATA_HOME="$profile/appimage-data" XDG_CONFIG_HOME="$profile/appimage-config" XDG_CACHE_HOME="$profile/appimage-cache"
 export FOCUS_FLOW_BINARY="$appdir/AppRun"
 export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux-appimage.png"

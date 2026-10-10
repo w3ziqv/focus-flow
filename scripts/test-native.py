@@ -24,6 +24,9 @@ def http(method, url, data=None):
         raise RuntimeError(f'{method} {url}: {error.read().decode()}') from error
 
 capabilities = {'tauri:options': {'application': binary}}
+if os.environ.get('FOCUS_FLOW_DIRECT_WEBKIT_DRIVER'):
+    # This is the same native capability mapping used by tauri-driver on Linux.
+    capabilities = {'webkitgtk:browserOptions': {'binary': binary, 'args': []}}
 if os.environ.get('FOCUS_FLOW_DIRECT_EDGE_DRIVER'):
     # Native EdgeDriver exposes WebView2 directly; retain verbose driver logs.
     capabilities = {'browserName': 'webview2', 'ms:edgeOptions': {
