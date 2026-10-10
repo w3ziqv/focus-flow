@@ -17,6 +17,10 @@ describe('sync error diagnostics', () => {
     ['cloud-http-403', 'sync.error.permission'],
     ['cloud-http-401', 'sync.error.login'],
     ['cloud-backend-changed', 'sync.error.reconnect'],
+    ['cloud-sign-in-required', 'sync.error.login'],
+    ['cloud-invalid-token', 'sync.error.login'],
+    ['oauth-invalid-token', 'sync.error.login'],
+    ['oauth-invalid-user', 'sync.error.login'],
   ])('distinguishes %s', (code, key) => {
     expect(syncErrorMessageKey({code})).toBe(key)
   })
@@ -31,5 +35,19 @@ describe('sync error diagnostics', () => {
     expect(syncErrorCode('permission-denied: token expired')).toBe('permission-denied')
     expect(isSyncCancelled({code: 'auth/popup-closed-by-user'})).toBe(true)
     expect(isSyncCancelled({code: 'auth/popup-blocked'})).toBe(false)
+    expect(isSyncCancelled('oauth-cancelled')).toBe(true)
+    expect(isSyncCancelled('oauth-timeout')).toBe(false)
+  })
+
+  it.each([
+    'cloud-invalid-response', 'cloud-invalid-document', 'cloud-response-too-large',
+    'cloud-document-too-large', 'cloud-batch-too-large', 'cloud-path-forbidden',
+    'cloud-query-forbidden', 'cloud-operation-forbidden', 'cloud-worker-error',
+    'cloud-lock-error', 'credential-store-unavailable', 'credential-delete-failed',
+    'oauth-in-progress', 'oauth-random-error',
+  ])('retains the safe native diagnostic %s through persisted/UI normalization', code => {
+    expect(syncErrorCode(syncErrorCode(code))).toBe(code)
+    expect(syncErrorCode({code})).toBe(code)
+    expect(syncErrorCode(`${code}-private-detail`)).toBe('sync-failed')
   })
 })

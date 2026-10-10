@@ -2,6 +2,9 @@
 #[cfg(target_os = "linux")]
 #[path = "browser_environment.rs"]
 mod browser_environment;
+#[cfg(target_os = "linux")]
+#[path = "browser_launcher.rs"]
+mod browser_launcher;
 #[path = "oauth_token.rs"]
 mod oauth_token;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
@@ -169,13 +172,7 @@ fn open_oauth_browser(url: &str) -> Result<(), String> {
         for mut command in open::commands(url) {
             browser_environment::prepare(&mut command, appdir.as_deref(), std::env::vars_os());
             // Do not print launcher errors: they can contain the OAuth URL.
-            if command
-                .stdin(std::process::Stdio::null())
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null())
-                .status()
-                .is_ok_and(|status| status.success())
-            {
+            if browser_launcher::launch(&mut command) {
                 return Ok(());
             }
         }

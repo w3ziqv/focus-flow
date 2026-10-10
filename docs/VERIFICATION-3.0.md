@@ -6,6 +6,19 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 
 ## 2026-10-10 isolated cloud and recording follow-up
 
+- The final `f818220` cloud AppImage passed CI/Security and installed Linux/Windows
+  runtime checks, matched its SHA-256 manifest, and was launched after another
+  complete isolated-profile backup. Real owner login then failed with
+  `sync-failed` before an account was connected. The test profile's default HTTPS
+  handler was `chatgpt.desktop`, whereas the host uses `firefox.desktop`; only
+  the test-profile browser associations were corrected. Process-tree inspection
+  also showed the native OAuth worker waiting for `xdg-open` and its still-running
+  ChatGPT child. Launcher supervision now starts callback handling independently
+  of a long-lived browser, while retaining immediate-failure fallback and private
+  output. Two Rust regressions and the installed Linux callback probe cover this
+  lifecycle. Previously omitted native diagnostic codes now survive safe
+  normalization; cancellation and login failures are classified explicitly.
+  Real Google desktop login remains unverified until the rebuilt app is tested.
 - The owner launched the cloud-configured `67da862` AppImage and reported
   `oauth-browser-error`. On the owner's Arch Linux, running host `gio version`
   with the AppImage environment failed with a GLib symbol error, and Firefox's

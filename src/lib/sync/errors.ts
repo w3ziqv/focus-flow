@@ -9,9 +9,16 @@ const codes = [
   'auth/user-disabled', 'auth/user-token-expired', 'auth/invalid-user-token',
   'cloud-not-configured', 'cloud-account-mismatch', 'cloud-account-changed', 'cloud-backend-changed',
   'cloud-network-error', 'cloud-offline', 'cloud-timeout',
+  'cloud-sign-in-required', 'cloud-invalid-token', 'cloud-invalid-response',
+  'cloud-invalid-document', 'cloud-response-too-large', 'cloud-document-too-large',
+  'cloud-batch-too-large', 'cloud-path-forbidden', 'cloud-query-forbidden',
+  'cloud-operation-forbidden', 'cloud-worker-error', 'cloud-lock-error',
+  'credential-store-unavailable', 'credential-delete-failed',
   'cloud-http-400', 'cloud-http-401', 'cloud-http-403', 'cloud-http-404',
   'cloud-http-409', 'cloud-http-429', 'cloud-http-500', 'cloud-http-503',
   'oauth-browser-error', 'oauth-listener-error', 'oauth-timeout',
+  'oauth-cancelled', 'oauth-in-progress', 'oauth-random-error',
+  'oauth-invalid-token', 'oauth-invalid-user',
   'account-switch-cancelled', 'account-switch-consent-required',
 ] as const
 
@@ -37,11 +44,11 @@ export function syncErrorMessageKey(error: unknown): TranslationKey {
   if (code === 'permission-denied' || code === 'cloud-http-403') return 'sync.error.permission'
   if (['failed-precondition', 'not-found', 'cloud-http-404'].includes(code)) return 'sync.error.service'
   if (['resource-exhausted', 'cloud-http-429'].includes(code)) return 'sync.error.limit'
-  if (['unauthenticated', 'cloud-http-401', 'cloud-account-mismatch', 'account-switch-consent-required'].includes(code) || (code.startsWith('auth/') && code !== 'auth/network-request-failed') || code.startsWith('oauth-')) return 'sync.error.login'
+  if (['unauthenticated', 'cloud-http-401', 'cloud-account-mismatch', 'cloud-sign-in-required', 'cloud-invalid-token', 'account-switch-consent-required'].includes(code) || (code.startsWith('auth/') && code !== 'auth/network-request-failed') || code.startsWith('oauth-')) return 'sync.error.login'
   if (['unavailable', 'deadline-exceeded', 'cloud-offline', 'cloud-timeout', 'cloud-network-error', 'auth/network-request-failed', 'cloud-http-503'].includes(code)) return 'sync.error.network'
   return 'sync.error.general'
 }
 
 export function isSyncCancelled(error: unknown): boolean {
-  return ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'account-switch-cancelled', 'cancelled'].includes(syncErrorCode(error))
+  return ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'account-switch-cancelled', 'oauth-cancelled', 'cancelled'].includes(syncErrorCode(error))
 }

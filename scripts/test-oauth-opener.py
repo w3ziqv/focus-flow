@@ -35,16 +35,14 @@ temporary = record.with_suffix('.tmp')
 temporary.write_text(json.dumps(checks))
 temporary.replace(record)
 if not all(checks.values()): sys.exit(1)
-# The parent must return before Rust enters its callback accept loop. The child
-# simulates a declined consent response only on the validated loopback listener.
-# This checks cancellation without relying on a credential store in headless CI.
-if os.fork() == 0:
-    try:
-        time.sleep(.2)
-        callback = query['redirect_uri'][0] + '?' + urlencode({
-            'state': query['state'][0], 'error': 'access_denied'})
-        with urllib.request.urlopen(callback, timeout=5) as response:
-            response.read(1024)
-    finally:
-        os._exit(0)
+# Stay alive until the callback responds, like a freshly started real browser.
+# A launcher that waits for us to exit will deadlock and fail this test. Rust
+# must begin its callback accept loop independently of the browser's lifetime.
+# Declined consent avoids relying on a credential store in headless CI.
+time.sleep(.4)
+callback = query['redirect_uri'][0] + '?' + urlencode({
+    'state': query['state'][0], 'error': 'access_denied'})
+with urllib.request.urlopen(callback, timeout=5) as response:
+    assert response.status == 200
+    response.read(1024)
 sys.exit(0)
