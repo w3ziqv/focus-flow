@@ -45,6 +45,8 @@ export interface FirebaseModules {
   query: typeof import('firebase/firestore').query
   orderBy: typeof import('firebase/firestore').orderBy
   limit: typeof import('firebase/firestore').limit
+  documentId: typeof import('firebase/firestore').documentId
+  startAfter: typeof import('firebase/firestore').startAfter
   where: typeof import('firebase/firestore').where
 }
 
@@ -58,6 +60,7 @@ export interface FirebaseContext {
 
 let cachedModules: FirebaseModules | null = null
 let cachedContext: FirebaseContext | null = null
+export const LEGACY_FIREBASE_PROJECT_ID = 'focus-flow-70527'
 
 /**
  * Resolves Firebase web client configuration.
@@ -65,7 +68,7 @@ let cachedContext: FirebaseContext | null = null
  * has safe defaults so local-first mode can still boot without Firebase configured.
  */
 export function getFirebaseConfig(): FirebaseConfig {
-  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'focus-flow-70527'
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || LEGACY_FIREBASE_PROJECT_ID
 
   return {
     // API credentials must come from .env.local or Vercel environment variables.
@@ -120,6 +123,8 @@ export async function loadFirebaseModules(): Promise<FirebaseModules> {
     orderBy: firestoreMod.orderBy,
     limit: firestoreMod.limit,
     where: firestoreMod.where,
+    documentId: firestoreMod.documentId,
+    startAfter: firestoreMod.startAfter,
   }
 
   return cachedModules

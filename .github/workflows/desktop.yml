@@ -1,0 +1,181 @@
+name: Desktop
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      cloud_mode:
+        description: 'Cloud configuration: offline or isolated test Firebase (test branch only)'
+        required: true
+        default: offline
+        type: choice
+        options: [offline, test]
+      artifact_run_id:
+        description: 'Optional existing installer run for runtime-only verification (same app source required)'
+        required: false
+        type: string
+permissions:
+  contents: read
+jobs:
+  native:
+    if: ${{ !inputs.artifact_run_id }}
+    env:
+      FOCUS_FLOW_CLOUD_MODE: ${{ inputs.cloud_mode || 'offline' }}
+      VITE_FIREBASE_API_KEY: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_API_KEY || '' }}
+      VITE_FIREBASE_PROJECT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_PROJECT_ID || '' }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_AUTH_DOMAIN || '' }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_STORAGE_BUCKET || '' }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_MESSAGING_SENDER_ID || '' }}
+      VITE_FIREBASE_APP_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_APP_ID || '' }}
+      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_GOOGLE_CLIENT_ID || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            bundles: deb,appimage
+          - os: windows-latest
+            bundles: nsis
+          - os: macos-latest
+            bundles: dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: src-tauri
+      - name: Linux native dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev libdbus-1-dev librsvg2-dev patchelf webkit2gtk-driver xvfb xauth libxtst6 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav
+      - run: npm ci
+      - name: Validate desktop cloud target
+        run: |
+          node --test scripts/test-desktop-cloud-config.mjs
+          node scripts/desktop-cloud-config.mjs
+      - run: npm run build:desktop
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Optimized GLib regression (Linux)
+        if: runner.os == 'Linux'
+        run: cargo test --locked --release --manifest-path src-tauri/Cargo.toml patched_glib_string_iterator_optimized_regression
+      - run: npm run desktop:build -- --bundles ${{ matrix.bundles }}
+      - name: Record installer cloud target
+        run: node scripts/desktop-cloud-config.mjs
+      - run: node scripts/checksums.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: focus-flow-${{ runner.os }}
+          path: |
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/SHA256SUMS.txt
+            src-tauri/target/release/bundle/desktop-build.json
+          if-no-files-found: error
+  installed:
+    needs: native
+    if: ${{ always() && (needs.native.result == 'success' || inputs.artifact_run_id) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      FOCUS_FLOW_CLOUD_MODE: ${{ inputs.cloud_mode || 'offline' }}
+      FOCUS_FLOW_EXPECT_CLOUD_PROJECT: ${{ inputs.cloud_mode == 'test' && 'focus-flow-v3-test-20261010' || '' }}
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify reused installer source
+        if: inputs.artifact_run_id
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FOCUS_FLOW_ARTIFACT_RUN: ${{ inputs.artifact_run_id }}
+        run: |
+          artifact_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$FOCUS_FLOW_ARTIFACT_RUN" --jq '.head_sha')
+          git cat-file -e "$artifact_sha^{commit}"
+          git diff --exit-code "$artifact_sha" HEAD -- package.json package-lock.json src src-tauri
+          echo "FOCUS_FLOW_ARTIFACT_SHA=$artifact_sha" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: focus-flow-${{ runner.os }}
+          path: src-tauri/target/release/bundle
+          run-id: ${{ inputs.artifact_run_id || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Verify installer checksums
+        shell: bash
+        run: cd src-tauri/target/release/bundle && sha256sum -c SHA256SUMS.txt
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Verify installer cloud target
+        run: node scripts/desktop-cloud-config.mjs --verify
+      - name: Linux runtime dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y webkit2gtk-driver xvfb xauth libxtst6 pulseaudio
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d
+        if: runner.os == 'Linux'
+      - name: Linux installed application smoke
+        if: runner.os == 'Linux'
+        run: |
+          cargo install tauri-driver --version 2.1.0 --locked
+          ./scripts/test-linux.sh
+      - name: Windows installed application smoke
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-windows.ps1
+      - name: Native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-runtime-evidence-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/focus-flow-windows*.png
+            ${{ runner.temp }}/focus-flow-linux*.png
+            ${{ runner.temp }}/tauri-driver*.log
+          if-no-files-found: warn
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run test:browser
+      - name: Accessibility and Polish UI
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 1420 --strictPort > /tmp/focus-flow-dev.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:1420 >/dev/null && break; sleep 1; done
+          node scripts/test-accessibility.mjs
+      - name: Accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: accessibility-evidence
+          path: /tmp/focus-flow-ux-audit
+          if-no-files-found: warn
+      - run: npm run build
+      - run: npm run test:web-offline

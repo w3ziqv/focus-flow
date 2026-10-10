@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cloud-delete-account"
+description = "Enables the cloud_delete_account command without any pre-configured scope."
+commands.allow = ["cloud_delete_account"]
+
+[[permission]]
+identifier = "deny-cloud-delete-account"
+description = "Denies the cloud_delete_account command without any pre-configured scope."
+commands.deny = ["cloud_delete_account"]

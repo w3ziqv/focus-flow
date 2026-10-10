@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Focus Flow",
+  "version": "../package.json",
+  "identifier": "ink.focusflow.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev:desktop",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build:desktop",
+    "frontendDist": "../dist-desktop"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Focus Flow",
+        "width": 960,
+        "height": 800,
+        "minWidth": 360,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "capabilities": [
+        "main-window",
+        "mini-window"
+      ],
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: data:; img-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none';",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: data:; img-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'none';"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      }
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

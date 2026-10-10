@@ -2,12 +2,20 @@
 
 [![Live Demo](https://img.shields.io/badge/demo-focusflow.ink-C96442)](https://focusflow.ink)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![WCAG 2.2 AAA](https://img.shields.io/badge/accessibility-WCAG_2.2_AAA-green.svg)](docs/ROADMAP.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6.svg)](tsconfig.json)
 
-A quiet, local-first Pomodoro companion designed to stay out of your way while you work. Focus Flow pairs a warm editorial aesthetic with real-time procedural soundscapes, ephemeral task intentions, and zero-telemetry offline storage.
+A quiet, local-first Pomodoro companion designed to stay out of your way while you work. Focus Flow pairs a warm editorial aesthetic with ambient recordings and generated soundscapes, ephemeral task intentions, and zero-telemetry offline storage.
 
-Everything runs entirely in your browser — no accounts, no subscriptions, and no remote databases.
+The web/PWA works offline without an account. Optional Google/Firebase sync shares
+completed history, settings and goals; task/checklist content is included by default
+and can be masked. Active timers and custom audio files stay on each device.
+
+Version **3.0.0-alpha.1** adds Tauri desktop support and a native cloud transport.
+Stable 3.0 is gated on live OAuth/cloud and Linux/Windows acceptance; macOS and P2P
+remain experimental. See the [roadmap](docs/ROADMAP.md),
+[verification](docs/VERIFICATION-3.0.md), [cloud setup](docs/CLOUD-SETUP.md),
+[installation/backup/rollback](docs/INSTALL-UPDATE.md) and [security](SECURITY.md).
+Automated accessibility checks do not constitute WCAG certification.
 
 | Desktop View | Mobile Portrait |
 | :---: | :---: |
@@ -21,14 +29,14 @@ Everything runs entirely in your browser — no accounts, no subscriptions, and 
 - **Three-Phase Intervals**: Configurable Focus, Short Break, and Long Break durations with customizable round counts and auto-start options.
 - **Concentric Goal Ring**: Subtle hairline perimeter ring on the dial that fills smoothly toward your optional daily focus target.
 - **Wake Reconciliation**: Accurately credits sessions completed while the computer was asleep or the tab was backgrounded, using wall-clock timestamps (`Date.now()`).
-- **Dedicated Web Worker**: Unthrottled 250ms heartbeat ensures interval precision even in inactive or throttled browser tabs.
+- **Dedicated Web Worker**: A 250ms heartbeat refreshes the view; wall-clock deadlines reconcile browser throttling and wake-up.
 
 ### ✍️ Intentions & Micro-Steps
 - **Intention Presets**: Single-tap chips (*Deep Work*, *Writing*, *Code Review*, *Reading*, *Inbox Zero*) to anchor your focus without typing.
 - **Ephemeral Micro-Steps**: Up to 3 lightweight checklist items attached to the active session. Completed steps are logged with the session, while incomplete items reset cleanly so you don't accumulate backlog debt.
 
 ### 🎧 Procedural Acoustic Soundscapes
-- **Mathematical Sound Synthesis (0 KB Assets)**: Generates pink noise, leaky brown noise, soft rain, and ocean wave textures in real time using the Web Audio API without downloading static audio files.
+- **Ambient Sound**: Offline rain and ocean recordings curated by Moodist, with smooth transitions, generated pink/brown noise and procedural fallbacks. See [audio sources and licensing](public/sounds/SOUNDS.md).
 - **Tone Warmth Filter**: Lowpass biquad filter with adjustable cutoff frequency (200–1200 Hz) to shape the sound texture to your preference.
 - **Binaural Beat Entrainment**: Stereo carriers supporting 10 Hz Alpha (Focus) and 6 Hz Theta (Rest) modes.
 - **Tibetan Singing Bowl Chime**: Five inharmonic modal partials with acoustic beating shimmer and mallet transient burst for session completion alerts.
@@ -40,25 +48,25 @@ Everything runs entirely in your browser — no accounts, no subscriptions, and 
 - **Exportable Summary Cards**: Generates high-resolution 1200×630 summary cards directly on an offscreen HTML5 `<canvas>` for saving to Obsidian, Notion, or personal logs.
 
 ### 🔒 Privacy & Data Sovereignty
-- **Local-First Invariant**: 100% of user data remains on the device in local storage. Zero analytics beacons, tracking pixels, or third-party cookies.
+- **Local by Default**: Offline storage works without an account. Enabling cloud sync uploads the disclosed history/settings and optional task content; webhooks and experimental pairing also share data only when enabled. No application analytics are added.
 - **Multi-Format Exports**: One-click exports to RFC 5545 iCalendar (`.ics`), RFC 4180 CSV (`.csv`) with UTF-8 BOM, and GitHub-Flavored Markdown (`.md`) tables.
 - **Full Backup Archive (Schema v2)**: Single-file JSON snapshot containing all settings, history, custom sound metadata, and interface preferences, with backward compatibility for v1 backups.
 - **Client-Side Webhooks**: Optional direct HTTP POST alerts (`start`, `pause`, `complete`) to services like Home Assistant, Discord, n8n, or Zapier.
 
-### ♿️ Accessibility & Sensory Themes (WCAG 2.2 AAA)
-- **5 Ergonomic Themes**: Warm Parchment (default), Warm Soot Dark, High-Contrast Obsidian (21:1 OLED contrast), Botanical Sage, and E-Ink Monochrome.
-- **Contrast Standards**: All color stops meet or exceed 7:1 contrast for regular text and 4.5:1 for large display elements.
+### ♿️ Accessibility & Sensory Themes
+- **5 Ergonomic Themes**: Warm Parchment (default), Warm Soot Dark, High-Contrast Obsidian, Botanical Sage, and E-Ink Monochrome.
+- **Accessibility Verification**: Automated A/AA checks, modal keyboard navigation and zoom were tested on the documented screens. Some contrast checks and screen-reader acceptance remain manual; see the verification report.
 - **Keyboard Navigation & Cheat Sheet**: Press `?` to open the shortcuts manager with rebindable keymaps (`Space`, `R`, `F`, `Esc`, `↑ / ↓`).
 - **Screen Reader Support**: Polite live announcements (`aria-live="polite"`) and optional speech narration via Web Speech API with Polish and English support.
 - **Hardware-Accelerated Motion**: Respects `prefers-reduced-motion` and offers an in-app toggle restricting animations strictly to transform and opacity.
 
 ### 📚 Evidence-Based Guides Library
-- **27 Peer-Reviewed Articles**: Focus, sleep, nutrition, and rest guides categorized across 7 domains with authentic citations and 100% Polish and English bilingual parity.
+- **Guides Library**: Focus, sleep, nutrition and rest guides with research references and Polish/English content.
 
 ### 📱 Progressive Web App (PWA)
-- Fully installable on iOS, Android, macOS, Windows, and Linux.
+- Installable in compatible browsers; installation and notification support depend on the platform.
 - Offline-ready via Service Worker precaching.
-- Mobile notifications with vibration and haptic feedback.
+- Optional notifications and vibration where supported and permitted.
 
 ---
 
@@ -129,6 +137,7 @@ npm run build
 
 ## Documentation
 
+- [`docs/DESKTOP.md`](docs/DESKTOP.md) — Version 3.0 development, Tauri commands, and remaining desktop increments.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — 7-stage technical roadmap specification and release status tracking.
 - [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
@@ -157,3 +166,8 @@ Firebase credentials are intentionally not stored in the repository. To keep Goo
    `www.focusflow.ink`, and the Vercel preview domain(s) that you use.
 
 The app now fails with a clear configuration message instead of silently using a committed key.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for reporting, repeatable checks and current limitations,
+and the [v3 audit](specs/security/SECURITY_REPORT_v3.0.md) for remediation evidence.

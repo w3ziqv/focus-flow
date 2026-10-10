@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTimerEngine } from './timer'
-import { DEFAULT_SETTINGS, loadSessions } from './storage'
+import { applyRemote } from './sync/outbox'
+import { DEFAULT_SETTINGS, loadSessions, loadStats, saveSettings, saveStats, saveSession, loadSession } from './storage'
 import { audio } from './audio'
 import type { Settings } from '../types'
 
@@ -17,6 +18,83 @@ beforeEach(() => {
 })
 
 describe('useTimerEngine', () => {
+  it('refreshes cloud settings/history while preserving the device timer and task', () => {
+    const {result} = renderHook(() => useTimerEngine())
+    act(() => result.current.setTask('Local active task'))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    const remaining = result.current.remainingMs
+    act(() => applyRemote(() => {
+      saveSettings({...DEFAULT_SETTINGS, focus: 45})
+      saveStats({...loadStats(), minutes: 125})
+    }))
+    expect(result.current.settings.focus).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
+    expect(result.current.stats.minutes).toBe(125)
+    expect(result.current.running).toBe(true)
+    expect(result.current.remainingMs).toBe(remaining)
+    expect(result.current.task).toBe('Local active task')
+  })
+  it.each(['running', 'paused'])('retains %s phase duration across cloud changes and restart, and credits the original minutes', state => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => first.result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45, short: 11})))
+    if (state === 'paused') act(() => first.result.current.pause())
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
+    if (state === 'paused') act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(DEFAULT_SETTINGS.focus * MIN - 5_000))
+    expect(loadSessions().at(-1)?.minutes).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.totalMs).toBe(11 * MIN)
+  })
+
+  it('credits the frozen duration after expiry while the app is closed', () => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => first.result.current.start())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45, short: 11})))
+    first.unmount()
+    act(() => vi.advanceTimersByTime(DEFAULT_SETTINGS.focus * MIN + 1_000))
+    const {result} = renderHook(() => useTimerEngine())
+    expect(loadSessions().at(-1)?.minutes).toBe(DEFAULT_SETTINGS.focus)
+    expect(result.current.settings.focus).toBe(45)
+    expect(result.current.totalMs).toBe(11 * MIN)
+  })
+
+  it('applies cloud settings immediately to an idle full phase and preserves them after restart', () => {
+    const first = renderHook(() => useTimerEngine())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45})))
+    expect(first.result.current.remainingMs).toBe(45 * MIN)
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(45 * MIN)
+    expect(result.current.remainingMs).toBe(45 * MIN)
+  })
+
+  it('upgrades a legacy active snapshot before remote settings can change its duration on restart', () => {
+    saveSession({mode: 'focus', round: 0, running: true, endTs: Date.now() + DEFAULT_SETTINGS.focus * MIN, remainingMs: DEFAULT_SETTINGS.focus * MIN, task: 'Legacy task', taskDone: false})
+    const first = renderHook(() => useTimerEngine())
+    act(() => applyRemote(() => saveSettings({...DEFAULT_SETTINGS, focus: 45})))
+    first.unmount()
+    const {result} = renderHook(() => useTimerEngine())
+    expect(result.current.totalMs).toBe(DEFAULT_SETTINGS.focus * MIN)
+    expect(result.current.task).toBe('Legacy task')
+  })
+
+  it('clears account-owned active content without resetting the device countdown', () => {
+    const {result} = renderHook(() => useTimerEngine())
+    act(() => result.current.setTask('Private task'))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    const remaining = result.current.remainingMs
+    act(() => applyRemote(() => saveSession({...loadSession()!, task: '', taskDone: false, checklist: []})))
+    expect(result.current.task).toBe('')
+    expect(result.current.running).toBe(true)
+    expect(result.current.remainingMs).toBe(remaining)
+  })
+
   it('starts idle in focus mode with a full duration', () => {
     const { result } = renderHook(() => useTimerEngine())
     expect(result.current.mode).toBe('focus')
@@ -286,3 +364,24 @@ describe('useTimerEngine', () => {
   })
 })
 
+
+describe('desktop skip phase', () => {
+  it('advances rounds and long breaks without crediting unfinished work', () => {
+    const { result } = renderHook(() => useTimerEngine())
+    act(() => result.current.updateSettings(fastSettings({rounds: 2})))
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(5_000))
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('short')
+    expect(result.current.round).toBe(1)
+    expect(result.current.running).toBe(false)
+    expect(loadSessions()).toHaveLength(0)
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('focus')
+    act(() => result.current.skip())
+    expect(result.current.mode).toBe('long')
+    expect(result.current.round).toBe(0)
+    expect(loadSessions()).toHaveLength(0)
+    expect(result.current.lastEvent).toBeNull()
+  })
+})

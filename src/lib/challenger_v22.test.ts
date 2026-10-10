@@ -569,8 +569,8 @@ describe('Milestone v2.2 Empirical Adversarial Testing (challenger_v22_1)', () =
       expect(textureGain.gain.setValueAtTime).toHaveBeenCalledWith(0.0001, mockCtx.currentTime)
       expect(textureGain.gain.exponentialRampToValueAtTime).toHaveBeenCalledWith(1.0, mockCtx.currentTime + 2.0)
 
-      // Crossfade to waves
-      engine.setAmbient('waves')
+      // Procedural textures crossfade synchronously; recordings wait for decoding.
+      engine.setAmbient('brown')
       // Old channel fadeout must ramp to 0.0001
       expect(textureGain.gain.exponentialRampToValueAtTime).toHaveBeenCalledWith(0.0001, mockCtx.currentTime + 2.0)
 
