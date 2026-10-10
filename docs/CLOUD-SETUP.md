@@ -85,6 +85,9 @@ For the live web Preview and its acceptance status, see [TESTING-CLOUD.md](TESTI
 The test Desktop app client `Focus Flow 3 Desktop Test` was created on 2026-10-10
 in `focus-flow-v3-test-20261010` with the owner's action-time approval. The public
 client ID is stored in `DESKTOP_TEST_GOOGLE_CLIENT_ID`. The issued client parameter
-was not retained at creation and Google now displays it only once; replacement
-parameter provisioning is pending owner approval. No actual value is committed.
+was not retained at creation and Google displays it only once. A replacement was
+issued after owner approval and saved as the Actions secret; its token-endpoint
+probe rejected the deliberately invalid code with `invalid_grant`, confirming
+client-parameter validation without a user token. The temporary mode-0600 local
+file was removed after verification. No actual value is committed.
 This configures a test candidate, not production or successful OAuth acceptance.

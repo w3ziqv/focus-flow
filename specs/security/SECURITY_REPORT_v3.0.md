@@ -50,7 +50,8 @@ production penetration certificate.
   parameter. This Rust-only application constant is supplied via Actions secrets
   and omitted from frontend/manifests/logs. It is extractable from native binaries
   and is not treated as a confidential authentication boundary; PKCE and private
-  refresh tokens remain mandatory. Provisioning and real OAuth acceptance are pending.
+  refresh tokens remain mandatory. Owner-approved parameter provisioning and a no-user-token endpoint probe passed;
+  rebuilt cloud installers and real OAuth acceptance remain pending.
 - Explicit Tauri command permissions and runtime guards isolate the mini window.
   Atomic snapshots are private before writing (Unix 0600), retain backups and
   preserve corrupted source. File access is limited to application sound files.

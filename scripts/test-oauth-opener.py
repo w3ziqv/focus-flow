@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from urllib.parse import parse_qs, urlsplit
+import time
+import urllib.request
+from urllib.parse import parse_qs, urlsplit, urlencode
 
 url = urlsplit(sys.argv[1])
 query = parse_qs(url.query)
@@ -29,5 +31,20 @@ checks = {
 }
 # Store only assertions, never the URL, state, PKCE verifier or tokens.
 record = Path(os.environ['FOCUS_FLOW_BROWSER_PROBE'])
-record.write_text(json.dumps(checks))
-sys.exit(0 if all(checks.values()) else 1)
+temporary = record.with_suffix('.tmp')
+temporary.write_text(json.dumps(checks))
+temporary.replace(record)
+if not all(checks.values()): sys.exit(1)
+# The parent must return before Rust enters its callback accept loop. The child
+# simulates a declined consent response only on the validated loopback listener.
+# This checks cancellation without relying on a credential store in headless CI.
+if os.fork() == 0:
+    try:
+        time.sleep(.2)
+        callback = query['redirect_uri'][0] + '?' + urlencode({
+            'state': query['state'][0], 'error': 'access_denied'})
+        with urllib.request.urlopen(callback, timeout=5) as response:
+            response.read(1024)
+    finally:
+        os._exit(0)
+sys.exit(0)

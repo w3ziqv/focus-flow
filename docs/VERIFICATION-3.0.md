@@ -19,8 +19,16 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   No user code/token was supplied or received. The Rust exchange now includes
   this parameter alongside PKCE; build validation rejects missing values and
   metadata excludes it. Google only displays issued secrets once, and the original
-  creation value was not retained. Provisioning a replacement is awaiting owner
-  approval. Launcher CI at `8f60301` does not prove a successful token exchange.
+  creation value was not retained. A replacement was created with owner approval and
+  saved as the Actions secret. The endpoint now returns `invalid_grant` for the
+  deliberately invalid code, confirming client validation; no user token was
+  obtained. Launcher CI at `8f60301` does not prove a successful token exchange.
+- At `8f60301`, native packaging and installed Windows passed, but the installed
+  Linux launch probe failed during cleanup because headless CI has no usable
+  credential store (`credential-delete-failed`). The probe now simulates declined
+  consent on the actual loopback listener instead of invoking logout; it still
+  asserts host runtime isolation, PKCE, state, callback handling and a signed-out
+  result. Credential-deletion failures remain strict and visible in the product.
 
 - A subsequent failed attempt exposed a cache boundary: stored Google identity
   was not scoped to a Firebase project, and startup sync could issue requests

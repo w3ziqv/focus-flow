@@ -80,15 +80,12 @@ try:
           window.__TAURI_INTERNALS__.invoke('cloud_sign_in').then(
             () => window.__focusFlowOAuthProbe = 'unexpected-success',
             error => window.__focusFlowOAuthProbe = String(error));''')
-        try:
-            for _ in range(100):
-                if probe.exists(): break
-                time.sleep(.1)
-            else: raise AssertionError('Native OAuth browser launcher did not run')
-            checks = json.loads(probe.read_text())
-            assert checks and all(checks.values()), checks
-        finally:
-            invoke('cloud_sign_out')
+        for _ in range(100):
+            if probe.exists(): break
+            time.sleep(.1)
+        else: raise AssertionError('Native OAuth browser launcher did not run')
+        checks = json.loads(probe.read_text())
+        assert checks and all(checks.values()), checks
         for _ in range(100):
             result = script('return window.__focusFlowOAuthProbe')
             if result is not None: break
