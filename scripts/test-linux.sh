@@ -60,6 +60,7 @@ done
 export GST_PLUGIN_SYSTEM_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER_1_0="$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
+export APPDIR="$appdir"
 export XDG_DATA_HOME="$profile/appimage-data" XDG_CONFIG_HOME="$profile/appimage-config" XDG_CACHE_HOME="$profile/appimage-cache"
 export FOCUS_FLOW_BINARY="$appdir/AppRun"
 export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux-appimage.png"
