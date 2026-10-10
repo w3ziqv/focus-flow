@@ -48,4 +48,37 @@ try {
   await page.getByRole('button',{name:'App',exact:true}).click()
   assert.deepEqual(errors,[])
   console.log('PASS: production PWA reload, timer/navigation/settings, rain/wave decoding and attribution offline, no page errors')
+
+  // Reproduce a retired deployment asset without SW precache hiding the 404.
+  const recoveryContext = await browser.newContext({serviceWorkers: 'block'})
+  const recovery = await recoveryContext.newPage()
+  await recovery.goto(url)
+  await recovery.getByRole('button', {name: 'Close', exact: true}).click()
+  const recoveryTask = recovery.getByRole('textbox', {name: 'What are you working on?'})
+  await recoveryTask.fill('TEST retained during chunk recovery')
+  await recoveryTask.blur()
+  await recovery.evaluate(() => localStorage.setItem('ff2_sessions', JSON.stringify([{id: 'chunk-fixture', date: '2026-10-10T10:00:00Z', minutes: 25, task: 'TEST history'}])))
+  const retired = '**/assets/StatsView-*.js'
+  await recovery.route(retired, route => route.fulfill({status: 404, body: 'Retired test asset'}))
+  let reloads = 0
+  recovery.on('framenavigated', frame => {if (frame === recovery.mainFrame()) reloads++})
+  const reloaded = recovery.waitForEvent('framenavigated', {predicate: frame => frame === recovery.mainFrame()})
+  await recovery.getByRole('button', {name: 'Statistics', exact: true}).click()
+  await reloaded
+  await recoveryTask.waitFor()
+  assert.equal(await recoveryTask.inputValue(), 'TEST retained during chunk recovery')
+  assert.equal(reloads, 1, 'Retired chunk must recover with one reload')
+  await recovery.getByRole('button', {name: 'Statistics', exact: true}).click()
+  await recovery.getByRole('alert').waitFor()
+  assert.match(await recovery.getByRole('alert').innerText(), /saved local data has not been removed/)
+  await delay(500)
+  assert.equal(reloads, 1, 'Repeated asset failure must not cause a reload loop')
+  await recovery.unroute(retired)
+  await recovery.getByRole('button', {name: 'Reload application', exact: true}).click()
+  await recoveryTask.waitFor()
+  await recovery.getByRole('button', {name: 'Statistics', exact: true}).click()
+  await recovery.getByRole('heading', {name: 'Statistics', exact: true}).waitFor()
+  assert.equal(await recovery.getByText('Total sessions: 1', {exact: true}).isVisible(), true)
+  await recoveryContext.close()
+  console.log('PASS: retired asset 404, bounded automatic reload, manual retry, retained timer task and history')
 } finally { await browser?.close(); server?.kill() }

@@ -29,6 +29,10 @@ production penetration certificate.
   sync and polling await Firebase Auth restoration and reject missing/mismatched
   identities before Firestore access. Diagnostics expose only an allowlisted code
   and public project ID, with no tokens or raw SDK messages.
+- Retired dynamic assets recover with at most one automatic online reload per
+  entry bundle. When the session guard cannot be saved, recovery stays manual.
+  View/startup failures show localized messages without raw errors, token-bearing
+  URLs or filesystem paths; they never clear profile data or service-worker caches.
 - Native OAuth: external browser, random single-use loopback listener, state and
   S256 PKCE. Firebase identity/refresh tokens remain in Rust; OS credential store
   or visible memory-only fallback. No plaintext token file or remote CSP allowance.

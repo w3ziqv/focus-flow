@@ -22,6 +22,21 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   TypeScript, ESLint, web/desktop builds and build isolation passed. New regressions
   cover project changes, equal UIDs across backends, preserved local data/queue,
   delayed or missing Auth restoration and mismatched authenticated accounts.
+- Live Preview UI also reproduced a stale deployment chunk: the existing tab
+  referenced `StatsView-CJWB-efP.js` after the alias moved, leaving a blank view.
+  Reloading switched the entry bundle from `index-Dehtt_hg.js` to
+  `index-BeaH65FS.js` and restored all **805 synthetic sessions / 20,125 minutes**.
+  The app now attempts one online recovery reload per entry bundle, with a
+  session-storage guard against loops, and offers a localized accessible manual
+  retry when a view still fails. Application data and service-worker caches are
+  not cleared; offline failures do not trigger automatic reloads. Startup errors
+  use safe messages and offer backup restoration only on desktop.
+- Recovery follow-up: **794 unit tests passed**, one emulator-only test skipped;
+  TypeScript, ESLint and both build targets/isolation passed. The production
+  browser test now injects a retired StatsView asset (HTTP 404) and verifies the
+  automatic reload limit, manual fallback/retry and retained task/history. Record
+  its CI result separately before claiming that injected browser scenario passed.
+  Recovery uses [Vite's documented preload-error event](https://vite.dev/guide/build.html#load-error-handling).
 
 - Actual deployed production rules omit `daily_history`; the owner's v3 sync
   attempt returned `permission-denied`. Production rules were backed up and
