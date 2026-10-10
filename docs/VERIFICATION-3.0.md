@@ -6,6 +6,15 @@ below. GitHub CI results must be recorded for the pushed commit separately.
 
 ## 2026-10-10 isolated cloud and recording follow-up
 
+- The owner launched the cloud-configured `67da862` AppImage and reported
+  `oauth-browser-error`. On the owner's Arch Linux, running host `gio version`
+  with the AppImage environment failed with a GLib symbol error, and Firefox's
+  version probe failed because bundled NSS lacked `NSS_3.101`. Both probes passed
+  after excluding AppImage paths from the child environment. The fix applies
+  only to browser child commands, with Rust environment regressions and an
+  installed Linux OAuth-launch probe. Rebuilt installer CI and real Google
+  sign-in are pending; the previous successful CI did not test this boundary.
+
 - A subsequent failed attempt exposed a cache boundary: stored Google identity
   was not scoped to a Firebase project, and startup sync could issue requests
   before Firebase Auth restored its session. The new test project's authenticated

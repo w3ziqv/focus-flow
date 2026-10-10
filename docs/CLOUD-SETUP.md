@@ -21,6 +21,12 @@ screen and authorize the web application's domains in Firebase Auth.
 OAuth uses the system browser, PKCE S256, random `state`, a single-use callback at
 `127.0.0.1:<random-port>` and a deadline. Rust exchanges codes and tokens; the
 WebView receives no tokens and retains a CSP restricted to local IPC.
+On Linux AppImage, the browser child excludes library/plugin/search paths inside
+`APPDIR`, preserving host paths and desktop session variables. Focus Flow keeps
+its own bundled media runtime. This prevents bundled GLib/NSS from breaking the
+system browser on newer distributions. No OAuth URL is logged. Installed Linux
+CI exercises this launcher with a browser replacement that validates PKCE and
+loads host `gio`; real Google sign-in remains a separate owner acceptance gate.
 Firebase refresh tokens use Secret Service/keyring on Linux or Credential Manager
 on Windows. If storage is unavailable, the application explicitly reports a
 memory-only session. Each Firebase project has its own credential entry, and

@@ -18,6 +18,13 @@ export XDG_DATA_HOME="$profile/data" XDG_CONFIG_HOME="$profile/config" XDG_CACHE
 export XDG_RUNTIME_DIR="$profile/runtime"
 mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
+# Replace the browser only in this isolated CI profile. The probe loads host gio
+# and checks native OAuth/PKCE arguments without sending anything to Google.
+mkdir -p "$profile/browser-probe"
+cp scripts/test-oauth-opener.py "$profile/browser-probe/xdg-open"
+chmod 700 "$profile/browser-probe/xdg-open"
+export PATH="$profile/browser-probe:$PATH"
+export FOCUS_FLOW_BROWSER_PROBE="$profile/browser-probe/result.json"
 export GDK_BACKEND=x11 XDG_SESSION_TYPE=x11 XDG_CURRENT_DESKTOP=GNOME
 unset WAYLAND_DISPLAY
 export FOCUS_FLOW_TEST_AUTOSTART=1 FOCUS_FLOW_TEST_HOTKEYS=1

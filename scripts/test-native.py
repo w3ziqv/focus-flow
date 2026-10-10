@@ -73,6 +73,29 @@ try:
     if not cloud['configured']:
         invoke('cloud_sign_in', expected=False)
         assert cloud['user'] is None
+    elif os.environ.get('FOCUS_FLOW_BROWSER_PROBE'):
+        probe = Path(os.environ['FOCUS_FLOW_BROWSER_PROBE'])
+        probe.unlink(missing_ok=True)
+        script('''window.__focusFlowOAuthProbe = null;
+          window.__TAURI_INTERNALS__.invoke('cloud_sign_in').then(
+            () => window.__focusFlowOAuthProbe = 'unexpected-success',
+            error => window.__focusFlowOAuthProbe = String(error));''')
+        try:
+            for _ in range(100):
+                if probe.exists(): break
+                time.sleep(.1)
+            else: raise AssertionError('Native OAuth browser launcher did not run')
+            checks = json.loads(probe.read_text())
+            assert checks and all(checks.values()), checks
+        finally:
+            invoke('cloud_sign_out')
+        for _ in range(100):
+            result = script('return window.__focusFlowOAuthProbe')
+            if result is not None: break
+            time.sleep(.1)
+        assert result == 'oauth-cancelled', result
+        assert invoke('cloud_status')['user'] is None
+        print('PASS: native OAuth launcher uses host libraries, PKCE/loopback and cancellation; no real login attempted')
     recordings = request('POST', '/execute/async', {
         'script': """const done=arguments[arguments.length-1];(async()=>{
           const ctx=new AudioContext();

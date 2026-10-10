@@ -1,4 +1,7 @@
 //! Native OAuth and authenticated Firestore transport. Tokens never cross IPC.
+#[cfg(target_os = "linux")]
+#[path = "browser_environment.rs"]
+mod browser_environment;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::blocking::{Client, Response};
 use serde::{Deserialize, Serialize};
@@ -155,6 +158,29 @@ impl Drop for AuthGuard {
     }
 }
 
+fn open_oauth_browser(url: &str) -> Result<(), String> {
+    #[cfg(target_os = "linux")]
+    {
+        let appdir = std::env::var_os("APPDIR").map(std::path::PathBuf::from);
+        for mut command in open::commands(url) {
+            browser_environment::prepare(&mut command, appdir.as_deref(), std::env::vars_os());
+            // Do not print launcher errors: they can contain the OAuth URL.
+            if command
+                .stdin(std::process::Stdio::null())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .status()
+                .is_ok_and(|status| status.success())
+            {
+                return Ok(());
+            }
+        }
+        Err("oauth-browser-error".into())
+    }
+    #[cfg(not(target_os = "linux"))]
+    open::that(url).map_err(|_| "oauth-browser-error".into())
+}
+
 fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
     let (api, project, oauth_client) = config()?;
     let listener = TcpListener::bind("127.0.0.1:0").map_err(|_| "oauth-listener-error")?;
@@ -182,7 +208,7 @@ fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
         ("code_challenge_method", "S256"),
         ("prompt", "select_account"),
     ]);
-    open::that(url.as_str()).map_err(|_| "oauth-browser-error")?;
+    open_oauth_browser(url.as_str())?;
     let deadline = Instant::now() + Duration::from_secs(120);
     let code = loop {
         if AUTH_GENERATION.load(Ordering::SeqCst) != generation {
