@@ -62,7 +62,7 @@ export function reconcileExpiredSession(
   let notice: string | null = null
 
   if (isFocus) {
-    elapsedMinutes = settings.focus
+    elapsedMinutes = snapshot.phaseSettings?.focus ?? settings.focus
     newStats = recordFocusSession(stats, elapsedMinutes)
 
     const sessionId = snapshot.id || `s${endTs.toString(36)}${Math.random().toString(36).slice(2, 7)}`
@@ -104,6 +104,7 @@ export function reconcileExpiredSession(
   const nextRemainingMs = durationOfMode(settings, newMode)
 
   const newSnapshot: SessionSnapshotV2 = {
+    ...(snapshot.phaseSettings ? {phaseSettings: settings} : {}),
     mode: newMode as Mode,
     round: newRound,
     running: false,

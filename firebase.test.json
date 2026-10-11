@@ -1,0 +1,8 @@
+{
+  "firestore": {
+    "database": "(default)",
+    "edition": "standard",
+    "location": "europe-west1",
+    "rules": "src/lib/sync/firestore.rules"
+  }
+}

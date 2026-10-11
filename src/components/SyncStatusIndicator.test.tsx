@@ -1,12 +1,16 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { I18nProvider } from '../lib/i18n'
+import { fireEvent, render as renderComponent, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SyncStatusIndicator } from './SyncStatusIndicator'
 import { resetCloudSyncAdapter } from '../lib/sync/adapter'
 import { saveCloudSyncState } from '../lib/storage'
 
+const render = (element: React.ReactNode) => renderComponent(<I18nProvider>{element}</I18nProvider>)
+
 describe('SyncStatusIndicator (Tier 1 Ambient Component)', () => {
   beforeEach(() => {
     localStorage.clear()
+    localStorage.setItem('ff2_lang', 'en')
     resetCloudSyncAdapter()
     vi.restoreAllMocks()
   })

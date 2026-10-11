@@ -1,3 +1,5 @@
+> Historical report. Superseded by [the v3 audit](SECURITY_REPORT_v3.0.md). Earlier simulated Firestore tests were not evidence of real rule enforcement.
+
 # Focus Flow — Security Review Report (v2.5.3)
 
 **Scan Date:** 2026-09-20  

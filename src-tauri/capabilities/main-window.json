@@ -1,0 +1,51 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-window",
+  "description": "Core capabilities for the Focus Flow main window.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled",
+    "dialog:allow-save",
+    "fs:allow-read-file",
+    "fs:allow-write-file",
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    "fs:allow-remove",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "$APPDATA/sounds"
+        },
+        {
+          "path": "$APPDATA/sounds/**"
+        }
+      ]
+    },
+    "allow-set-awake",
+    "allow-discovery-start",
+    "allow-discovery-stop",
+    "allow-desktop-action",
+    "allow-finish-exit",
+    "allow-load-data",
+    "allow-save-data",
+    "allow-restore-data",
+    "allow-desktop-warnings",
+    "allow-timer-display",
+    "allow-publish-timer",
+    "allow-toggle-mini",
+    "allow-cloud-status",
+    "allow-cloud-sign-in",
+    "allow-cloud-sign-out",
+    "allow-cloud-document",
+    "allow-cloud-documents",
+    "allow-cloud-commit",
+    "allow-cloud-delete-account"
+  ]
+}

@@ -9,7 +9,15 @@ import * as dataPortModule from '../lib/dataPort'
 import * as webhookModule from '../lib/webhook'
 import * as storageModule from '../lib/storage'
 import * as notificationsModule from '../lib/notifications'
+import * as platformModule from '../lib/platform'
+import * as desktopModule from '../lib/desktop/runtime'
 import type { InterfacePrefs, Theme, WebhookSettings } from '../types'
+
+vi.mock('@tauri-apps/plugin-autostart', () => ({
+  isEnabled: vi.fn().mockResolvedValue(false),
+  enable: vi.fn().mockResolvedValue(undefined),
+  disable: vi.fn().mockResolvedValue(undefined),
+}))
 
 describe('AppSettingsModal Component', () => {
   const defaultInterfacePrefs: InterfacePrefs = {
@@ -30,6 +38,7 @@ describe('AppSettingsModal Component', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
     localStorage.clear()
   })
 
@@ -379,6 +388,41 @@ describe('AppSettingsModal Component', () => {
       // Click on Back button -> returns to main menu
       fireEvent.click(screen.getByRole('button', { name: /Wróć|Back/i }))
       expect(screen.getByRole('button', { name: /Dostępność/i })).toBeDefined()
+    })
+  })
+
+  describe('Desktop settings navigation', () => {
+    it('keeps desktop controls out of the main list and preserves the mini-window action', async () => {
+      vi.spyOn(platformModule, 'detectPlatform').mockReturnValue('tauri')
+      const invoke = vi.spyOn(desktopModule, 'nativeInvoke').mockResolvedValue(undefined)
+      renderModal()
+      expect(screen.queryByRole('switch', {name: /Uruchamiaj po zalogowaniu/})).toBeNull()
+      expect(screen.queryByText(/Ten systemowy WebView/)).toBeNull()
+      fireEvent.click(screen.getByRole('button', {name: /Aplikacja desktopowa/}))
+      await screen.findByRole('switch', {name: /Uruchamiaj po zalogowaniu/})
+      fireEvent.click(screen.getByRole('button', {name: /Pokaż \/ ukryj mały timer/}))
+      await waitFor(() => expect(invoke).toHaveBeenCalledWith('toggle_mini'))
+      fireEvent.click(screen.getByRole('button', {name: /Wróć/}))
+      expect(screen.getByRole('button', {name: /Aplikacja desktopowa/})).toBeDefined()
+    })
+
+    it('explains unsupported local pairing inside advanced settings and disables its switch', async () => {
+      vi.spyOn(platformModule, 'detectPlatform').mockReturnValue('tauri')
+      vi.stubGlobal('RTCPeerConnection', undefined)
+      renderModal()
+      fireEvent.click(screen.getByText('Zaawansowane integracje'))
+      fireEvent.click(screen.getByRole('button', {name: /Synchronizacja lokalna/}))
+      await screen.findByText(/Ten systemowy WebView nie obsługuje WebRTC/)
+      expect(screen.getByRole('switch', {name: /Włącz wykrywanie/}).hasAttribute('disabled')).toBe(true)
+      expect(screen.queryByRole('switch', {name: /Uruchamiaj po zalogowaniu/})).toBeNull()
+    })
+
+    it('does not expose desktop controls or pairing in the browser', () => {
+      vi.spyOn(platformModule, 'detectPlatform').mockReturnValue('browser')
+      renderModal()
+      expect(screen.queryByRole('button', {name: /Aplikacja desktopowa/})).toBeNull()
+      fireEvent.click(screen.getByText('Zaawansowane integracje'))
+      expect(screen.queryByRole('button', {name: /Synchronizacja lokalna/})).toBeNull()
     })
   })
 })

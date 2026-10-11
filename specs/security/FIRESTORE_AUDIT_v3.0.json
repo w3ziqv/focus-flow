@@ -1,0 +1,21 @@
+{
+  "score": 4,
+  "scope": "Local rules and official emulator; production configuration unverified",
+  "summary": "Default deny, UID authority, bounded queries and nested validation on create/update. Daily history replaces legacy opaque writes; permanent deletion and masking are enforced server-side.",
+  "findings": [
+    {
+      "check": "Production rollout",
+      "severity": "major",
+      "issue": "Live rules, IAM, App Check and existing user-data migration have not been verified.",
+      "recommendation": "Stage migration, compare exports and verify deployed rules before stable release."
+    }
+  ],
+  "checks": {
+    "authority": "request.auth.uid == userId; no client role claims",
+    "create_update": "Same validators, allowed keys and bounded nested types",
+    "history": "Schema 3 daily calendar-valid documents; legacy map writes denied",
+    "business": "Permanent tombstone and masking policy checks",
+    "resource_limits": "Bounded list queries, payload bounds and batches respecting rule-access budget"
+  },
+  "emulator_authorization_checks_passed": 50
+}
