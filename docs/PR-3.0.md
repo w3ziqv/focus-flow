@@ -28,7 +28,7 @@ P2P/macOS remain experimental.
 
 ## Draft / remaining stable gates
 
-Keep this PR open and version 3.0.0-alpha.1. Do not merge/tag v3.0.0 yet.
+Keep this PR open and version 3.0.0-alpha.2. Do not merge/tag v3.0.0 yet.
 Required: live Desktop Google OAuth/refresh/keyring/revocation and two-device
 Firebase acceptance; staging migration comparison of real older exports;
 Linux/Windows installation/update/rollback and actual tray/audio/notifications,

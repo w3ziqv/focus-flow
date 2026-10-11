@@ -1,6 +1,6 @@
 # Focus Flow 3.0 desktop
 
-Development version: **3.0.0-alpha.1**, based on v2.6. The complete repository is
+Development version: **3.0.0-alpha.2**, based on v2.6. The complete repository is
 in this project, on `feature/v3-desktop`. Release acceptance is still in progress; this is
 not a signed, stable release. See [ROADMAP.md](ROADMAP.md) and ADR-006 in
 [ARCHITECTURE.md](ARCHITECTURE.md).

@@ -1,4 +1,4 @@
-# Verification — 3.0.0-alpha.1
+# Verification — 3.0.0-alpha.2
 
 Updated: 2026-10-11. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates

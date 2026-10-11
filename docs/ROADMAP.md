@@ -1,6 +1,6 @@
 # Focus Flow — roadmap from 3.0
 
-Status: `3.0.0-alpha.1` is available for testing. Stable 3.0 remains blocked by
+Status: `3.0.0-alpha.2` is available for testing. Stable 3.0 remains blocked by
 live cloud acceptance and manual desktop acceptance. Automated fresh-install
 runtime checks passed on Windows and Ubuntu; remaining gates are listed below.
 Previous specification: [archive](archive/ROADMAP-before-3.0.md).

@@ -1,6 +1,6 @@
 # Security
 
-The actively developed version is 3.0.0-alpha.1. The 2.x reports in
+The actively developed version is 3.0.0-alpha.2. The 2.x reports in
 `specs/security` describe historical revisions and do not certify current code
 or deployed services. See [the current audit](specs/security/SECURITY_REPORT_v3.0.md).
 

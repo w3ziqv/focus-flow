@@ -1,6 +1,6 @@
 # Installation, updates and rollback
 
-This release remains `3.0.0-alpha.1`. CI installers and the published alpha are
+This release remains `3.0.0-alpha.2`. CI installers and the published alpha are
 test builds, not evidence of stable readiness. **Installers are unsigned**:
 Windows may show SmartScreen, and macOS is not notarized and remains experimental.
 SHA-256 verifies downloaded file integrity; it does not establish publisher identity.

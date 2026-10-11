@@ -1,30 +1,30 @@
 # Physical Windows acceptance — cloud test candidate
 
-Prepared: 2026-10-11. This is an unsigned **3.0.0-alpha.1** test installer,
+Prepared: 2026-10-11. This is an unsigned **3.0.0-alpha.2** test installer,
 not a stable release. Linux acceptance does not establish Windows readiness.
 
 ## Exact download
 
-- [Windows artifact ZIP](https://github.com/w3ziqv/focus-flow/actions/runs/38088756415/artifacts/11683242423)
-  from the successful [cloud Desktop run](https://github.com/w3ziqv/focus-flow/actions/runs/38088756415).
-  Sign in to GitHub if required. Extract the ZIP before installation.
-- Installer: `nsis/Focus Flow_3.0.0-alpha.1_x64-setup.exe`.
-- Source: `5aa55b5bcf0852c79034bcff0a02362884f5de55`.
-- Firebase: `focus-flow-v3-test-20261010`, also used by the
-  [web Preview](https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app/).
-- SHA-256:
-  `0b8aee8a208c75bd431449c6f8e6db44153e6fc93c12c03f84bbc9fa13c5da81`.
+Download these three assets from [alpha.2](https://github.com/w3ziqv/focus-flow/releases/tag/v3.0.0-alpha.2):
 
-In PowerShell, from the extracted ZIP directory:
+- `Focus-Flow_3.0.0-alpha.2_x64-setup.exe`.
+- `SHA256SUMS.txt`.
+- `desktop-build.json`, containing the exact build commit and test-cloud target.
+
+Firebase must be `focus-flow-v3-test-20261010` with `mode: test`, also used by the
+[web Preview](https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app/).
+
+In PowerShell, from the download directory:
 
 ```powershell
-Get-FileHash '.\nsis\Focus Flow_3.0.0-alpha.1_x64-setup.exe' -Algorithm SHA256
+Get-FileHash '.\Focus-Flow_3.0.0-alpha.2_x64-setup.exe' -Algorithm SHA256
 ```
 
-Compare the result with both the value above and the extracted `SHA256SUMS.txt`.
-`desktop-build.json` must match the source/project above and `mode: test`.
-The older published alpha release assets do not contain these fixes/configuration.
-Actions artifacts expire; if this link expires, obtain a newly verified candidate.
+Compare the result with the entry for that exact filename in `SHA256SUMS.txt`.
+The release notes identify the build commit and successful checks; compare it
+with `desktop-build.json`. The older alpha.1 release assets lack these fixes and
+cloud configuration. The alpha.2 release is published only after new installer
+and installed-runtime checks pass.
 
 ## Before installation
 

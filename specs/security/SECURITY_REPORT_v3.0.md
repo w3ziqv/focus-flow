@@ -1,6 +1,6 @@
-# Security audit — Focus Flow 3.0.0-alpha.1
+# Security audit — Focus Flow 3.0.0-alpha.2
 
-Updated: 2026-10-10. Local audit baseline: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
+Updated: 2026-10-11. Local audit baseline: 2026-10-03. Repository: `w3ziqv/focus-flow`, branch `feature/v3-desktop`,
 base `a2f5f22`. Supersedes historical 2.x reports. Scope: source, local builds,
 isolated browser/native tests and the official Firestore emulator. This is not a
 production penetration certificate.
@@ -51,7 +51,7 @@ production penetration certificate.
   and omitted from frontend/manifests/logs. It is extractable from native binaries
   and is not treated as a confidential authentication boundary; PKCE and private
   refresh tokens remain mandatory. Owner-approved parameter provisioning and a no-user-token endpoint probe passed;
-  rebuilt cloud installers and real OAuth acceptance remain pending.
+  rebuilt cloud installers passed CI, and the owner accepted real Linux Google login and synchronization on 2026-10-11. A backed-up restart restored the same account and synchronized with a refreshed Firebase token. Physical Windows OAuth, revocation and unavailable-store acceptance remain pending.
 - Explicit Tauri command permissions and runtime guards isolate the mini window.
   Atomic snapshots are private before writing (Unix 0600), retain backups and
   preserve corrupted source. File access is limited to application sound files.
