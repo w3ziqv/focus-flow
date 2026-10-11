@@ -102,6 +102,10 @@ feature does not replace cloud sync or block the intended 3.0 cloud scope.
 Stable release requires live desktop Google/Firebase login and token refresh,
 two-device cloud acceptance, Windows/Linux installation and update/rollback,
 actual tray/audio/notifications, autostart after login and hardware sleep/resume.
+Real Linux Google login and restoration/refresh after a controlled restart passed
+on 2026-10-11 using cloud AppImage source `5aa55b5` and the isolated test Firebase.
+Physical Windows OAuth, revocation and unavailable-store fallback remain open;
+see [verification evidence](VERIFICATION-3.0.md).
 Xvfb, compilation and automated WebDriver checks cover only part of these gates.
 Desktop CSP permits local IPC only; cloud network requests are made by Rust.
 The version stays alpha until the release gates in the roadmap pass.

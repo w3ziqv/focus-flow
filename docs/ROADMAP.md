@@ -28,6 +28,8 @@ Linux/Windows access and installer CI.
   account switch and older totals. Emulator tests supplement live cloud acceptance.
 - [ ] Desktop: real login, refresh after restart and consent revocation; an
   unavailable credential store produces an explicitly reported memory-only session.
+  Real Linux Google login and restoration/refresh after restart passed on
+  2026-10-11; Windows, revocation and unavailable-store acceptance remain open.
 - [ ] Linux and Windows: installation, update with backup, rollback, tray, mini,
   audio, notifications, autostart and suspend/resume.
 - [x] Unit tests, emulator, npm/Rust audits, optimized GLib regression, builds and

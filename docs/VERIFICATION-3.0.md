@@ -1,8 +1,32 @@
 # Verification — 3.0.0-alpha.1
 
-Updated: 2026-10-10. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
+Updated: 2026-10-11. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates
 below. GitHub CI results must be recorded for the pushed commit separately.
+
+## 2026-10-11 live Linux desktop acceptance
+
+- The owner confirmed real Google login and synchronization in the SHA-256-verified
+  `5aa55b5` cloud AppImage on Arch Linux/Hyprland/Wayland. Native persisted metadata
+  independently showed a connected account, `synced`, no error, and the isolated
+  project `focus-flow-v3-test-20261010` at `2026-10-11T09:07:43.537Z`.
+- A controlled restart retained the same isolated XDG profile, with complete data
+  backups before stopping and before starting. The new native process restored the
+  same account and synchronized at `2026-10-11T09:09:12.797Z` without another Google
+  login. Native session serialization omits the access token and expiry, so this
+  also exercises Firebase refresh from the system-stored credential. Only status,
+  account equality and timestamps were recorded; credential values were not exposed.
+- Exact application source `5aa55b5bcf0852c79034bcff0a02362884f5de55` passed
+  [CI](https://github.com/w3ziqv/focus-flow/actions/runs/38088756258),
+  [Security](https://github.com/w3ziqv/focus-flow/actions/runs/38088756248),
+  [cloud Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/38088756415) and
+  [offline Desktop](https://github.com/w3ziqv/focus-flow/actions/runs/38088756239).
+  All 817 application tests, emulator/security checks, native packaging,
+  installed Linux/Windows and browser checks passed. Both installed Linux packages
+  exercised the OAuth callback while the substitute browser remained alive.
+- This accepts initial Linux desktop login, restart restoration and refresh.
+  Revocation, unavailable-store fallback, live two-device scenarios, physical
+  Windows OAuth and the other hardware/accessibility gates below remain open.
 
 ## 2026-10-10 isolated cloud and recording follow-up
 
@@ -18,7 +42,7 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   output. Two Rust regressions and the installed Linux callback probe cover this
   lifecycle. Previously omitted native diagnostic codes now survive safe
   normalization; cancellation and login failures are classified explicitly.
-  Real Google desktop login remains unverified until the rebuilt app is tested.
+  Real Google desktop login was pending at this stage; acceptance is recorded above.
 - The owner launched the cloud-configured `67da862` AppImage and reported
   `oauth-browser-error`. On the owner's Arch Linux, running host `gio version`
   with the AppImage environment failed with a GLib symbol error, and Firefox's
@@ -26,7 +50,7 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   after excluding AppImage paths from the child environment. The fix applies
   only to browser child commands, with Rust environment regressions and an
   installed Linux OAuth-launch probe. Rebuilt installer CI and real Google
-  sign-in are pending; the previous successful CI did not test this boundary.
+  sign-in were pending at this stage; the previous CI did not test this boundary.
 - A token-endpoint probe using a deliberately invalid diagnostic code returned
   `invalid_request` / `client_secret is missing` for the created Desktop client.
   No user code/token was supplied or received. The Rust exchange now includes
@@ -149,9 +173,10 @@ The README's unsupported AAA certification badge was removed.
 1. **Live cloud/OAuth:** isolated web Firebase is configured; live acceptance is
    confirmed for initial web synchronization, with full two-device acceptance
    pending. A Desktop OAuth client was created in the isolated test project on
-   2026-10-10. Test system-browser login, state/PKCE callback,
-   credential-store refresh after restart, revocation and memory-only fallback on
-   both supported OS. Then run the documented two-device scenarios against
+   2026-10-10. Real system-browser login and credential restoration/refresh after
+   restart passed on the owner's Linux on 2026-10-11. Physical Windows login and
+   refresh, consent revocation and memory-only fallback remain open. Then run the
+   documented two-device scenarios against
    staging/live configuration, not just emulator-authenticated profiles.
 2. **Older data:** compare real exports before/after migration. Unknown overlap
    in legacy aggregates and time-zone changes cannot be inferred perfectly from
