@@ -32,6 +32,8 @@ Linux/Windows access and installer CI.
   2026-10-11; Windows, revocation and unavailable-store acceptance remain open.
 - [ ] Linux and Windows: installation, update with backup, rollback, tray, mini,
   audio, notifications, autostart and suspend/resume.
+  The owner accepted Linux timer/audio/mini/tray; physical Windows testing is
+  prepared in [TESTING-WINDOWS.md](TESTING-WINDOWS.md). Other checks remain open.
 - [x] Unit tests, emulator, npm/Rust audits, optimized GLib regression, builds and
   browser tests pass in real CI for the alpha source. Repeat for any release change.
 - [x] Alpha installers have SHA-256 manifests, unsigned status is explicit and

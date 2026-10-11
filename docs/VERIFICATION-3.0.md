@@ -16,6 +16,13 @@ below. GitHub CI results must be recorded for the pushed commit separately.
   login. Native session serialization omits the access token and expiry, so this
   also exercises Firebase refresh from the system-stored credential. Only status,
   account equality and timestamps were recorded; credential values were not exposed.
+- The owner also confirmed that the floating timer opens and that closing the
+  main window with its close button leaves the app in the tray; choosing
+  `Show Focus Flow` restores the window. This is physical Arch/Hyprland acceptance,
+  in addition to the previously accepted timer, settings appearance and audio.
+- The owner has access to Windows by switching operating systems. The exact
+  cloud-configured Windows artifact and manual procedure are linked in
+  [TESTING-WINDOWS.md](TESTING-WINDOWS.md); physical Windows results remain pending.
 - Exact application source `5aa55b5bcf0852c79034bcff0a02362884f5de55` passed
   [CI](https://github.com/w3ziqv/focus-flow/actions/runs/38088756258),
   [Security](https://github.com/w3ziqv/focus-flow/actions/runs/38088756248),
@@ -183,10 +190,11 @@ The README's unsupported AAA certification badge was removed.
    missing historical session IDs. Keep the versioned source backup and verify
    conservative totals before tightening production rules.
 3. **Linux/Windows acceptance:** fresh CI installation and timer/mini/IPC tests
-   pass on Ubuntu and Windows runners. End-user desktop installation,
-   update/rollback with backups, actual tray shell/mini focus, audio
-   output/migration, notification delivery, login-cycle autostart and hardware
-   suspend/resume remain open. CI smoke does not reproduce a physical desktop.
+   pass on Ubuntu and Windows runners. The owner's Arch Linux window/timer,
+   audible playback, floating timer and tray restoration have been accepted.
+   Physical Windows checks, installer update/rollback with backups, audio migration,
+   notification delivery, login-cycle autostart and hardware suspend/resume remain
+   open. CI smoke does not reproduce a physical desktop.
 4. **Accessibility:** test real screen readers, browser/OS zoom, high contrast and
    keyboard on supported systems. Some axe contrast nodes require manual checks.
 5. **Production configuration:** production Firebase rules and Vercel policy
