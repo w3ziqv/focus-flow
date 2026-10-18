@@ -39,7 +39,8 @@ The owner accepted preceding Linux/Windows Google login/sync/restart and the
 explicitly listed notifications, autostart, sleep/resume, tray/mini and screen-reader
 checks. Revocation, account switch, unavailable credential-store fallback and Linux
 backup rollback were subsequently reported as not yet tested. Production Windows
-upgrade/backup rollback and production OAuth acceptance remain pending. Exact final
+upgrade/backup rollback, physical Windows audio and production OAuth acceptance
+remain pending. Exact final
 source CI, production rollout and installer checksums must replace pending status
 before this draft becomes the published release description.
 

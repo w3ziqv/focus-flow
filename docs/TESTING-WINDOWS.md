@@ -8,8 +8,11 @@ not a stable release. Linux acceptance does not establish Windows readiness.
 The owner confirmed that Google login, synchronization and operation after app
 restart work on a physical Windows computer. These three scenarios are accepted
 as owner-reported results. The question referred to alpha.2; the exact installer
-hash and Windows version were not supplied. No separate result was reported for
-tray/mini/audio, offline retry or the remaining physical checks below.
+hash and Windows version were not supplied. In a subsequent explicit question,
+the owner also accepted Windows/Linux notifications, autostart after login,
+sleep/resume, tray/mini and screen-reader operation. Physical Windows audio,
+offline retry, production OAuth, revocation/store fallback and update/rollback
+retain their separate status.
 
 ## Exact download
 

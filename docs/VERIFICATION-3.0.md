@@ -1,8 +1,27 @@
-# Verification — 3.0.0-alpha.2
+# Verification — 3.0 release preparation
 
 Updated: 2026-10-18. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates
 below. GitHub CI results must be recorded for the pushed commit separately.
+
+## 2026-10-18 candidate and final-version CI
+
+Protected candidate PR #5 merged as `9a832e5dc95be8223fa1fb2069f22b36ad0955cf`
+after source `8ff6e251ab7763e6b7db7c1b2a2905cc33330b36` passed CI, Security,
+browser, all native packages and installed Linux/Windows checks. The Linux
+WebKitDriver teardown connection closure was handled only during final deletion;
+earlier assertions and transport failures still propagate. Production-configured
+RC packaging/runtime run `39156763929` is in progress on the protected merge.
+
+Final `3.0.0` metadata and draft notes are prepared. Their first source
+`a22f05a594e80ba5d138e6e354ec49645d9d4110` passed application CI and Security;
+final native/runtime checks and publication remain pending. The owner reported
+revocation/reconnection, account switch, unavailable credential storage and Linux
+backup rollback as not yet tested, then requested the application be opened.
+The verified alpha.2 AppImage was started on the previous local profile after
+a full native backup. A private comparison confirmed all prior session IDs and
+unchanged history/minute totals; only calendar-dependent week/streak changed.
+This is profile-retention evidence, not rollback or production OAuth acceptance.
 
 ## 2026-10-18 physical Windows owner acceptance
 
