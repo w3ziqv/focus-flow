@@ -10,9 +10,9 @@ The web/PWA works offline without an account. Optional Google/Firebase sync shar
 completed history, settings and goals; task/checklist content is included by default
 and can be masked. Active timers and custom audio files stay on each device.
 
-Version **3.0.0-rc.1** is being prepared with production desktop cloud configuration
+Version **3.0.0** is being prepared; the production-configured **3.0.0-rc.1** candidate is under acceptance
 and verified migration of a private older-data snapshot. See the
-[candidate notes](docs/RELEASE-3.0.0-rc.1.md) and
+[candidate notes](docs/RELEASE-3.0.0-rc.1.md), [draft release notes](docs/RELEASE-3.0.0.md) and
 [production rollout](docs/PRODUCTION-ROLLOUT-3.0.md).
 The last published prerelease is **3.0.0-alpha.2**, with test-cloud Tauri installers,
 native Google login fixes and offline recordings. See [alpha.2 changes](docs/RELEASE-3.0.0-alpha.2.md).

@@ -1,6 +1,6 @@
 # Focus Flow — roadmap from 3.0
 
-Status: `3.0.0-rc.1` is being prepared with production desktop configuration;
+Status: final `3.0.0` metadata is prepared; production-configured `3.0.0-rc.1` is under acceptance;
 the last published test release is `3.0.0-alpha.2`. Stable 3.0 remains blocked by
 live cloud acceptance and manual desktop acceptance. Automated fresh-install
 runtime checks passed on Windows and Ubuntu; remaining gates are listed below.
