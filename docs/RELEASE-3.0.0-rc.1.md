@@ -23,6 +23,9 @@ checks are recorded separately after CI completes.
   proc-macro-error/zbus_names/zvariant/zvariant_derive notices remain documented.
 - A dedicated production desktop API key is restricted to the three required
   Firebase services. The production web key is unchanged.
+- Added a production Windows installer acceptance flow using the hash-pinned
+  alpha.2 baseline, a UI-created saved task, in-place upgrade and rollback from
+  the full pre-update native backup. Its runtime result must pass separately.
 - The owner confirmed Google login, synchronization and operation after restart
   on physical Windows for the preceding test candidate.
 

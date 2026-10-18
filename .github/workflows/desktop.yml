@@ -95,7 +95,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       FOCUS_FLOW_CLOUD_MODE: ${{ inputs.cloud_mode || 'offline' }}
       FOCUS_FLOW_EXPECT_CLOUD_PROJECT: ${{ inputs.cloud_mode == 'test' && 'focus-flow-v3-test-20261010' || inputs.cloud_mode == 'production' && 'focus-flow-70527' || '' }}
@@ -146,6 +146,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/test-windows.ps1
+      - name: Windows installer upgrade and backup rollback
+        if: runner.os == 'Windows' && inputs.cloud_mode == 'production'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/test-windows-upgrade.ps1
       - name: Native runtime evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
