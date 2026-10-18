@@ -27,7 +27,8 @@ Linux/Windows access and installer CI.
 
 - [ ] Two independent devices: first connection, >500 sessions, offline operation,
   partial-failure retry, conflict, permanent deletion, masking >1,000 records,
-  account switch and older totals. Emulator tests supplement live cloud acceptance.
+  account switch and older totals. The real test-cloud 1105-session SDK scenario
+  passed on 2026-10-18; physical two-device/account-switch acceptance remains.
 - [ ] Desktop: real login, refresh after restart and consent revocation; an
   unavailable credential store produces an explicitly reported memory-only session.
   Real Linux Google login and restoration/refresh after restart passed on
@@ -37,13 +38,14 @@ Linux/Windows access and installer CI.
 - [ ] Linux and Windows: installation, update with backup, rollback, tray, mini,
   audio, notifications, autostart and suspend/resume.
   The owner accepted Linux timer/audio/mini/tray. Windows login/sync/restart are
-  accepted; remaining native controls and physical checks are listed in
-  [TESTING-WINDOWS.md](TESTING-WINDOWS.md).
+  accepted. The owner additionally accepted Linux/Windows notifications, login-cycle
+  autostart, suspend/resume, tray/mini and screen-reader operation on 2026-10-18.
+  Installation update/backup rollback remains a separate gate.
 - [x] Unit tests, emulator, npm/Rust audits, optimized GLib regression, builds and
   browser tests pass in real CI for the alpha source. Repeat for any release change.
 - [x] Alpha installers have SHA-256 manifests, unsigned status is explicit and
   downloaded files were verified. Fresh Ubuntu/Windows installed-runtime checks passed.
-- [ ] UX: understandable errors and retry, offline/pending/syncing/last-success
+- [x] UX on the preceding candidate: understandable errors and retry, offline/pending/syncing/last-success
   states, consistent PL/EN, keyboard, 200% zoom, contrast and screen-reader acceptance.
 
 Stable publication order: branch → PR with evidence → CI → all acceptance gates

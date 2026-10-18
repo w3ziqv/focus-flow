@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$installer = Get-ChildItem 'src-tauri/target/release/bundle/nsis/*.exe' | Select-Object -First 1
+$installer = if ($env:FOCUS_FLOW_INSTALLER) { Get-Item $env:FOCUS_FLOW_INSTALLER } else { Get-ChildItem 'src-tauri/target/release/bundle/nsis/*.exe' | Select-Object -First 1 }
 if (-not $installer) { throw 'NSIS installer was not built' }
 $installDirectory = Join-Path $env:RUNNER_TEMP 'focus-flow-install'
 $installation = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', "/D=$installDirectory") -Wait -PassThru
@@ -62,7 +62,7 @@ try {
   if (-not $ready) { throw 'Tauri driver did not start' }
   $env:FOCUS_FLOW_BINARY = $application
   $env:FOCUS_FLOW_TEST_AUTOSTART = '1'
-  $env:FOCUS_FLOW_SCREENSHOT = Join-Path $env:RUNNER_TEMP 'focus-flow-windows.png'
+  if (-not $env:FOCUS_FLOW_SCREENSHOT) { $env:FOCUS_FLOW_SCREENSHOT = Join-Path $env:RUNNER_TEMP 'focus-flow-windows.png' }
   python scripts/test-native.py
   if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed native smoke' }
 } finally {

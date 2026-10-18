@@ -13,9 +13,12 @@ The question referred to the current `3.0.0-alpha.2` candidate; an exact install
 hash and Windows version were not supplied. This is user acceptance, not a new
 automated run or independent verification of token refresh internals.
 
-This confirmation does not cover tray/mini/audio, revocation, unavailable
-credential storage, offline conflicts, update/rollback, autostart, notifications,
-sleep/resume or screen-reader testing. Those retain their separate status.
+The owner subsequently answered “Tak — wszystkie wymienione działają” to the
+explicit remaining-hardware question covering Windows and Linux notifications,
+autostart after login, sleep/resume, tray/mini and screen-reader operation. These
+are accepted as owner-reported checks on the preceding candidate; exact OS/reader
+versions and installer hashes were not supplied. Production OAuth, revocation,
+unavailable credential storage and update/backup rollback remain separate gates.
 
 ## 2026-10-18 production preparation and private migration acceptance
 
@@ -47,9 +50,28 @@ sleep/resume or screen-reader testing. Those retain their separate status.
   token endpoint returned `invalid_grant` for a deliberately invalid code,
   verifying client configuration without user authorization. Actual production
   installer Google login/restoration still needs acceptance.
-- A keyless synthetic live-test identity could not be minted: the existing CLI
-  account lacks `iam.serviceAccounts.signJwt`. No IAM role was granted and no
-  test user was created by that attempt. Live stress acceptance remains open.
+- With explicit owner approval, a conditional Token Creator grant was added only
+  to the test project service account, with a one-hour expiry. It was removed and
+  read back immediately after minting the short-lived synthetic test identity.
+  No service-account key was created.
+- Live test-cloud acceptance passed in 98.71 seconds using two independent
+  authenticated SDK clients and the real application adapter: 1105 sessions,
+  retained legacy totals, settings convergence, conflicting edits, a simulated
+  transport failure and retry, permanent deletion and masking beyond 1000 records.
+  This verifies real backend behavior; it does not substitute for physical
+  two-device or Google OAuth acceptance. The synthetic Auth user and all tested
+  document collections were confirmed absent afterward; the temporary IAM grant
+  was confirmed absent and the local token fixture was deleted.
+- Fresh candidate Security run `39153617792` passed Firestore checks but failed
+  Cargo audit on rustls 0.23.45: RUSTSEC-2026-0346/0347/0348/0349, all patched
+  in 0.23.46. The lockfile is updated to 0.23.46 and must pass a new audit before
+  release. Four unmaintained dependency notices remain visible; no threshold or
+  advisory-ignore change was made. This supersedes older clean-audit evidence.
+- Production desktop now uses a separate public API key limited to Identity
+  Toolkit, Secure Token and Firestore. Its invalid synthetic-token probe reached
+  token validation without signing in or creating a user. The web key was not
+  modified. Its browser-restriction object had an empty allowed-referrer list,
+  so object presence alone did not establish blocked native requests.
 
 See [the production rollout](PRODUCTION-ROLLOUT-3.0.md) for the remaining sequence
 and rollback boundaries. Earlier local-only limitations below describe the
@@ -84,14 +106,13 @@ This recheck prepares stable 3.0; it does not close unobserved hardware/cloud ga
 
 Remaining work before stable publication:
 
-1. Complete the remaining physical Windows native-control checks via
-   [TESTING-WINDOWS.md](TESTING-WINDOWS.md). The owner accepted Google login,
-   synchronization and operation after restart on 2026-10-18.
+1. Verify the production-configured candidate; preceding Linux/Windows hardware
+   checks and the explicitly listed screen-reader scenarios are owner-accepted.
 2. Complete live two-device, revocation/credential-store, older-export migration
    and backup/update/rollback acceptance via [TESTING-CLOUD.md](TESTING-CLOUD.md)
    and [INSTALL-UPDATE.md](INSTALL-UPDATE.md).
-3. Record notifications, login-cycle autostart, sleep/resume and manual
-   accessibility acceptance on the supported operating systems.
+3. Keep the owner-reported notifications, autostart, sleep/resume, tray/mini and
+   screen-reader acceptance with its candidate/version limitations.
 4. Review production cloud migration/configuration; alpha.2 installers currently
    target the isolated test project. Repeat required CI on the release changes
    and verify final installer hashes before publishing `v3.0.0`.

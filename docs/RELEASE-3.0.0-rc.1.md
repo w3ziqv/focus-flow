@@ -18,6 +18,14 @@ checks are recorded separately after CI completes.
   retaining the legacy source, surviving a fresh profile and JSON export/restore.
   A repeatable migration command keeps user snapshots outside the repository.
 - Local lint excludes downloaded test artifacts and external plugin/profile code.
+- Updated rustls to 0.23.46 after the fresh candidate audit identified four
+  advisories published on 2026-10-14. Audit checks remain enforced. Unmaintained
+  proc-macro-error/zbus_names/zvariant/zvariant_derive notices remain documented.
+- A dedicated production desktop API key is restricted to the three required
+  Firebase services. The production web key is unchanged.
+- Added a production Windows installer acceptance flow using the hash-pinned
+  alpha.2 baseline, a UI-created saved task, in-place upgrade and rollback from
+  the full pre-update native backup. Its runtime result must pass separately.
 - The owner confirmed Google login, synchronization and operation after restart
   on physical Windows for the preceding test candidate.
 
@@ -25,7 +33,11 @@ checks are recorded separately after CI completes.
 
 817 application tests, five desktop build/metadata regressions, 50 Firestore
 authorization checks, 1105-session adapter integration and the private migration
-check passed locally. TypeScript/ESLint and npm audit passed. Prior browser,
+check passed locally. A separate real test-cloud run passed the 1105-session
+scenario with two authenticated SDK clients, including conflicts, deletion,
+full-page masking and simulated transport failure/retry. Synthetic account/data
+cleanup and temporary IAM permission removal were independently read back.
+TypeScript/ESLint and npm audit passed. Prior browser,
 offline PWA/audio/recovery and automated accessibility checks passed; candidate
 build and native CI results must be recorded for the new source/version.
 
@@ -44,8 +56,10 @@ Do not assume cloud histories are copied between projects. See
 
 ## Remaining stable acceptance
 
-Production installer Google login/restoration, live multi-client stress scenarios,
-revocation/unavailable-store behavior, installer update/rollback, remaining physical
-native checks and manual screen-reader acceptance remain unverified. Production
+Production installer Google login/restoration, physical two-device acceptance,
+revocation/unavailable-store behavior and installer update/rollback remain
+unverified. The owner also accepted Linux/Windows notifications, login-cycle
+autostart, sleep/resume, tray/mini and screen-reader operation on the preceding
+candidate; exact OS/reader versions and installer hashes were not supplied. Production
 web and Firestore rules have not yet been migrated. P2P and macOS remain experimental;
 installers are unsigned. See [rollout](PRODUCTION-ROLLOUT-3.0.md).

@@ -68,3 +68,13 @@ keep a JSON export: browser storage does not replace an independent backup.
 Release acceptance still requires real installation and update on Linux and
 Windows, plus tray/mini/audio/notifications/autostart and suspend/resume checks.
 Building installers and automated fresh-install smoke do not close those gates.
+
+The production Desktop workflow also runs `scripts/test-windows-upgrade.ps1`
+on its disposable Windows runner. It pins the accepted alpha.2 installer by
+SHA-256, creates a task through that application's UI, backs up the entire native
+data directory, installs the candidate in place and verifies task retention.
+It then preserves the newer directory, uninstalls the candidate, restores the
+pre-update backup and checks the older application. This is a separate automated
+installer/data-retention check; it does not certify physical notification,
+login-cycle autostart, screen readers or custom audio migration. Do not run this
+destructive synthetic-profile wrapper on a personal machine.

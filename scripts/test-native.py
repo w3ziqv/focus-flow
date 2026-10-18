@@ -3,6 +3,7 @@ Start tauri-driver first; set FOCUS_FLOW_BINARY to the absolute packaged binary.
 """
 import base64
 import json
+from http.client import RemoteDisconnected
 import os
 from pathlib import Path
 import time
@@ -62,6 +63,11 @@ try:
         time.sleep(.1)
     else: raise AssertionError(f'Application UI did not load: {startup_error or script("return document.body.innerText")}')
     script('document.querySelector("button[aria-label=Close]")?.click()')
+    retained_task = os.environ.get('FOCUS_FLOW_EXPECT_RETAINED_TASK')
+    if retained_task:
+        snapshot = invoke('load_data')
+        assert retained_task in snapshot['values'].get('ff2_session', ''), 'Installer lost the previous version\'s saved task'
+        print('PASS: installer retained the previous version\'s saved task')
     cloud = invoke('cloud_status')
     assert isinstance(cloud['configured'], bool) and isinstance(cloud['persistent'], bool), cloud
     expected_project = os.environ.get('FOCUS_FLOW_EXPECT_CLOUD_PROJECT')
@@ -259,5 +265,34 @@ try:
         assert 'does not support WebRTC' in script('return document.body.innerText')
         assert script('return Array.from(document.querySelectorAll("button[role=switch]")).some(button=>button.disabled)')
         print('PASS: unsupported WebRTC is explained and pairing is disabled')
+    # Upgrade acceptance needs a durable UI-created marker after the smoke's
+    # phase transitions. It is synthetic and only enabled by that test wrapper.
+    retention_task = os.environ.get('FOCUS_FLOW_RETENTION_TASK')
+    if retention_task:
+        for _ in range(3):
+            if invoke('timer_display')['mode'] == 'focus': break
+            invoke('desktop_action', {'name': 'skip'})
+            time.sleep(.2)
+        script('const el=document.querySelector("input");Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(el,' + json.dumps(retention_task) + ');el.dispatchEvent(new Event("input",{bubbles:true}));el.blur()')
+        for _ in range(50):
+            if retention_task in invoke('load_data')['values'].get('ff2_session', ''): break
+            time.sleep(.1)
+        else: raise AssertionError('Synthetic retention task was not saved')
+        print('PASS: synthetic upgrade task saved through the application UI')
 finally:
-    request('DELETE', '')
+    controlled_quit = bool(os.environ.get('FOCUS_FLOW_RETENTION_TASK') or os.environ.get('FOCUS_FLOW_EXPECT_RETAINED_TASK'))
+    if controlled_quit:
+        # Exercise the application's normal flush/quit before replacing an
+        # installer. The wrapper separately verifies that the host process exits.
+        script('setTimeout(()=>window.__TAURI_INTERNALS__.invoke("desktop_action",{name:"quit"}),100);return true')
+        time.sleep(.5)
+    try:
+        request('DELETE', '')
+    except RemoteDisconnected:
+        # WebKitDriver may close its HTTP connection while deleting the
+        # session. Only this final teardown permits that response; errors
+        # from assertions and every earlier driver request still propagate.
+        print('Native driver closed the connection during session teardown')
+    except RuntimeError as error:
+        if not controlled_quit or not any(message in str(error).lower() for message in ('invalid session id', 'no such window', 'disconnected')):
+            raise
