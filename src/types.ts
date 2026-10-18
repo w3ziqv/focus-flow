@@ -99,6 +99,7 @@ export interface TaskPreset {
 }
 
 export interface SessionLogEntryV2 {
+  updatedLocallyAt?: string
   id: string
   /** ISO timestamp of completion */
   date: string
@@ -181,6 +182,7 @@ export interface SessionSnapshot {
 }
 
 export interface SessionSnapshotV2 extends SessionSnapshot {
+  phaseSettings?: Settings
   id?: string
   checklist?: ChecklistItem[]
 }

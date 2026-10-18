@@ -7,6 +7,7 @@ export type OS = 'ios' | 'android' | 'desktop'
  * branch on this value instead of feature-detecting all over the codebase.
  */
 export function detectPlatform(): Platform {
+  if (typeof window === 'undefined') return 'browser'
   const w = window as Window & { __TAURI_INTERNALS__?: unknown; __TAURI__?: unknown }
   if ('__TAURI_INTERNALS__' in w || '__TAURI__' in w) return 'tauri'
   if (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron')) return 'electron'

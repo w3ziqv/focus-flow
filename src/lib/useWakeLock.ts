@@ -1,3 +1,5 @@
+import { detectPlatform } from './platform'
+import { nativeInvoke, getPersistence } from './desktop/runtime'
 import { useEffect } from 'react'
 
 type WakeLockSentinelLike = { release: () => Promise<void> }
@@ -12,6 +14,10 @@ type NavigatorWithWakeLock = Navigator & {
  */
 export function useWakeLock(active: boolean): void {
   useEffect(() => {
+    if (detectPlatform() === 'tauri') {
+      void nativeInvoke('set_awake', { active: active && getPersistence().getItem('ff3_awake') !== 'false' }).catch(error => window.dispatchEvent(new CustomEvent('focus-flow:persistence', { detail: String(error) })))
+      return () => { void nativeInvoke('set_awake', { active: false }).catch(() => {}) }
+    }
     if (!active) return
     const nav = navigator as NavigatorWithWakeLock
     if (!nav.wakeLock) return

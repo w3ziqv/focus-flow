@@ -34,6 +34,8 @@ export function useShortcuts(handlers: ShortcutHandlers, keymap?: ShortcutKeymap
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.isComposing || event.metaKey || event.ctrlKey || event.altKey) return
+      // Modal owns its keyboard interaction, including Escape and native controls.
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       if (isTypingTarget(event.target)) {
         if (event.key === 'Escape') {
           ;(event.target as HTMLElement).blur()

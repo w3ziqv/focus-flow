@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-data"
+description = "Enables the save_data command without any pre-configured scope."
+commands.allow = ["save_data"]
+
+[[permission]]
+identifier = "deny-save-data"
+description = "Denies the save_data command without any pre-configured scope."
+commands.deny = ["save_data"]

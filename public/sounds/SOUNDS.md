@@ -1,6 +1,41 @@
-# Ambient Sounds & Web Audio Procedural Synthesis
+# Ambient recordings and Web Audio synthesis
 
-Starting in Focus Flow Milestone v2.2, all bundled ambient soundscapes are synthesized natively in-browser using pure mathematical procedural modeling via the Web Audio API, achieving a **0 KB static audio asset footprint**.
+Focus Flow 3.0 uses two edited nature recordings from [Moodist](https://moodist.mvze.net/)
+for **rain and ocean waves**. Pink/brown noise, binaural tones and the completion
+chime remain synthesized by Web Audio. The recorded palette preserves the existing
+preference identifiers, so saved settings and cloud validation remain compatible.
+
+## Recorded nature palette
+
+Each recording is a 58-second MP3 loop, 32 kHz stereo at 128 kbit/s, under 1 MiB.
+The first 60 seconds of the pinned source are edited with a two-second linear
+tail/head crossfade and normalized to -24 LUFS, -3 dBTP, LRA 11. Both files together
+add approximately 1.78 MiB. Original metadata is removed.
+
+Sources, original/edited SHA-256 hashes and processing are recorded in
+[moodist/provenance.json](moodist/provenance.json). Read
+[moodist/NOTICE.txt](moodist/NOTICE.txt) for attribution and license boundaries.
+Moodist identifies third-party audio as CC0 or Pixabay Content License, without
+individual source/license mappings. We retain that limitation and do not label
+these files MIT or independently verified CC0. They are embedded app soundscapes,
+not a standalone sound library; the app's source-code license does not relicense them.
+
+The app fetches only its own bundled assets; no Moodist/Pixabay server is contacted
+at runtime. The web PWA precaches both recordings and attribution; desktop builds
+embed them. Decoded buffers are cached, old audio continues until a replacement
+is ready, and late downloads cannot overwrite a subsequent selection or disposal.
+Network, HTTP, timeout or decoder failures fall back to the procedural models below.
+Timer pause and volume continue to use the shared audio graph.
+
+To reproduce the processing with FFmpeg (source paths are in the manifest):
+
+```bash
+ffmpeg -i source.mp3 -filter_complex \
+  '[0:a]asplit=3[body][tail][head];[body]atrim=start=2:end=58,asetpts=PTS-STARTPTS[b];[tail]atrim=start=58:end=60,asetpts=PTS-STARTPTS[t];[head]atrim=start=0:end=2,asetpts=PTS-STARTPTS[h];[t][h]acrossfade=d=2:c1=tri:c2=tri[seam];[b][seam]concat=n=2:v=0:a=1,loudnorm=I=-24:TP=-3:LRA=11[out]' \
+  -map '[out]' -ar 32000 -ac 2 -codec:a libmp3lame -b:a 128k -map_metadata -1 loop.mp3
+```
+
+Encoder versions can change output bytes; compare source hashes before rebuilding.
 
 ## Procedural Synthesis Models
 
@@ -15,4 +50,4 @@ Starting in Focus Flow Milestone v2.2, all bundled ambient soundscapes are synth
 
 ## Historical Notes & Attribution
 
-Legacy versions of Focus Flow (v1.0–v2.1) bundled compressed `.m4a` recordings (rain by ezwa [Public Domain], waves by Luftrum [CC BY 3.0], campfire by Glaneur de sons [CC BY 3.0], and stream by jackthemurray [CC0]). These have been completely decommissioned and replaced by real-time mathematical procedural synthesis. User-uploaded custom sounds continue to be supported locally via IndexedDB.
+Legacy versions (v1.0–v2.1) bundled `.m4a` recordings (rain by ezwa [Public Domain], waves by Luftrum [CC BY 3.0], campfire by Glaneur de sons [CC BY 3.0], and stream by jackthemurray [CC0]). Those files were removed in v2.2 and are not reused here. User-uploaded custom sounds remain local in IndexedDB and are not uploaded by cloud sync.

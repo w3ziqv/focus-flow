@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-discovery-stop"
+description = "Enables the discovery_stop command without any pre-configured scope."
+commands.allow = ["discovery_stop"]
+
+[[permission]]
+identifier = "deny-discovery-stop"
+description = "Denies the discovery_stop command without any pre-configured scope."
+commands.deny = ["discovery_stop"]

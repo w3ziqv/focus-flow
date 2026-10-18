@@ -63,6 +63,11 @@ export function SoundSettingsDialog({
           onAddFile={onAddFile}
           onRemove={onRemove}
         />
+        <details className="mt-3 text-caption text-ink-3">
+          <summary className="cursor-pointer">{t('sound.recordingsLicense')}</summary>
+          <p className="mt-2">{t('sound.recordingsCredit')} Moodist (moodist.mvze.net).</p>
+          <p className="mt-1">{t('sound.recordingsTerms')}</p>
+        </details>
       </section>
 
       {/* Layer 2: Entrainment Resonance */}

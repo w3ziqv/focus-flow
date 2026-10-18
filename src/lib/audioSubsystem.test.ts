@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AudioSubsystem } from './audioSubsystem'
 import { AudioEngine } from './audio'
+import { DEFAULT_SOUND_PREFERENCES, saveSoundPreferences } from './storage'
+import { applyRemote } from './sync/outbox'
 
 describe('AudioSubsystem (Ambient Audio Facade)', () => {
   let mockEngine: AudioEngine
@@ -69,4 +71,18 @@ describe('AudioSubsystem (Ambient Audio Facade)', () => {
     expect(result.ok).toBe(false)
     expect(result.errorKey).toBe('sound.notAudio')
   })
+  it('applies synchronized preferences immediately without another cloud write', () => {
+    const preferences = {...DEFAULT_SOUND_PREFERENCES, volume: 0.85, baseTexture: 'rain' as const}
+    const notify = vi.fn()
+    subsystem.subscribe(notify)
+    applyRemote(() => saveSoundPreferences(preferences))
+    const queue = localStorage.getItem('ff3_cloud_outbox')
+    subsystem.reloadPreferences()
+    expect(subsystem.getPreferences()).toEqual(preferences)
+    expect(mockEngine.setVolume).toHaveBeenCalledWith(0.85)
+    expect(mockEngine.setAmbient).toHaveBeenCalledWith('rain', expect.any(Array))
+    expect(notify).toHaveBeenCalledOnce()
+    expect(localStorage.getItem('ff3_cloud_outbox')).toBe(queue)
+  })
+
 })
