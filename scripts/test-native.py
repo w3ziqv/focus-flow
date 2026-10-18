@@ -3,6 +3,7 @@ Start tauri-driver first; set FOCUS_FLOW_BINARY to the absolute packaged binary.
 """
 import base64
 import json
+from http.client import RemoteDisconnected
 import os
 from pathlib import Path
 import time
@@ -287,6 +288,11 @@ finally:
         time.sleep(.5)
     try:
         request('DELETE', '')
+    except RemoteDisconnected:
+        # WebKitDriver may close its HTTP connection while deleting the
+        # session. Only this final teardown permits that response; errors
+        # from assertions and every earlier driver request still propagate.
+        print('Native driver closed the connection during session teardown')
     except RuntimeError as error:
         if not controlled_quit or not any(message in str(error).lower() for message in ('invalid session id', 'no such window', 'disconnected')):
             raise
