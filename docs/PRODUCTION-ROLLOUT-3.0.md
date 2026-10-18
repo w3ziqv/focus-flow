@@ -94,8 +94,9 @@ merely to test restoration. See [INSTALL-UPDATE.md](INSTALL-UPDATE.md).
 ## Still unverified
 
 Production desktop Google login/restoration, physical two-device acceptance,
-revocation and unavailable-store behavior, physical notification/autostart/sleep,
-remaining Windows native controls, installer upgrade/rollback and real screen
-readers remain distinct checks. The owner accepted Windows Google login/sync and
+revocation and unavailable-store behavior and installer upgrade/rollback remain
+distinct checks. The owner subsequently confirmed notifications, autostart after
+login, sleep/resume, tray/mini and screen-reader operation on Linux and Windows
+for the preceding candidate. The owner accepted Windows Google login/sync and
 operation after app restart on the test candidate; Linux timer/audio/mini/tray and
 Google login/restoration were accepted previously.

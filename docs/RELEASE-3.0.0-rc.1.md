@@ -57,7 +57,9 @@ Do not assume cloud histories are copied between projects. See
 ## Remaining stable acceptance
 
 Production installer Google login/restoration, physical two-device acceptance,
-revocation/unavailable-store behavior, installer update/rollback, remaining physical
-native checks and manual screen-reader acceptance remain unverified. Production
+revocation/unavailable-store behavior and installer update/rollback remain
+unverified. The owner also accepted Linux/Windows notifications, login-cycle
+autostart, sleep/resume, tray/mini and screen-reader operation on the preceding
+candidate; exact OS/reader versions and installer hashes were not supplied. Production
 web and Firestore rules have not yet been migrated. P2P and macOS remain experimental;
 installers are unsigned. See [rollout](PRODUCTION-ROLLOUT-3.0.md).
