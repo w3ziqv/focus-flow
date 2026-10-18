@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
     inputs:
       cloud_mode:
-        description: 'Cloud configuration: offline or isolated test Firebase (test branch only)'
+        description: 'Cloud configuration: offline, isolated test, or protected production release branch'
         required: true
         default: offline
         type: choice
-        options: [offline, test]
+        options: [offline, test, production]
       artifact_run_id:
         description: 'Optional existing installer run for runtime-only verification (same app source required)'
         required: false
@@ -19,17 +19,18 @@ permissions:
   contents: read
 jobs:
   native:
-    if: ${{ !inputs.artifact_run_id }}
+    if: ${{ !inputs.artifact_run_id && (inputs.cloud_mode != 'production' || (github.ref_protected && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/v3.0-release'))) }}
+    environment: ${{ inputs.cloud_mode == 'production' && 'production' || 'desktop-ci' }}
     env:
       FOCUS_FLOW_CLOUD_MODE: ${{ inputs.cloud_mode || 'offline' }}
-      VITE_FIREBASE_API_KEY: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_API_KEY || '' }}
-      VITE_FIREBASE_PROJECT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_PROJECT_ID || '' }}
-      VITE_FIREBASE_AUTH_DOMAIN: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_AUTH_DOMAIN || '' }}
-      VITE_FIREBASE_STORAGE_BUCKET: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_STORAGE_BUCKET || '' }}
-      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_MESSAGING_SENDER_ID || '' }}
-      VITE_FIREBASE_APP_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_APP_ID || '' }}
-      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_GOOGLE_CLIENT_ID || '' }}
-      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ inputs.cloud_mode == 'test' && secrets.DESKTOP_TEST_GOOGLE_CLIENT_SECRET || '' }}
+      VITE_FIREBASE_API_KEY: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_API_KEY || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_API_KEY || '' }}
+      VITE_FIREBASE_PROJECT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_PROJECT_ID || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_PROJECT_ID || '' }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_AUTH_DOMAIN || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_AUTH_DOMAIN || '' }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_STORAGE_BUCKET || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_STORAGE_BUCKET || '' }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_MESSAGING_SENDER_ID || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_MESSAGING_SENDER_ID || '' }}
+      VITE_FIREBASE_APP_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_FIREBASE_APP_ID || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_FIREBASE_APP_ID || '' }}
+      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_ID: ${{ inputs.cloud_mode == 'test' && vars.DESKTOP_TEST_GOOGLE_CLIENT_ID || inputs.cloud_mode == 'production' && vars.DESKTOP_PRODUCTION_GOOGLE_CLIENT_ID || '' }}
+      FOCUS_FLOW_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ inputs.cloud_mode == 'test' && secrets.DESKTOP_TEST_GOOGLE_CLIENT_SECRET || inputs.cloud_mode == 'production' && secrets.DESKTOP_PRODUCTION_GOOGLE_CLIENT_SECRET || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -97,7 +98,7 @@ jobs:
     timeout-minutes: 15
     env:
       FOCUS_FLOW_CLOUD_MODE: ${{ inputs.cloud_mode || 'offline' }}
-      FOCUS_FLOW_EXPECT_CLOUD_PROJECT: ${{ inputs.cloud_mode == 'test' && 'focus-flow-v3-test-20261010' || '' }}
+      FOCUS_FLOW_EXPECT_CLOUD_PROJECT: ${{ inputs.cloud_mode == 'test' && 'focus-flow-v3-test-20261010' || inputs.cloud_mode == 'production' && 'focus-flow-70527' || '' }}
     permissions:
       contents: read
       actions: read

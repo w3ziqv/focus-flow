@@ -1,8 +1,100 @@
 # Verification — 3.0.0-alpha.2
 
-Updated: 2026-10-11. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
+Updated: 2026-10-18. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
 observed local results. The stable tag remains blocked by the acceptance gates
 below. GitHub CI results must be recorded for the pushed commit separately.
+
+## 2026-10-18 physical Windows owner acceptance
+
+The owner answered “Tak — wszystko działa” to the explicit question about real
+Windows Google login, synchronization and operation after restarting the app.
+Those three scenarios are accepted as owner-reported physical Windows results.
+The question referred to the current `3.0.0-alpha.2` candidate; an exact installer
+hash and Windows version were not supplied. This is user acceptance, not a new
+automated run or independent verification of token refresh internals.
+
+This confirmation does not cover tray/mini/audio, revocation, unavailable
+credential storage, offline conflicts, update/rollback, autostart, notifications,
+sleep/resume or screen-reader testing. Those retain their separate status.
+
+## 2026-10-18 production preparation and private migration acceptance
+
+- Authenticated inspection verified both current databases as Standard edition,
+  Firestore Native, `europe-west1`. Test rules exactly match source; production
+  rules still omit `daily_history`. Production was not migrated or overwritten.
+- A private local snapshot of current production documents and the exact deployed
+  rules/release was saved with restrictive permissions. The application adapter
+  successfully migrated that real older snapshot in the loopback emulator with
+  v3 rules: history totals, session identities, retained legacy source, a fresh
+  local profile and JSON export/restore all passed. No real fixture or user
+  contents are committed. The explicit `test:migration` command fails without a
+  private snapshot and loopback emulator.
+- Java 21 was provisioned temporarily from the official Temurin distribution,
+  with its SHA-256 checked. All 50 rule authorization checks and the 1105-session
+  adapter integration passed locally. The ordinary suite passed 817 tests; its
+  two optional acceptance tests are skipped outside their configured runs.
+- npm audit returned zero advisories. TypeScript, ESLint and five Node desktop
+  configuration/metadata regressions passed. New production mode requires a
+  protected main or dedicated release-candidate branch,
+  consistent production Firebase/client identifiers and exact installer source
+  metadata. Fresh native/installer results are still required for these changes.
+- GitHub `Production` now permits only protected branches; main protection was
+  read back with the required PR and CI/security/Linux/Windows checks. Six public
+  production Firebase build variables were configured there and read back by name.
+- With explicit owner approval, `Focus Flow 3 Desktop Production` was created in
+  the production Google project. Its ID and issued parameter were saved only in
+  GitHub `Production`; the private temporary parameter file was removed. Google's
+  token endpoint returned `invalid_grant` for a deliberately invalid code,
+  verifying client configuration without user authorization. Actual production
+  installer Google login/restoration still needs acceptance.
+- A keyless synthetic live-test identity could not be minted: the existing CLI
+  account lacks `iam.serviceAccounts.signJwt`. No IAM role was granted and no
+  test user was created by that attempt. Live stress acceptance remains open.
+
+See [the production rollout](PRODUCTION-ROLLOUT-3.0.md) for the remaining sequence
+and rollback boundaries. Earlier local-only limitations below describe the
+initial recheck; the emulator/npm audit follow-up above supersedes those items.
+
+## 2026-10-18 stable-readiness recheck
+
+Baseline: `4f16423652445e94066fd4e8ca8d20f357753198` (`3.0.0-alpha.2`).
+This recheck prepares stable 3.0; it does not close unobserved hardware/cloud gates.
+
+- Local application suite: **817 passed**, one emulator-only test skipped.
+- TypeScript, ESLint, web/desktop frontend builds and build isolation passed.
+  ESLint now excludes ignored `test-artifacts/`: downloaded installer/test profiles
+  contained external plugin code that incorrectly caused local lint failures.
+  Application source and repository scripts remain in the lint scope.
+- Three desktop cloud configuration/metadata regressions passed.
+- Real Chromium: timer start/pause, task persistence, navigation, mobile width,
+  WebRTC pairing and bidirectional offline edit/delete convergence passed.
+- Production PWA: offline reload/navigation/settings, rain/waves decoding and
+  attribution passed. Retired-asset recovery preserved task/history and respected
+  the automatic reload limit; manual retry passed. No page errors were reported.
+- Production-preview accessibility: Polish timer/statistics/cloud, enabled axe
+  A/AA checks, modal keyboard focus/return and 200% CSS zoom passed. Screenshots
+  and the report are in ignored `test-artifacts/stable-readiness-oct18/`.
+  A real screen reader and physical OS scaling still require acceptance.
+- GitHub API read-back confirmed successful CI `38128408761`, Security
+  `38128408852` and offline Desktop `38128408764` on the baseline commit.
+  These results predate the local lint-scope/documentation changes. Fresh Rust,
+  dependency audits, emulator and installer checks were not run locally: this
+  environment has no Cargo/npm command. Frontend checks used the bundled Node
+  executable and installed project dependencies directly.
+
+Remaining work before stable publication:
+
+1. Complete the remaining physical Windows native-control checks via
+   [TESTING-WINDOWS.md](TESTING-WINDOWS.md). The owner accepted Google login,
+   synchronization and operation after restart on 2026-10-18.
+2. Complete live two-device, revocation/credential-store, older-export migration
+   and backup/update/rollback acceptance via [TESTING-CLOUD.md](TESTING-CLOUD.md)
+   and [INSTALL-UPDATE.md](INSTALL-UPDATE.md).
+3. Record notifications, login-cycle autostart, sleep/resume and manual
+   accessibility acceptance on the supported operating systems.
+4. Review production cloud migration/configuration; alpha.2 installers currently
+   target the isolated test project. Repeat required CI on the release changes
+   and verify final installer hashes before publishing `v3.0.0`.
 
 ## 2026-10-11 live Linux desktop acceptance
 
@@ -181,8 +273,9 @@ The README's unsupported AAA certification badge was removed.
    confirmed for initial web synchronization, with full two-device acceptance
    pending. A Desktop OAuth client was created in the isolated test project on
    2026-10-10. Real system-browser login and credential restoration/refresh after
-   restart passed on the owner's Linux on 2026-10-11. Physical Windows login and
-   refresh, consent revocation and memory-only fallback remain open. Then run the
+   restart passed on the owner's Linux on 2026-10-11. The owner accepted physical
+   Windows Google login, synchronization and operation after app restart on
+   2026-10-18. Consent revocation and memory-only fallback remain open. Then run the
    documented two-device scenarios against
    staging/live configuration, not just emulator-authenticated profiles.
 2. **Older data:** compare real exports before/after migration. Unknown overlap
@@ -192,7 +285,7 @@ The README's unsupported AAA certification badge was removed.
 3. **Linux/Windows acceptance:** fresh CI installation and timer/mini/IPC tests
    pass on Ubuntu and Windows runners. The owner's Arch Linux window/timer,
    audible playback, floating timer and tray restoration have been accepted.
-   Physical Windows checks, installer update/rollback with backups, audio migration,
+   Remaining physical Windows controls, installer update/rollback with backups, audio migration,
    notification delivery, login-cycle autostart and hardware suspend/resume remain
    open. CI smoke does not reproduce a physical desktop.
 4. **Accessibility:** test real screen readers, browser/OS zoom, high contrast and

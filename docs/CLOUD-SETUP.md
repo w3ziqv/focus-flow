@@ -18,6 +18,21 @@ the public project/client identity and source commit; runtime smoke checks the
 actual native cloud status against that target. The manifest excludes the client
 parameter and tokens. Missing parameters fail the build preflight; native cloud
 controls report unavailable instead of starting a broken login.
+Production desktop builds now have a separate explicit `cloud_mode=production`
+workflow dispatch. It requires protected `main` or the dedicated protected
+`codex/v3.0-release` candidate branch and the GitHub
+`Production` environment, restricted to protected branches. Its six public
+`DESKTOP_PRODUCTION_FIREBASE_*` variables target `focus-flow-70527` and were
+configured on 2026-10-18. With explicit owner approval, the production Desktop
+OAuth client `Focus Flow 3 Desktop Production` was created that day. Its public ID
+is in `DESKTOP_PRODUCTION_GOOGLE_CLIENT_ID` and its issued parameter is in the
+environment secret `DESKTOP_PRODUCTION_GOOGLE_CLIENT_SECRET`. A deliberately
+invalid code returned `invalid_grant`, verifying client configuration without
+authorizing a user. The private temporary parameter file was removed. Actual
+Google login in the production-configured installer still requires acceptance.
+The test client's identity and parameter must never be reused for production.
+Ordinary pushes/PRs still build offline installers. Runtime verification validates
+the metadata mode, Firebase project, client project number and exact source SHA.
 Enable the Google
 provider in Firebase Auth, configure audiences/testers on the Google consent
 screen and authorize the web application's domains in Firebase Auth.

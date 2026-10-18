@@ -1,10 +1,12 @@
 # Focus Flow — roadmap from 3.0
 
-Status: `3.0.0-alpha.2` is available for testing. Stable 3.0 remains blocked by
+Status: `3.0.0-rc.1` is being prepared with production desktop configuration;
+the last published test release is `3.0.0-alpha.2`. Stable 3.0 remains blocked by
 live cloud acceptance and manual desktop acceptance. Automated fresh-install
 runtime checks passed on Windows and Ubuntu; remaining gates are listed below.
 Previous specification: [archive](archive/ROADMAP-before-3.0.md).
 Evidence and limitations: [verification](VERIFICATION-3.0.md).
+Production migration/build sequence: [rollout](PRODUCTION-ROLLOUT-3.0.md).
 
 Direction: a calm offline-capable timer, optional accounts and reliable cloud.
 History, settings, goals and, by default, task/checklist content synchronize.
@@ -29,11 +31,14 @@ Linux/Windows access and installer CI.
 - [ ] Desktop: real login, refresh after restart and consent revocation; an
   unavailable credential store produces an explicitly reported memory-only session.
   Real Linux Google login and restoration/refresh after restart passed on
-  2026-10-11; Windows, revocation and unavailable-store acceptance remain open.
+  2026-10-11. On 2026-10-18 the owner confirmed physical Windows Google login,
+  synchronization and operation after app restart. Revocation and unavailable-store
+  acceptance remain open.
 - [ ] Linux and Windows: installation, update with backup, rollback, tray, mini,
   audio, notifications, autostart and suspend/resume.
-  The owner accepted Linux timer/audio/mini/tray; physical Windows testing is
-  prepared in [TESTING-WINDOWS.md](TESTING-WINDOWS.md). Other checks remain open.
+  The owner accepted Linux timer/audio/mini/tray. Windows login/sync/restart are
+  accepted; remaining native controls and physical checks are listed in
+  [TESTING-WINDOWS.md](TESTING-WINDOWS.md).
 - [x] Unit tests, emulator, npm/Rust audits, optimized GLib regression, builds and
   browser tests pass in real CI for the alpha source. Repeat for any release change.
 - [x] Alpha installers have SHA-256 manifests, unsigned status is explicit and

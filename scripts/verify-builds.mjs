@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
 
+const version = JSON.parse(readFileSync('package.json', 'utf8')).version
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'))
+assert.equal(lock.version, version, 'npm lockfile version differs from the application')
+assert.equal(lock.packages[''].version, version, 'npm root package version differs from the application')
+const cargo = readFileSync('src-tauri/Cargo.toml', 'utf8')
+assert.equal(/^version = "([^"]+)"$/m.exec(cargo)?.[1], version, 'Cargo package version differs from the application')
+const cargoLock = readFileSync('src-tauri/Cargo.lock', 'utf8')
+assert.equal(/\[\[package\]\]\nname = "focus-flow"\nversion = "([^"]+)"/.exec(cargoLock)?.[1], version, 'Cargo lockfile version differs from the application')
+
 const web = readFileSync('dist/index.html', 'utf8')
 const desktop = readFileSync('dist-desktop/index.html', 'utf8')
 assert.ok(existsSync('dist/sw.js'), 'Web build must remain offline-ready')

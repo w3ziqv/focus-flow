@@ -3,6 +3,14 @@
 Prepared: 2026-10-11. This is an unsigned **3.0.0-alpha.2** test installer,
 not a stable release. Linux acceptance does not establish Windows readiness.
 
+## Owner results — 2026-10-18
+
+The owner confirmed that Google login, synchronization and operation after app
+restart work on a physical Windows computer. These three scenarios are accepted
+as owner-reported results. The question referred to alpha.2; the exact installer
+hash and Windows version were not supplied. No separate result was reported for
+tray/mini/audio, offline retry or the remaining physical checks below.
+
 ## Exact download
 
 Download these three assets from [alpha.2](https://github.com/w3ziqv/focus-flow/releases/tag/v3.0.0-alpha.2):
