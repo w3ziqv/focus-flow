@@ -33,7 +33,11 @@ checks are recorded separately after CI completes.
 
 817 application tests, five desktop build/metadata regressions, 50 Firestore
 authorization checks, 1105-session adapter integration and the private migration
-check passed locally. TypeScript/ESLint and npm audit passed. Prior browser,
+check passed locally. A separate real test-cloud run passed the 1105-session
+scenario with two authenticated SDK clients, including conflicts, deletion,
+full-page masking and simulated transport failure/retry. Synthetic account/data
+cleanup and temporary IAM permission removal were independently read back.
+TypeScript/ESLint and npm audit passed. Prior browser,
 offline PWA/audio/recovery and automated accessibility checks passed; candidate
 build and native CI results must be recorded for the new source/version.
 
@@ -52,7 +56,7 @@ Do not assume cloud histories are copied between projects. See
 
 ## Remaining stable acceptance
 
-Production installer Google login/restoration, live multi-client stress scenarios,
+Production installer Google login/restoration, physical two-device acceptance,
 revocation/unavailable-store behavior, installer update/rollback, remaining physical
 native checks and manual screen-reader acceptance remain unverified. Production
 web and Firestore rules have not yet been migrated. P2P and macOS remain experimental;

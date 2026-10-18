@@ -47,9 +47,18 @@ sleep/resume or screen-reader testing. Those retain their separate status.
   token endpoint returned `invalid_grant` for a deliberately invalid code,
   verifying client configuration without user authorization. Actual production
   installer Google login/restoration still needs acceptance.
-- A keyless synthetic live-test identity could not be minted: the existing CLI
-  account lacks `iam.serviceAccounts.signJwt`. No IAM role was granted and no
-  test user was created by that attempt. Live stress acceptance remains open.
+- With explicit owner approval, a conditional Token Creator grant was added only
+  to the test project service account, with a one-hour expiry. It was removed and
+  read back immediately after minting the short-lived synthetic test identity.
+  No service-account key was created.
+- Live test-cloud acceptance passed in 98.71 seconds using two independent
+  authenticated SDK clients and the real application adapter: 1105 sessions,
+  retained legacy totals, settings convergence, conflicting edits, a simulated
+  transport failure and retry, permanent deletion and masking beyond 1000 records.
+  This verifies real backend behavior; it does not substitute for physical
+  two-device or Google OAuth acceptance. The synthetic Auth user and all tested
+  document collections were confirmed absent afterward; the temporary IAM grant
+  was confirmed absent and the local token fixture was deleted.
 - Fresh candidate Security run `39153617792` passed Firestore checks but failed
   Cargo audit on rustls 0.23.45: RUSTSEC-2026-0346/0347/0348/0349, all patched
   in 0.23.46. The lockfile is updated to 0.23.46 and must pass a new audit before

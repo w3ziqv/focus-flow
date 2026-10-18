@@ -27,7 +27,8 @@ Linux/Windows access and installer CI.
 
 - [ ] Two independent devices: first connection, >500 sessions, offline operation,
   partial-failure retry, conflict, permanent deletion, masking >1,000 records,
-  account switch and older totals. Emulator tests supplement live cloud acceptance.
+  account switch and older totals. The real test-cloud 1105-session SDK scenario
+  passed on 2026-10-18; physical two-device/account-switch acceptance remains.
 - [ ] Desktop: real login, refresh after restart and consent revocation; an
   unavailable credential store produces an explicitly reported memory-only session.
   Real Linux Google login and restoration/refresh after restart passed on

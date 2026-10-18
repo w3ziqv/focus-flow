@@ -36,6 +36,13 @@ Do not promote the test Preview into production.
   0.23.45. The lockfile is updated to patched 0.23.46; fresh CI must verify it.
   Audit severity thresholds and advisory handling are unchanged.
 
+- Two independent authenticated SDK clients passed the real test-cloud
+  1105-session acceptance scenario, including legacy totals, conflicts, permanent
+  deletion and masking all pages. Transport failure/retry was simulated.
+  Synthetic documents/Auth identity were confirmed removed, the temporary
+  test-only IAM permission was revoked and the local token fixture was deleted.
+  Physical two-device acceptance remains a separate check.
+
 ## Repeat the private migration check
 
 Use the project Firebase CLI and Java 21. Set `FOCUS_FLOW_MIGRATION_SNAPSHOT` to
@@ -53,8 +60,8 @@ into a committed fixture. Keep any failure output private too.
 ## Release sequence
 
 1. Complete the remaining physical acceptance checks listed in
-   [VERIFICATION-3.0.md](VERIFICATION-3.0.md), and live two-client cloud scenarios.
-   Large-history emulator acceptance is supplementary evidence.
+   [VERIFICATION-3.0.md](VERIFICATION-3.0.md), and physical two-device cloud scenarios.
+   Real test-cloud SDK and emulator acceptance are supplementary evidence.
 2. Build and verify the production candidate on protected `codex/v3.0-release`
    using the configured production **Desktop app** client. Its ID/parameter are
    stored in GitHub `Production`; see [CLOUD-SETUP.md](CLOUD-SETUP.md).
@@ -86,7 +93,7 @@ merely to test restoration. See [INSTALL-UPDATE.md](INSTALL-UPDATE.md).
 
 ## Still unverified
 
-Production desktop Google login/restoration, live two-client stress acceptance,
+Production desktop Google login/restoration, physical two-device acceptance,
 revocation and unavailable-store behavior, physical notification/autostart/sleep,
 remaining Windows native controls, installer upgrade/rollback and real screen
 readers remain distinct checks. The owner accepted Windows Google login/sync and
