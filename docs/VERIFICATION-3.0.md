@@ -50,6 +50,16 @@ sleep/resume or screen-reader testing. Those retain their separate status.
 - A keyless synthetic live-test identity could not be minted: the existing CLI
   account lacks `iam.serviceAccounts.signJwt`. No IAM role was granted and no
   test user was created by that attempt. Live stress acceptance remains open.
+- Fresh candidate Security run `39153617792` passed Firestore checks but failed
+  Cargo audit on rustls 0.23.45: RUSTSEC-2026-0346/0347/0348/0349, all patched
+  in 0.23.46. The lockfile is updated to 0.23.46 and must pass a new audit before
+  release. Four unmaintained dependency notices remain visible; no threshold or
+  advisory-ignore change was made. This supersedes older clean-audit evidence.
+- Production desktop now uses a separate public API key limited to Identity
+  Toolkit, Secure Token and Firestore. Its invalid synthetic-token probe reached
+  token validation without signing in or creating a user. The web key was not
+  modified. Its browser-restriction object had an empty allowed-referrer list,
+  so object presence alone did not establish blocked native requests.
 
 See [the production rollout](PRODUCTION-ROLLOUT-3.0.md) for the remaining sequence
 and rollback boundaries. Earlier local-only limitations below describe the

@@ -28,6 +28,13 @@ Do not promote the test Preview into production.
   verified client configuration without user authorization. The temporary
   parameter file was removed. The existing main branch requires PR and
   CI/security/runtime checks.
+- Desktop uses a dedicated public API key restricted to Identity Toolkit, Secure
+  Token and Firestore. Five other Firebase identifiers match the current Web App
+  SDK configuration. The web key was not changed. An invalid synthetic-token
+  probe confirmed key acceptance without authenticating or creating a user.
+- The first candidate audit found four newly published rustls advisories in
+  0.23.45. The lockfile is updated to patched 0.23.46; fresh CI must verify it.
+  Audit severity thresholds and advisory handling are unchanged.
 
 ## Repeat the private migration check
 

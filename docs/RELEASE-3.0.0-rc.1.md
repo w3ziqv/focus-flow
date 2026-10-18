@@ -18,6 +18,11 @@ checks are recorded separately after CI completes.
   retaining the legacy source, surviving a fresh profile and JSON export/restore.
   A repeatable migration command keeps user snapshots outside the repository.
 - Local lint excludes downloaded test artifacts and external plugin/profile code.
+- Updated rustls to 0.23.46 after the fresh candidate audit identified four
+  advisories published on 2026-10-14. Audit checks remain enforced. Unmaintained
+  proc-macro-error/zbus_names/zvariant/zvariant_derive notices remain documented.
+- A dedicated production desktop API key is restricted to the three required
+  Firebase services. The production web key is unchanged.
 - The owner confirmed Google login, synchronization and operation after restart
   on physical Windows for the preceding test candidate.
 

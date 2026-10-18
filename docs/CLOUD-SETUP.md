@@ -23,7 +23,11 @@ workflow dispatch. It requires protected `main` or the dedicated protected
 `codex/v3.0-release` candidate branch and the GitHub
 `Production` environment, restricted to protected branches. Its six public
 `DESKTOP_PRODUCTION_FIREBASE_*` variables target `focus-flow-70527` and were
-configured on 2026-10-18. With explicit owner approval, the production Desktop
+configured on 2026-10-18. Desktop uses a separate public API key limited to
+Identity Toolkit, Secure Token and Firestore. The web application's existing key
+is unchanged; the remaining five SDK identifiers match the production Web App.
+An invalid synthetic-token request verified API-key acceptance without logging
+in or creating a user. With explicit owner approval, the production Desktop
 OAuth client `Focus Flow 3 Desktop Production` was created that day. Its public ID
 is in `DESKTOP_PRODUCTION_GOOGLE_CLIENT_ID` and its issued parameter is in the
 environment secret `DESKTOP_PRODUCTION_GOOGLE_CLIENT_SECRET`. A deliberately

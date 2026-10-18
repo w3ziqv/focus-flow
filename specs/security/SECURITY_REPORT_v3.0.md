@@ -133,6 +133,23 @@ download. It does not close the live-cloud or physical OS acceptance gates.
 
 ## Remaining gates and risks
 
+### 2026-10-18 candidate audit follow-up
+
+Fresh CI found RUSTSEC-2026-0346, RUSTSEC-2026-0347, RUSTSEC-2026-0348 and
+RUSTSEC-2026-0349 in rustls 0.23.45. All four were published on 2026-10-14 and
+are patched in 0.23.46; the lockfile is updated accordingly. Fresh security/native
+checks must pass before distributing the candidate. The audit policy is unchanged.
+The unmaintained notices now include proc-macro-error, zbus_names, zvariant and
+zvariant_derive; they are not suppressed or represented as fixed vulnerabilities.
+
+Production IAM inspection found no allUsers/allAuthenticatedUsers bindings.
+The production Auth domains include both custom domains. A separate desktop API
+key is restricted to identitytoolkit.googleapis.com, securetoken.googleapis.com
+and firestore.googleapis.com; the web key is unchanged. A private real-data
+snapshot passed migration/backup restoration under v3 rules in the emulator.
+These checks supplement, rather than certify, live production OAuth/Firestore
+and physical operating-system acceptance.
+
 GitHub repository policy was inspected and corrected on 2026-10-10. `main` now
 requires a PR and current trusted GitHub Actions CI/security/browser/installed
 Linux/Windows checks, including for administrators. Force pushes/deletion are
