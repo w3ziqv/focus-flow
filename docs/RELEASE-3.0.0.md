@@ -13,6 +13,20 @@ migration/account-switch backups. Deletion and title/checklist masking also cove
 history outside the visible 1000-session list. Account/project changes require an
 explicit local-data merge or replacement decision.
 
+## UI and local reliability
+
+The timer, settings and history share accessible controls and five semantic
+themes. Nested dialogs preserve their parent forms and keyboard focus; zoom
+remains available. History renders in batches of 50 while search, totals and
+export cover the complete stored history. Timer ticks no longer re-render the
+navigation, task field, sync indicator or open settings/audio unnecessarily.
+
+Session completion and wake recovery use the same date and identity rules.
+Permanent deletion records and pending synchronization writes are retained.
+PWA loading/recovery preserves local data. UI boundaries and state ownership
+are documented in [the architecture map](UI-ARCHITECTURE.md) and
+[component contracts](UI-COMPONENTS.md).
+
 ## Desktop
 
 Linux and Windows include system-browser Google sign-in with PKCE/loopback,
@@ -45,3 +59,8 @@ source CI, production rollout and installer checksums must replace pending statu
 before this draft becomes the published release description.
 
 See [verification](VERIFICATION-3.0.md) and [production rollout](PRODUCTION-ROLLOUT-3.0.md).
+
+The current UI-stage evidence is [recorded separately](modernization/2026-10-27-ui.md).
+Its 844 application tests, fresh emulator/private restore checks, staged web
+smoke and CI results supplement the historical evidence above. New physical
+acceptance and production installer metadata still determine publication.

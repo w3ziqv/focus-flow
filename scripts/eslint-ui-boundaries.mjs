@@ -14,9 +14,13 @@ export const uiBoundaries = {
       const ui = /^(app|views|features|ui)\//
       const blocked = source.startsWith('ui/')
         ? /^(app|views|features|domain)\//.test(target) || (target.startsWith('lib/') && target !== 'lib/i18n') || /^(firebase|@tauri-apps)(\/|$)/.test(target)
-        : source.startsWith('lib/') || source.startsWith('domain/')
-          ? ui.test(target)
-          : /^(features|views)\//.test(source) && target.startsWith('app/')
+        : source.startsWith('domain/')
+          ? ui.test(target) || target.startsWith('lib/')
+          : source.startsWith('lib/')
+            ? ui.test(target)
+            : source.startsWith('features/')
+              ? /^(app|views)\//.test(target)
+              : source.startsWith('views/') && target.startsWith('app/')
       if (blocked) context.report({ node, messageId: 'boundary', data: { from: source, to: target } })
     }
     return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check, ImportExpression: check }

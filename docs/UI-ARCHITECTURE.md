@@ -87,7 +87,8 @@ komponentów i zrzuty aplikacji pokrywają aktualną skalę bez dodatkowego runt
 | Język | I18nProvider | lokalny | wszystkie `useI18n`, także memo | setLang; zmiana context odświeża memo |
 | Interfejs, skróty, maskowanie | fasada storage; Shell jako bieżąca projekcja | lokalny, wybrane ustawienia synchronizowane | Shell, dialogi, audio/narracja | patch/import/storage event; nie przechowywać niezależnych autorytatywnych kopii |
 | Otwarte dialogi | useDialogStack w Shell | pamięć | AppDialogs; manager fokusu wyprowadza najwyższą warstwę DOM | push bez duplikatów/pop; rodzic pozostaje zamontowany |
-| Szkic długości i celu, skrótów/webhooka | odpowiedni dialog | pamięć instancji, dopiero Save zapisuje | lokalny formularz | edit/save/cancel; resize ani tick nie resetuje szkicu |
+| Szkic długości i celu | TimerSettingsModal | pamięć instancji, dopiero Save przekazuje do engine | lokalny formularz | edit/save/cancel; resize ani tick nie resetuje szkicu |
+| Skróty i webhook | Shell / AppSettingsModal oraz fasada storage | zapis bez osobnego Save: wybrany klawisz lub zmiana pola webhooka | dialog i odbiorcy preferencji | capture/key/reset albo edit/toggle; Escape anuluje przechwytywanie klawisza, nie cofa już zapisanych preferencji |
 | Ekran / trasa porad | Shell / GuidesView | pamięć | NavPill / ekrany porad | navigate/topic/article/back; opuszczenie porad resetuje trasę |
 | Tożsamość, zgoda, stan sync i błędy | CloudSyncAdapter | storage jako cache; tokeny native w OS | CloudSyncModal i SyncStatusIndicator | login/logout/consent/sync/retry/online/offline; UI nie nadaje uprawnień UID |
 | Onboarding i sugestia instalacji | app + fasada preferencji | lokalne flagi | onboarding/InstallPrompt | done/dismiss/install; bez przejęcia aktywnego timera |

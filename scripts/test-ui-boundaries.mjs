@@ -11,4 +11,6 @@ test('presentation dependencies point toward primitives and adapters', () => {
   assert.equal(lint('ui/Modal', "import('../../src/lib/storage')").length, 1)
   assert.equal(lint('lib/timer', "import('../views/TimerView')").length, 1)
   assert.equal(lint('features/timer/Dial', "export * from '../../app/Shell'").length, 1)
+  assert.equal(lint('domain/nested/Rule', "import('../../../src/lib/storage')").length, 1)
+  assert.equal(lint('features/timer/Dial', "import('../../views/TimerView')").length, 1)
 })
