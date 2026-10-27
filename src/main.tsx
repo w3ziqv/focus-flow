@@ -5,7 +5,7 @@ import { initializeDesktopStorage, nativeInvoke } from './lib/desktop/runtime'
 import { initializeNativeNotifications } from './lib/notifications'
 import { installChunkRecovery } from './lib/chunkRecovery'
 import { detectPlatform } from './lib/platform'
-import { ApplicationBoundary } from './components/ApplicationBoundary'
+import { ApplicationBoundary } from './app/ApplicationBoundary'
 
 if (detectPlatform() !== 'tauri') installChunkRecovery(import.meta.url)
 
@@ -15,7 +15,7 @@ async function mount(): Promise<void> {
     await initializeDesktopStorage()
     await initializeNativeNotifications()
     const Component = new URLSearchParams(location.search).has('mini')
-      ? (await import('./components/MiniDial')).default
+      ? (await import('./features/desktop/MiniDial')).default
       : (await import('./App')).default
     createRoot(root).render(<StrictMode><ApplicationBoundary><Component /></ApplicationBoundary></StrictMode>)
   } catch {

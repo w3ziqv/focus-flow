@@ -14,16 +14,16 @@ import {
   sumMinutes,
   deleteSessionWithStats,
 } from '../lib/stats'
-import { StatCard } from '../components/StatCard'
-import { WeekChart } from '../components/WeekChart'
-import { ActivityHeatmap } from '../components/ActivityHeatmap'
-import { TaskBreakdown } from '../components/TaskBreakdown'
-import { ProductivityInsights } from '../components/ProductivityInsights'
-import { SegmentedTabs } from '../components/SegmentedTabs'
-import { ZenMilestones } from '../components/ZenMilestones'
-import { SearchFilterWell } from '../components/SearchFilterWell'
-import { ExportCardModal } from '../components/ExportCardModal'
-import { PillButton } from '../components/PillButton'
+import { StatCard } from '../features/statistics/StatCard'
+import { WeekChart } from '../features/statistics/WeekChart'
+import { ActivityHeatmap } from '../features/statistics/ActivityHeatmap'
+import { TaskBreakdown } from '../features/statistics/TaskBreakdown'
+import { ProductivityInsights } from '../features/statistics/ProductivityInsights'
+import { SegmentedTabs } from '../ui/SegmentedTabs'
+import { ZenMilestones } from '../features/statistics/ZenMilestones'
+import { SearchFilterWell } from '../features/statistics/SearchFilterWell'
+import { ExportCardModal } from '../features/statistics/ExportCardModal'
+import { PillButton } from '../ui/PillButton'
 import type { WeeklyCardData } from '../lib/cardExport'
 
 interface StatsViewProps {

@@ -94,7 +94,9 @@ Automated accessibility checks do not constitute WCAG certification.
 focus-flow/
 ├── public/              # Static web assets, PWA icons, screenshots, favicon
 ├── src/
-│   ├── components/      # UI components (Dial, Settings, AudioMixer, Shortcuts)
+│   ├── app/             # Shell, dialogs, navigation and application lifecycle
+│   ├── ui/              # Accessible primitives and shared dialog behavior
+│   ├── features/        # Timer, audio, statistics, settings, sync and desktop UI
 │   ├── domain/          # Pure calendar and session statistics
 │   ├── design/          # Single token source and generated CSS
 │   ├── lib/             # Core engines (audio, storage, export, sync, stats, timer)
@@ -148,6 +150,8 @@ npm run build
 - [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
 - [`docs/adr/`](docs/adr/README.md) — Current ADRs supplementing the historical records.
+- [`docs/UI-ARCHITECTURE.md`](docs/UI-ARCHITECTURE.md) — Component/state map and dependency rules.
+- [`docs/UI-COMPONENTS.md`](docs/UI-COMPONENTS.md) — Representative UI contracts and examples.
 - [`docs/modernization/2026-10-26.md`](docs/modernization/2026-10-26.md) — Audit, changes, measurements and verification limits.
 - [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
 

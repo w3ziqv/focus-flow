@@ -4,6 +4,11 @@ Current contract: 2026-10-26. This is a working timer interface: the next action
 and the time remaining carry the hierarchy. Preserve the concentric dial,
 Fraunces figures, Instrument Sans text, warm paper and focus/break accents.
 
+UI architecture updated 2026-10-27: [component/state map](UI-ARCHITECTURE.md),
+[representative component contracts](UI-COMPONENTS.md) and
+[ADR-0011](adr/0011-ui-ownership-and-render-boundaries.md). Primitives now live
+in `ui/`, feature UI in `features/`, composition in `views/` and `app/`.
+
 ## Token ownership
 
 `src/design/tokens.json` is the single authored source for semantic colors,

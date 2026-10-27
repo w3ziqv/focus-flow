@@ -1,5 +1,28 @@
 # Przekazanie: architektura UI, weryfikacja i pełne wydanie Focus Flow
 
+## Kontynuacja 27.10.2026 — bieżący etap
+
+Wdrożono mapę i granice `app/views/features/ui`, własność stanu, izolację renderów,
+stos dialogów i kontrakty. Źródła: [raport UI](2026-10-27-ui.md),
+[mapa i stan](../UI-ARCHITECTURE.md), [kontrakty](../UI-COMPONENTS.md), ADR-0011.
+Lokalnie: 844 unit/64 pliki, lint/typecheck/tokeny, oba buildy frontendu, granice,
+desktop config, audit npm 0, browser/WebRTC/historia, PWA offline/recovery, axe,
+56 prób reguł i integracja 1105 sesji. Prywatny snapshot z 27.10 przeszedł
+migrację i odtworzenie w loopback emulatorze. Kopie są poza repozytorium.
+
+Trzy próby pomiaru: nawigacja, TaskField, sync, otwarte ustawienia/audio i indeks
+porad przestały renderować się od samych ticków (około 8 → 0 / 2 s); silnik nadal
+aktualizuje tarczę. Nie jest to deklaracja oszczędności CPU/baterii.
+
+Publikacja pozostaje zależna od świeżego CI dla commita kandydata, produkcyjnych
+instalatorów i nowych testów właściciela: OAuth/restart, dwa fizyczne urządzenia,
+zmiana konta/revocation/brak keyringu, sleep/resume i upgrade/backup rollback.
+Wyników wcześniejszych kandydatów nie przenoszono na nowy kod. Produkcyjne reguły
+i przypisanie domen nadal są starsze; brak migracji i publikacji w tym miejscu.
+Commit/PR i wyniki końcowe zostaną zapisane po ukończeniu bieżącej weryfikacji.
+
+Poniższe przekazanie z poprzedniej sesji pozostaje historycznym punktem odniesienia.
+
 Punkt odniesienia: prace z 26.10.2026; przekazanie uzupełnione 27.10.2026.
 Ten dokument przekazuje kontekst następnej sesji.
 Nie uruchamia jej automatycznie i sam nie upoważnia do wdrożenia produkcji.

@@ -10,7 +10,8 @@
 ## Current dependency boundaries
 
 ```text
-views/ + components/     React presentation, screen composition and accessible controls
+app/ + views/           application activation and screen composition
+features/ + ui/         feature presentation and accessible primitives (ADR-0011)
 lib/timer.ts            React lifecycle adapter; deadlines, worker and device events
 lib/store.ts            shared session-completion operation and goal/milestone coordination
 domain/                 pure calendar and session statistics; no React/storage/Firebase imports

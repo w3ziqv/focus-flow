@@ -175,6 +175,7 @@ jobs:
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:browser
+      - run: npm run test:ui-interactions
       - name: Accessibility and Polish UI
         run: |
           npm run dev -- --host 127.0.0.1 --port 1420 --strictPort > /tmp/focus-flow-dev.log 2>&1 &
@@ -189,6 +190,7 @@ jobs:
             /tmp/focus-flow-ux-audit
             /tmp/focus-flow-browser-failure.png
             test-artifacts/modernization/history-mobile
+            test-artifacts/ui-architecture/after
           if-no-files-found: warn
       - run: npm run build
       - run: npm run test:web-offline
