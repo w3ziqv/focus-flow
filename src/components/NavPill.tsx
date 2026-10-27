@@ -11,7 +11,7 @@ export function NavPill({ view, onView, onOpenSettings }: NavPillProps): React.J
   const { t } = useI18n()
 
   const linkClass = (active: boolean) =>
-    `rounded-full px-4 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] active:bg-sunken ${
+    `rounded-full px-3 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] active:bg-sunken ${
       active ? 'bg-sunken text-ink' : 'text-ink-2 hover:text-ink'
     }`
 
@@ -20,7 +20,7 @@ export function NavPill({ view, onView, onOpenSettings }: NavPillProps): React.J
       aria-label={t('app.name')}
       className="nav-mobile-bottom fixed inset-x-0 top-3 z-40 flex justify-center"
     >
-      <div className="flex items-center gap-1 rounded-full border border-line-subtle bg-card/85 px-2 py-1.5 shadow-halo backdrop-blur-md">
+      <div className="flex items-center gap-1 rounded-control border border-line-subtle bg-card px-2 py-1.5">
         <span className="flex items-center gap-2 px-3 max-sm:hidden">
           <span aria-hidden="true" className="size-2 rounded-full bg-[var(--ac)]" />
           <span className="font-serif text-[15px] font-[500] text-ink">{t('app.name')}</span>

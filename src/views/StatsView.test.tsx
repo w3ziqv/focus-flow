@@ -25,6 +25,22 @@ describe('StatsView (v2.3 Features)', () => {
     localStorage.clear()
   })
 
+  it('pages the visible history while searching the complete set and preserving stored sessions', () => {
+    const entries = Array.from({length:65}, (_, i) => ({id:`page-${i}`,date:new Date().toISOString(),minutes:1,task:`History ${i}`}))
+    storage.saveSessions(entries)
+    render(<I18nProvider><StatsView stats={mockStats} lang="pl" /></I18nProvider>)
+    expect(screen.getAllByRole('button', {name:'Edytuj nazwę zadania'})).toHaveLength(50)
+    expect(screen.queryByText('History 64', {exact:true})).toBeNull()
+    fireEvent.click(screen.getByRole('button', {name:'Pokaż kolejne sesje'}))
+    expect(screen.getAllByRole('button', {name:'Edytuj nazwę zadania'})).toHaveLength(65)
+    fireEvent.change(screen.getByPlaceholderText(/szukaj/i), {target:{value:'History 64'}})
+    expect(screen.getByText('History 64', {exact:true})).toBeDefined()
+    expect(screen.getAllByRole('button', {name:'Edytuj nazwę zadania'})).toHaveLength(1)
+    fireEvent.change(screen.getByPlaceholderText(/szukaj/i), {target:{value:''}})
+    expect(screen.getAllByRole('button', {name:'Edytuj nazwę zadania'})).toHaveLength(50)
+    expect(storage.loadSessions()).toHaveLength(65)
+  })
+
   it('renders search and date filter well', () => {
     render(
       <I18nProvider>
@@ -107,6 +123,18 @@ describe('StatsView (v2.3 Features)', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(updateSpy).toHaveBeenCalledWith('s1', 'Renamed task')
+  })
+
+  it('does not save when focus moves from the edit input to Cancel', () => {
+    storage.saveSessions([{id:'cancel-edit',date:new Date().toISOString(),minutes:25,task:'Original task'}])
+    render(<I18nProvider><StatsView stats={mockStats} lang="pl" /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', {name:'Edytuj nazwę zadania'}))
+    const input = screen.getByRole('textbox', {name:'Edytuj nazwę zadania'})
+    fireEvent.change(input, {target:{value:'Discard this edit'}})
+    const cancel = screen.getByRole('button', {name:'Anuluj (Esc)'})
+    fireEvent.blur(input, {relatedTarget:cancel})
+    fireEvent.click(cancel)
+    expect(storage.loadSessions()[0].task).toBe('Original task')
   })
 
   it('allows deleting session and triggers atomic stats decrement', () => {

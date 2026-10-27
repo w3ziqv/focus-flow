@@ -22,13 +22,12 @@ export function Switch({ checked, onChange, label, disabled = false, hideLabel =
         aria-checked={checked}
         aria-labelledby={id}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 [transition-timing-function:var(--ease-standard)] ${
-          checked ? 'bg-[var(--ac)]' : 'bg-sunken ring-1 ring-line ring-inset'
-        }`}
+        className="relative flex size-target shrink-0 items-center rounded-control disabled:cursor-not-allowed disabled:opacity-40"
       >
+        <span aria-hidden="true" className={`absolute inset-x-0 top-2.5 h-6 rounded-control transition-colors duration-200 ${checked ? 'bg-[var(--ac)]' : 'bg-sunken ring-1 ring-line ring-inset'}`} />
         <span
           aria-hidden="true"
-          className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-card shadow-[0_1px_2px_rgba(20,20,19,0.2)] transition-transform duration-200 [transition-timing-function:var(--ease-overshoot)] ${
+          className={`absolute top-3 left-0.5 size-5 rounded-control bg-card transition-transform duration-200 [transition-timing-function:var(--ease-overshoot)] ${
             checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />

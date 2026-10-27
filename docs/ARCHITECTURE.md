@@ -1,5 +1,51 @@
 # Architecture
 
+> Current architecture (2026-10-26): [ADR-0010](adr/0010-evidence-based-modular-modernization.md)
+> and [modernization evidence](modernization/2026-10-26.md) supersede conflicting
+> statements in the historical ADRs below. The project actually uses TypeScript
+> 5.8, Firebase 12 and Tauri 2. Old TS7 benchmark tables were not reproduced and
+> must not be used as evidence. Zoom is supported; tombstones are permanent;
+> browser E2E tests already exist. Cloud sync is optional and sends disclosed data.
+
+## Current dependency boundaries
+
+```text
+views/ + components/     React presentation, screen composition and accessible controls
+lib/timer.ts            React lifecycle adapter; deadlines, worker and device events
+lib/store.ts            shared session-completion operation and goal/milestone coordination
+domain/                 pure calendar and session statistics; no React/storage/Firebase imports
+lib/storage.ts          validated, compatible ff2/ff3 storage facade and storage events
+lib/desktop/runtime.ts  selects localStorage or serialized NativePersistence
+lib/sync/               Auth, account consent, outbox, history migration, transport and merge
+lib/audioSubsystem.ts   sound preferences, blobs and AudioEngine orchestration
+lib/audio.ts            Web Audio graphs, generated sound and recording fallbacks
+design/tokens.json      authored tokens, also read by theme previews/exports
+design/tokens.css       generated CSS; checked by CI
+src-tauri/              native file snapshots, OAuth, credential storage, tray and IPC guards
+```
+
+`domain/` imports only pure domain modules and type definitions. ESLint enforces
+the infrastructure/UI import boundary. The storage facade remains compatible;
+moving every historical helper or introducing a DI framework is not required.
+`FocusStore` coordinates multiple writes but does not provide a crash-safe browser
+transaction. Native writes coalesce and serialize atomic file snapshots.
+
+The application stores settings/history locally first. A worker requests redraws;
+the deadline determines completion. Both normal completion and cold wake call
+the same store operation, with a durable phase ID and completion timestamp.
+Repeat calls for an ID still in the visible log or deletion set are ignored.
+Cloud conflict handling and permanent tombstones remain separate from the active
+device timer. Sound files stay in IndexedDB or native sound files, not Firestore.
+
+Dialogs are imported when opened. A hidden focus overlay does not mount another
+dial. PWA precaching still downloads all application chunks, including optional
+Firebase code; lazy execution is not a zero-transfer claim. Desktop builds omit
+the service worker. Node 24 is shared by `.node-version`, CI and current Vercel.
+The statistics screen has a memoized boundary and a paged visible history;
+full-set search, calculations and export remain independent of the visible page.
+
+## Historical records
+
 Decisions are recorded as short ADRs (Architecture Decision Records). Status:
 **Accepted** decisions are binding; **Proposed** ones wait for a trigger. This
 document is the reason a new contributor can understand *why*, not just *what*.

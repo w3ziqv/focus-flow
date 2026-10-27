@@ -13,8 +13,7 @@ import {
   saveSettings,
 } from './storage'
 import { isRemoteWrite } from './sync/outbox'
-import { recordFocusSession } from './stats'
-import { addSession } from './sessions'
+import { FocusStore } from './store'
 import { audio } from './audio'
 import { getNotificationPermission, requestNotificationPermission } from './notifications'
 import { createTimerTicker } from './timerWorker'
@@ -139,7 +138,7 @@ export function useTimerEngine(): TimerEngine {
   const goalsRef = useRef<GoalSettings>(goals)
   const autoStartTimer = useRef<number | null>(null)
   const celebrationTimer = useRef<number | null>(null)
-  const sessionIdRef = useRef<string | null>(null)
+  const sessionIdRef = useRef<string | null>(snapshot?.id ?? (snapshot?.running && snapshot.endTs ? `wake_${snapshot.endTs.toString(36)}` : null))
 
   useEffect(() => {
     const changed = (event: Event) => {
@@ -159,14 +158,14 @@ export function useTimerEngine(): TimerEngine {
         if (runningRef.current || remainingRef.current !== durationOf(settingsRef.current, modeRef.current)) {
           pendingRemoteSettings.current = next
           // Upgrade older snapshots before a restart can pick up remote durations.
-          saveSession({phaseSettings: settingsRef.current, mode: modeRef.current, round: roundRef.current, running: runningRef.current, endTs: endTsRef.current, remainingMs: remainingRef.current, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
+          saveSession({id: sessionIdRef.current ?? undefined, phaseSettings: settingsRef.current, mode: modeRef.current, round: roundRef.current, running: runningRef.current, endTs: endTsRef.current, remainingMs: remainingRef.current, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
         }
         else {
           pendingRemoteSettings.current = null
           settingsRef.current = next; setSettings(next)
           const remaining = durationOf(next, modeRef.current)
           remainingRef.current = remaining; setRemainingMs(remaining)
-          saveSession({phaseSettings: next, mode: modeRef.current, round: roundRef.current, running: false, endTs: null, remainingMs: remaining, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
+          saveSession({id: sessionIdRef.current ?? undefined, phaseSettings: next, mode: modeRef.current, round: roundRef.current, running: false, endTs: null, remainingMs: remaining, task: taskRef.current, taskDone: taskDoneRef.current, checklist: checklistRef.current})
         }
       }
       if (key === 'ff2_goals') {const next = loadGoals(); goalsRef.current = next; setGoals(next)}
@@ -217,6 +216,7 @@ export function useTimerEngine(): TimerEngine {
   const persist = useCallback(
     (next: { running: boolean; remainingMs: number; endTs: number | null }) => {
       saveSession({
+        id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
         mode: modeRef.current,
         round: roundRef.current,
@@ -244,11 +244,10 @@ export function useTimerEngine(): TimerEngine {
     setRunning(true)
     runningRef.current = true
     setRemainingMs(endTs - Date.now())
-    persist({ running: true, remainingMs: endTs - Date.now(), endTs })
-
     if (!sessionIdRef.current) {
-      sessionIdRef.current = `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+      sessionIdRef.current = crypto.randomUUID()
     }
+    persist({ running: true, remainingMs: endTs - Date.now(), endTs })
     triggerWebhook('start', sessionIdRef.current)
   }, [persist, triggerWebhook])
 
@@ -274,18 +273,17 @@ export function useTimerEngine(): TimerEngine {
     if (currentMode === 'focus') {
       const todayKey = new Date().toDateString()
       const prevTodayMinutes = statsRef.current.history[todayKey] ?? 0
-      const nextStats = recordFocusSession(statsRef.current, currentSettings.focus)
-      setStats(nextStats)
-      statsRef.current = nextStats
-
-      // Record completed session
-      addSession({
+      const completedAt = endTsRef.current ?? Date.now()
+      const result = FocusStore.recordSession({
         id: currentSessionId,
-        date: new Date().toISOString(),
+        date: new Date(completedAt).toISOString(),
         minutes: currentSettings.focus,
         task: taskRef.current.trim() !== '' ? taskRef.current.trim() : null,
         checklist: checklistRef.current.length > 0 ? [...checklistRef.current] : undefined,
-      })
+      }, statsRef.current)
+      const nextStats = result.stats
+      setStats(nextStats)
+      statsRef.current = nextStats
 
       if (taskRef.current.trim() !== '') {
         setTaskDone(true)
@@ -348,7 +346,7 @@ export function useTimerEngine(): TimerEngine {
     }
   }, [persist, start, triggerWebhook, applyPendingSettings])
 
-  // Ticker: unthrottled Web Worker ticker with fallback
+  // Heartbeat only redraws; the wall-clock deadline owns elapsed time.
   useEffect(() => {
     if (!running) return
     const ticker = createTimerTicker(() => {
@@ -542,6 +540,7 @@ export function useTimerEngine(): TimerEngine {
     setTaskState(trimmed)
     taskRef.current = trimmed
     saveSession({
+      id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
@@ -559,6 +558,7 @@ export function useTimerEngine(): TimerEngine {
     setChecklistState(sanitized)
     checklistRef.current = sanitized
     saveSession({
+      id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
@@ -583,6 +583,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+      id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
@@ -602,6 +603,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+      id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,
@@ -619,6 +621,7 @@ export function useTimerEngine(): TimerEngine {
     checklistRef.current = next
     setChecklistState(next)
     saveSession({
+      id: sessionIdRef.current ?? undefined,
         phaseSettings: settingsRef.current,
       mode: modeRef.current,
       round: roundRef.current,

@@ -263,13 +263,15 @@ export function TaskField({
         autoComplete="off"
         onChange={(event) => onChange(event.target.value)}
         placeholder={t('task.placeholder')}
-        className="w-full border-b border-line bg-transparent py-3 text-center text-[17px] text-ink outline-none transition-colors duration-150 [transition-timing-function:var(--ease-micro)] placeholder:text-ink-3 focus:border-[var(--ac)]"
+        className="w-full border-b border-line bg-transparent py-3 text-center text-[17px] text-ink transition-colors duration-150 [transition-timing-function:var(--ease-micro)] placeholder:text-ink-3 focus:border-[var(--ac)]"
       />
 
       {/* Single-tap intention presets row (recedes when value is non-empty) */}
       <div
         role="group"
         aria-label={t('task.presets')}
+        inert={value.trim() !== ''}
+        aria-hidden={value.trim() !== ''}
         className={`flex flex-wrap items-center justify-center gap-1.5 overflow-hidden transition-all duration-200 [transition-timing-function:var(--ease-micro)] ${
           value.trim() === ''
             ? 'mt-3 max-h-24 opacity-100 pointer-events-auto'
@@ -281,7 +283,7 @@ export function TaskField({
             key={preset.id}
             type="button"
             onClick={() => handleSelectPreset(preset)}
-            className="rounded-full border border-line bg-card px-2.5 py-1 text-caption text-ink-2 shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+            className="min-h-target rounded-control bg-card px-2.5 py-1 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
           >
             {preset.label}
           </button>

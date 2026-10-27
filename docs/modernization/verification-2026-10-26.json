@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-26",
+  "baseRevision": "f95f29d",
+  "after": "uncommitted local working tree",
+  "node": "24.22.1",
+  "chromium": "156.0.8078.47",
+  "checks": {
+    "unit": {
+      "command": "npm run test:run",
+      "passed": 841,
+      "filesPassed": 63,
+      "skipped": 0,
+      "durationSeconds": 13.19,
+      "evidenceTail": [
+        "",
+        " Test Files  63 passed (63)",
+        "      Tests  841 passed (841)",
+        "   Start at  21:56:57",
+        "   Duration  13.19s (transform 1.45s, setup 4.03s, import 3.24s, tests 7.87s, environment 30.40s)"
+      ]
+    },
+    "lint": {
+      "command": "npm run lint",
+      "exitCode": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck; also part of both builds",
+      "exitCode": 0
+    },
+    "tokens": {
+      "command": "npm run design:check",
+      "exitCode": 0
+    },
+    "builds": {
+      "commands": [
+        "npm run build",
+        "npm run build:desktop",
+        "npm run verify:builds"
+      ],
+      "exitCode": 0,
+      "webPrecacheEntries": 50,
+      "webPrecacheKiB": 3304.13,
+      "nativeRustCompiled": false
+    },
+    "desktopConfiguration": {
+      "command": "node --test scripts/test-desktop-cloud-config.mjs",
+      "passed": 5
+    },
+    "rules": {
+      "command": "npm run test:rules inside official loopback Firestore emulator",
+      "authorizationChecksPassed": 56
+    },
+    "adapter": {
+      "command": "npm run test:integration inside official loopback Firestore emulator",
+      "testsPassed": 1,
+      "syntheticSessions": 1105,
+      "profiles": 2
+    },
+    "browser": {
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "evidence": [
+        "PASS: browser start/pause, persisted task, navigation, mobile width, no page errors",
+        "PASS: real WebRTC pairing, bidirectional transfer, offline edit/delete conflict, null task, CRDT convergence",
+        "PASS: history pagination, full-set search, filter reset, mobile edit/cancel at 390/320px and retained 65 stored sessions"
+      ]
+    },
+    "offline": {
+      "command": "npm run test:web-offline",
+      "exitCode": 0,
+      "evidence": [
+        "PASS: production PWA reload, timer/navigation/settings, rain/wave decoding and attribution offline, no page errors",
+        "PASS: retired asset 404, bounded automatic reload, manual retry, retained timer task and history"
+      ]
+    },
+    "accessibility": {
+      "command": "npm run test:a11y and populated-history checks in test:browser",
+      "axeStates": 16,
+      "automatedViolations": 0,
+      "manualIncompleteItemsRemain": true
+    },
+    "installation": {
+      "command": "npm ci --ignore-scripts --no-audit in a separate empty directory",
+      "exitCode": 0,
+      "installedPackages": 618,
+      "installScriptsExecuted": false
+    },
+    "npmAudit": {
+      "command": "npm audit --json",
+      "vulnerablePackagesBefore": 7,
+      "vulnerablePackagesAfter": 0
+    }
+  },
+  "limitations": [
+    "No fresh Rust toolchain checks or native installer runtime tests",
+    "No production deployment, real profile migration or interactive OAuth",
+    "Historical green GitHub runs apply to base revision only",
+    "Synthetic profiles; CPU throttling is not physical hardware"
+  ],
+  "localEvidence": [
+    "test-artifacts/modernization/",
+    "/tmp/focus-flow-ux-audit/",
+    "/tmp/focus-flow-final-*.log",
+    "/tmp/focus-flow-emulator-verified.log"
+  ]
+}

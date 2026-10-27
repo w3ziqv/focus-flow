@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { memo, useMemo, useState, useRef, useEffect } from 'react'
 import { Edit2, Trash2, Check, X, Share2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 import type { StatsV2, SessionLogEntryV2 } from '../types'
@@ -36,6 +36,7 @@ interface StatsViewProps {
 }
 
 type Range = '7' | '30'
+const SESSION_PAGE_SIZE = 50
 
 export function StatsView({ stats: propStats, lang, onStatsChange, onStartSession }: StatsViewProps): React.JSX.Element {
   const { t } = useI18n()
@@ -56,6 +57,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
   // Search and date filters
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const [visibleCount, setVisibleCount] = useState(SESSION_PAGE_SIZE)
 
   // Inline editing state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -88,7 +90,8 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
     return result
   }, [sessions, searchQuery, dateFilter])
 
-  const days = useMemo(() => groupByDay(filteredSessions, lang), [filteredSessions, lang])
+  const visibleSessions = useMemo(() => filteredSessions.slice(0, visibleCount), [filteredSessions, visibleCount])
+  const days = useMemo(() => groupByDay(visibleSessions, lang), [visibleSessions, lang])
 
   const heatmapDays = useMemo(() => generateHeatmap(stats, lang, 30), [stats, lang])
   const heatmapTotalMinutes = useMemo(
@@ -131,7 +134,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
     setEditTaskText('')
   }
 
-  // Deletion with atomic stats decrement
+  // Deletion with coordinated statistics updates
   const handleDeleteSession = (id: string) => {
     if (window.confirm(t('log.deleteConfirm'))) {
       const result = deleteSessionWithStats(id)
@@ -215,9 +218,9 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
 
         <SearchFilterWell
           query={searchQuery}
-          onQueryChange={setSearchQuery}
+          onQueryChange={query => { setSearchQuery(query); setVisibleCount(SESSION_PAGE_SIZE) }}
           dateFilter={dateFilter}
-          onDateFilterChange={setDateFilter}
+          onDateFilterChange={date => { setDateFilter(date); setVisibleCount(SESSION_PAGE_SIZE) }}
           totalCount={sessions.length}
           filteredCount={filteredSessions.length}
         />
@@ -242,13 +245,14 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
                         key={entry.id}
                         className="group flex flex-col gap-2 rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-subtle"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className={isEditing ? 'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3' : 'flex items-start justify-between gap-3'}>
                           <div className="min-w-0 flex-1">
                             {isEditing ? (
                               <div className="flex items-center gap-2">
                                 <input
                                   ref={editInputRef}
                                   type="text"
+                                  aria-label={t('log.editTask')}
                                   value={editTaskText}
                                   maxLength={200}
                                   onChange={(e) => setEditTaskText(e.target.value)}
@@ -256,21 +260,26 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
                                     if (e.key === 'Enter') handleSaveEdit(entry.id)
                                     if (e.key === 'Escape') handleCancelEdit()
                                   }}
-                                  onBlur={() => handleSaveEdit(entry.id)}
-                                  className="w-full rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink focus:outline-none"
+                                  onBlur={(event) => {
+                                    // Save/Cancel own their action; focus moving to them must not commit first.
+                                    if (event.relatedTarget instanceof Node && event.currentTarget.parentElement?.contains(event.relatedTarget)) return
+                                    handleSaveEdit(entry.id)
+                                  }}
+                                  className="min-h-target min-w-0 flex-1 rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleSaveEdit(entry.id)}
-                                  className="p-1 text-[var(--ac-strong)] hover:bg-sunken rounded"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-[var(--ac-strong)] hover:bg-sunken"
                                   aria-label={t('log.saveTask')}
                                 >
                                   <Check className="size-4" />
                                 </button>
                                 <button
                                   type="button"
+                                  onMouseDown={event => event.preventDefault()}
                                   onClick={handleCancelEdit}
-                                  className="p-1 text-ink-3 hover:bg-sunken rounded"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken"
                                   aria-label={t('log.cancelEdit')}
                                 >
                                   <X className="size-4" />
@@ -284,7 +293,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
                                 <button
                                   type="button"
                                   onClick={() => handleStartEdit(entry)}
-                                  className="opacity-0 group-hover:opacity-100 p-1 text-ink-3 hover:text-ink transition-opacity rounded focus-visible:opacity-100"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-ink"
                                   aria-label={t('log.editTask')}
                                 >
                                   <Edit2 className="size-3.5" />
@@ -327,14 +336,14 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className={`flex items-center gap-2 shrink-0 ${isEditing ? 'self-end sm:self-auto' : ''}`}>
                             <span className="tnum text-[14px] font-medium text-[var(--ac-strong)]">
                               {entry.minutes} min
                             </span>
                             <button
                               type="button"
                               onClick={() => handleDeleteSession(entry.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-ink-3 hover:text-red-500 transition-opacity rounded focus-visible:opacity-100"
+                              className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-danger"
                               aria-label={t('log.deleteSession')}
                             >
                               <Trash2 className="size-4" />
@@ -349,6 +358,10 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
             ))}
           </div>
         )}
+        {filteredSessions.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
+          <p role="status" className="text-caption text-ink-2">{t('log.shown', { shown: visibleSessions.length, total: filteredSessions.length })}</p>
+          {visibleSessions.length < filteredSessions.length && <PillButton onClick={() => setVisibleCount(count => count + SESSION_PAGE_SIZE)}>{t('log.showMore')}</PillButton>}
+        </div>}
       </div>
 
       <ZenMilestones stats={stats} sessions={sessions} />
@@ -362,4 +375,5 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
   )
 }
 
-export default StatsView
+const MemoizedStatsView: React.NamedExoticComponent<StatsViewProps> = memo(StatsView)
+export default MemoizedStatsView

@@ -22,6 +22,17 @@ export default tseslint.config([
     },
   },
   {
+    files: ['src/domain/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['../lib/**', '../components/**', '../views/**', 'react', 'react-dom', 'react-dom/*', 'firebase', 'firebase/*', '@tauri-apps/*'],
+          message: 'Domain rules must stay independent of persistence, UI and platform adapters.',
+        }],
+      }],
+    },
+  },
+  {
     // The context provider and its hook live in one idiomatic file.
     files: ['src/lib/i18n.tsx'],
     rules: {

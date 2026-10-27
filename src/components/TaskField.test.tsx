@@ -40,11 +40,11 @@ describe('TaskField Component', () => {
     expect(onChange).toHaveBeenCalledWith(expect.stringMatching(/Głęboka praca|Deep Work/i))
   })
 
-  it('recedes presets visually when value is non-empty', () => {
+  it('removes hidden presets from keyboard and screen-reader navigation when a task is set', () => {
     renderField({ value: 'Refactor engine' })
-    const presetsGroup = screen.getByRole('group', { name: /Szablony intencji|Intention presets/i })
-    expect(presetsGroup.className).toContain('opacity-0')
-    expect(presetsGroup.className).toContain('pointer-events-none')
+    expect(screen.queryByRole('group', { name: /Szablony intencji|Intention presets/i })).toBeNull()
+    const presetsGroup = screen.getByRole('group', { hidden: true })
+    expect(presetsGroup.hasAttribute('inert')).toBe(true)
   })
 
   it('allows adding up to 3 micro-steps and commits on Enter', () => {

@@ -230,7 +230,7 @@ export function Dial({
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <span className="text-overline text-ink tracking-[0.09em] font-medium">
+        <span className="text-overline text-ink font-medium">
           {translateSafe('goals.completed', 'DAILY GOAL')}
         </span>
         <span className="text-caption text-ink-2">

@@ -1,6 +1,7 @@
 /**
- * Background heartbeat ticker using a dedicated Web Worker to prevent
- * browser timer throttling when the tab is inactive or hidden.
+ * Background heartbeat using a dedicated Web Worker. Browsers and operating
+ * systems can still throttle or suspend it; deadlines and wake reconciliation
+ * determine elapsed time independently of heartbeat delivery.
  */
 
 export interface WorkerStartMessage {
@@ -65,7 +66,7 @@ if (isDedicatedWorker) {
 }
 
 /**
- * Creates an unthrottled background timer ticker.
+ * Creates a worker-based timer ticker with an interval fallback.
  *
  * In browser environments with Worker support, instantiates a dedicated Web Worker.
  * In headless, test, or non-worker environments, cleanly falls back to window.setInterval.

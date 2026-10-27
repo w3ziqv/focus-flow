@@ -16,7 +16,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -24,7 +24,7 @@ jobs:
           java-version: 21
       - run: npm ci
       - run: npm audit --audit-level=high
-      - run: npx --yes firebase-tools@15.32.1 emulators:exec --only firestore --project demo-focus-flow-security "npm run test:rules && npx vitest run src/lib/sync/adapter.emulator.test.ts"
+      - run: npx --yes firebase-tools@15.32.1 emulators:exec --only firestore --project demo-focus-flow-security "npm run test:rules && npm run test:integration"
   rust:
     runs-on: ubuntu-24.04
     steps:

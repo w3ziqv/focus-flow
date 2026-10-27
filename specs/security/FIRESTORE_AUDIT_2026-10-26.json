@@ -1,0 +1,18 @@
+{
+  "score": 4,
+  "summary": "Audyt dotyczy reguł źródłowych, zgodnych z projektem testowym, a nie starszej produkcji. 56 prób autoryzacji i integracja adaptera przeszły w emulatorze. UID jest źródłem uprawnienia; create/update stosują te same walidatory, listy sesji są ograniczone, maskowanie i tombstones egzekwowane po stronie reguł. Daty sesji i rewizji mają kontrolę typu i długości, ale nie pełną walidację kalendarza. Nie wykazano przełamania izolacji użytkowników.",
+  "findings": [
+    {
+      "check": "Type Safety",
+      "severity": "minor",
+      "issue": "Session date, updatedLocallyAt i deletedAt są stringami do 40 znaków. Właściciel może zapisać datę nieparsowalną przez klienta, a klient pominie taki wpis.",
+      "recommendation": "Przed zaostrzeniem reguł zinwentaryzować formaty starszych klientów i sprawdzić migrację. Zachować symetrię create/update oraz testy kalendarza. To ryzyko własnych danych, bez eskalacji UID."
+    },
+    {
+      "check": "Business Logic vs. Rules",
+      "severity": "moderate",
+      "issue": "Osobny odczyt produkcji wykazał starszy ruleset bez daily_history, server-side maskowania i sprawdzania istnienia tombstone przy zapisie sesji. Wynik emulatora nie obejmuje tej konfiguracji.",
+      "recommendation": "Wykonać osobny, kontrolowany rollout z kopią danych/reguł, weryfikacją migracji i zgodności klientów, a potem odczytać wdrożone źródło."
+    }
+  ]
+}

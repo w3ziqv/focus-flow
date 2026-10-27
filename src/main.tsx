@@ -9,9 +9,6 @@ import { ApplicationBoundary } from './components/ApplicationBoundary'
 
 if (detectPlatform() !== 'tauri') installChunkRecovery(import.meta.url)
 
-// iOS Safari ignores user-scalable=no — block pinch zoom via gesture events
-document.addEventListener('gesturestart', (event) => event.preventDefault())
-
 async function mount(): Promise<void> {
   const root = document.getElementById('root')!
   try {

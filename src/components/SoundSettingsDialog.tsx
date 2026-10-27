@@ -52,7 +52,7 @@ export function SoundSettingsDialog({
     <Modal open={open} onClose={onClose} title={t('sound.settings')}>
       {/* Layer 1: Base Texture */}
       <section className="mb-6">
-        <h3 className="mb-2 text-overline uppercase tracking-wider text-ink-3">
+        <h3 className="mb-2 text-overline text-ink-3">
           {t('sound.baseTexture')}
         </h3>
         <SoundChipRow
@@ -72,7 +72,7 @@ export function SoundSettingsDialog({
 
       {/* Layer 2: Entrainment Resonance */}
       <section className="mt-6 border-t border-line pt-5">
-        <h3 className="mb-1 text-overline uppercase tracking-wider text-ink-3">
+        <h3 className="mb-1 text-overline text-ink-3">
           {t('sound.entrainment')}
         </h3>
         <p className="mb-3 flex items-center gap-1.5 text-caption text-ink-3">

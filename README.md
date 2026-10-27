@@ -95,7 +95,8 @@ focus-flow/
 ├── public/              # Static web assets, PWA icons, screenshots, favicon
 ├── src/
 │   ├── components/      # UI components (Dial, Settings, AudioMixer, Shortcuts)
-│   ├── hooks/           # Custom hooks (useTimer, useAudio, useLanguage)
+│   ├── domain/          # Pure calendar and session statistics
+│   ├── design/          # Single token source and generated CSS
 │   ├── lib/             # Core engines (audio, storage, export, sync, stats, timer)
 │   ├── views/           # Primary views (Timer, Stats, Guides library)
 │   ├── types.ts         # Central TypeScript interfaces & schemas
@@ -109,7 +110,7 @@ focus-flow/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20+ (recommended: Node 22 LTS)
+- Node.js 24 (see `.node-version`, aligned with CI and Vercel)
 - npm 10+
 
 ### Development Setup
@@ -146,6 +147,8 @@ npm run build
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — 7-stage technical roadmap specification and release status tracking.
 - [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
+- [`docs/adr/`](docs/adr/README.md) — Current ADRs supplementing the historical records.
+- [`docs/modernization/2026-10-26.md`](docs/modernization/2026-10-26.md) — Audit, changes, measurements and verification limits.
 - [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
 
 ---

@@ -283,7 +283,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Palette size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -306,7 +306,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(56,152,236,0.12)] text-[#3898ec]">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Globe size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -326,7 +326,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[var(--color-break-soft)] text-[var(--color-break)]">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Volume2 size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -348,7 +348,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-sunken text-ink">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Keyboard size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -357,7 +357,7 @@ export function AppSettingsModal({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <kbd className="inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded border border-line bg-page text-[11px] font-mono text-ink-3">
+                <kbd className="inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded border border-line bg-page text-[11px] font-sans text-ink-3">
                   ?
                 </kbd>
                 <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
@@ -373,7 +373,7 @@ export function AppSettingsModal({
                 className="flex w-full items-center justify-between gap-3 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                     <Monitor size={17} aria-hidden="true" />
                   </div>
                   <div>
@@ -395,7 +395,7 @@ export function AppSettingsModal({
                 className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(56,152,236,0.12)] text-[#3898ec]">
+                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                     <Cloud size={17} aria-hidden="true" />
                   </div>
                   <div>
@@ -413,7 +413,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(90,114,72,0.12)] text-[#5a7248]">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Download size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -431,7 +431,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(245,158,11,0.12)] text-[#f59e0b]">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Bell size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -451,7 +451,7 @@ export function AppSettingsModal({
                 className="flex w-full items-center justify-between gap-3 border-t border-line/60 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-sunken text-ink-2">
+                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                     <Link2 size={17} aria-hidden="true" />
                   </div>
                   <div>
@@ -468,7 +468,7 @@ export function AppSettingsModal({
               className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-[rgba(201,100,66,0.12)] text-[#c96442]">
+                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
                   <Radio size={17} aria-hidden="true" />
                 </div>
                 <div>
@@ -606,10 +606,10 @@ export function AppSettingsModal({
                 </button>
               </div>
               {voiceTestStatus === 'success' && (
-                <p className="text-[12px] text-[var(--color-break-strong)]">✓ {t('narration.testSuccess')}</p>
+                <p className="text-[12px] text-[var(--color-break-strong)]">{t('narration.testSuccess')}</p>
               )}
               {voiceTestStatus === 'no-voices' && (
-                <p className="text-[12px] text-danger leading-tight">⚠ {t('narration.noVoices')}</p>
+                <p className="text-[12px] text-danger leading-tight">{t('narration.noVoices')}</p>
               )}
             </div>
           )}
@@ -637,31 +637,31 @@ export function AppSettingsModal({
           <div className="rounded-xl border border-line bg-card divide-y divide-line/60">
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.toggleTimer')}</span>
-              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-mono text-ink">
+              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
                 Space
               </kbd>
             </div>
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.resetTimer')}</span>
-              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-mono text-ink">
+              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
                 R
               </kbd>
             </div>
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.toggleFullscreen')}</span>
-              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-mono text-ink">
+              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
                 F
               </kbd>
             </div>
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.openSettings')}</span>
-              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-mono text-ink">
+              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
                 ?
               </kbd>
             </div>
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.closeModal')}</span>
-              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-mono text-ink-2">
+              <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink-2">
                 Esc
               </kbd>
             </div>

@@ -47,7 +47,7 @@ export function SearchFilterWell({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder={t('log.searchPlaceholder')}
-            className="w-full rounded-xl border border-line-subtle bg-sunken py-2 pl-9 pr-3 text-[14px] text-ink placeholder:text-ink-3 focus:border-[var(--ac)] focus:outline-none"
+            className="min-h-target w-full rounded-xl border border-line-subtle bg-sunken py-2 pl-9 pr-3 text-[14px] text-ink placeholder:text-ink-3 focus:border-[var(--ac)]"
           />
         </div>
 
@@ -60,7 +60,7 @@ export function SearchFilterWell({
             type="date"
             value={dateFilter}
             onChange={(e) => onDateFilterChange(e.target.value)}
-            className="rounded-xl border border-line-subtle bg-sunken px-3 py-2 text-[13px] text-ink focus:border-[var(--ac)] focus:outline-none"
+            className="min-h-target min-w-0 rounded-xl border border-line-subtle bg-sunken px-3 py-2 text-[13px] text-ink focus:border-[var(--ac)]"
           />
 
           {hasFilter && (

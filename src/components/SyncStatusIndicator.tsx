@@ -70,7 +70,7 @@ export function SyncStatusIndicator({ onClick, className = '' }: SyncStatusIndic
       onClick={onClick}
       aria-label={`${t('sync.title')}: ${t(status === 'disconnected' ? 'sync.local' : status === 'error' ? 'sync.offline' : status === 'syncing' ? 'sync.syncing' : 'sync.synced')}`}
       aria-live="polite"
-      className={`group inline-flex items-center gap-1.5 rounded-full border border-line/60 bg-surface/50 px-2.5 py-1 text-xs text-ink-2 transition-all duration-200 hover:border-line hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${className}`}
+      className={`group inline-flex min-h-target items-center gap-1.5 rounded-control px-3 py-2 text-caption text-ink-2 transition-colors duration-200 hover:bg-card hover:text-ink ${className}`}
       title={lastSyncedAt ? `${t('sync.last')} ${formatLastSynced(lastSyncedAt)}` : t('sync.local')}
     >
       {status === 'disconnected' && (
@@ -82,7 +82,7 @@ export function SyncStatusIndicator({ onClick, className = '' }: SyncStatusIndic
 
       {status === 'syncing' && (
         <>
-          <RefreshCw size={13} className="animate-spin text-[var(--accent-focus)]" aria-hidden="true" />
+          <RefreshCw size={13} className="animate-spin text-accent" aria-hidden="true" />
           <span className="font-sans font-medium tracking-tight text-ink-2 animate-pulse">{t('sync.syncing')}</span>
         </>
       )}
@@ -90,19 +90,19 @@ export function SyncStatusIndicator({ onClick, className = '' }: SyncStatusIndic
       {status === 'synced' && (
         <>
           <span className="flex size-2 items-center justify-center">
-            <span className="size-1.5 rounded-full bg-[var(--accent-break)]" />
+            <span className="size-1.5 rounded-full bg-success" />
           </span>
           <span className="font-sans font-medium tracking-tight text-ink-2">
             {t(syncState.pendingChanges ? 'sync.pending' : 'sync.synced')} · <span className="text-ink">{userLabel}</span>
           </span>
-          <Check size={11} className="text-[var(--accent-break)] opacity-70" aria-hidden="true" />
+          <Check size={11} className="text-success" aria-hidden="true" />
         </>
       )}
 
       {status === 'error' && (
         <>
-          <AlertCircle size={13} className="text-amber-600 dark:text-amber-400" aria-hidden="true" />
-          <span className="font-sans font-medium tracking-tight text-amber-700 dark:text-amber-300">
+          <AlertCircle size={13} className="text-ink-2" aria-hidden="true" />
+          <span className="font-sans font-medium tracking-tight text-ink-2">
             {t('sync.offline')}
           </span>
         </>

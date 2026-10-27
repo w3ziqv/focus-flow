@@ -1,0 +1,34 @@
+[
+  {
+    "projectId": "focus-flow-70527",
+    "ruleset": "projects/focus-flow-70527/rulesets/04bf75a7-6e68-4f59-8b83-bcd071927d77",
+    "sha256": "4c8bd509f7ff07d72d75c9104bcb6145e54d607198024d8d99ae8b619cf901bf",
+    "matchesSource": false,
+    "dailyHistory": false,
+    "permanentDeletion": false,
+    "authorizedDomains": [
+      "localhost",
+      "focus-flow-70527.firebaseapp.com",
+      "focus-flow-70527.web.app",
+      "focusflow.ink",
+      "www.focusflow.ink",
+      "focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app"
+    ],
+    "googleEnabled": true
+  },
+  {
+    "projectId": "focus-flow-v3-test-20261010",
+    "ruleset": "projects/focus-flow-v3-test-20261010/rulesets/5f42e416-a379-4845-bfca-870f732067a4",
+    "sha256": "d16c2a2209cf73e577d0433e04464736c1450f3ce308976ea1feb456fe980bab",
+    "matchesSource": true,
+    "dailyHistory": true,
+    "permanentDeletion": true,
+    "authorizedDomains": [
+      "focus-flow-v3-test-20261010.firebaseapp.com",
+      "focus-flow-v3-test-20261010.web.app",
+      "localhost",
+      "focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app"
+    ],
+    "googleEnabled": true
+  }
+]

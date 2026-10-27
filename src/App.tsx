@@ -19,15 +19,11 @@ import {
   saveTheme,
   systemTheme,
 } from './lib/storage'
-import { last7Days, sumMinutes } from './lib/stats'
 import { captureInstallPrompt } from './lib/installPrompt'
 import { NavPill } from './components/NavPill'
-import { AppSettingsModal } from './components/AppSettingsModal'
 import { SyncStatusIndicator } from './components/SyncStatusIndicator'
-import { ShortcutsModal } from './components/ShortcutsModal'
 import { A11yLiveAnnouncer } from './components/A11yLiveAnnouncer'
-import { TimerSettingsModal } from './components/TimerSettingsModal'
-import { SoundSettingsDialog } from './components/SoundSettingsDialog'
+import { DialogLoading, ViewLoading } from './components/LoadingState'
 import { FocusOverlay } from './components/FocusOverlay'
 import { InstallPrompt } from './components/InstallPrompt'
 import { Onboarding } from './components/Onboarding'
@@ -41,6 +37,10 @@ const TipsView = lazy(() => import('./views/TopicsIndex'))
 const TopicViewLazy = lazy(() => import('./views/TopicView'))
 const ArticleViewLazy = lazy(() => import('./views/ArticleView'))
 const StatsView = lazy(() => import('./views/StatsView'))
+const AppSettingsModal = lazy(() => import('./components/AppSettingsModal').then(m => ({ default: m.AppSettingsModal })))
+const ShortcutsModal = lazy(() => import('./components/ShortcutsModal').then(m => ({ default: m.ShortcutsModal })))
+const TimerSettingsModal = lazy(() => import('./components/TimerSettingsModal').then(m => ({ default: m.TimerSettingsModal })))
+const SoundSettingsDialog = lazy(() => import('./components/SoundSettingsDialog').then(m => ({ default: m.SoundSettingsDialog })))
 const CloudSyncModalLazy = lazy(() =>
   import('./components/CloudSyncModal').then((m) => ({ default: m.CloudSyncModal })),
 )
@@ -155,6 +155,11 @@ function Shell() {
     setView(next)
     setTipsStack([])
   }, [])
+
+  const startFromStats = useCallback(() => {
+    setView('timer')
+    startSession()
+  }, [startSession])
 
   const addSoundFile = useCallback(
     async (file: File) => {
@@ -349,23 +354,21 @@ function Shell() {
             showGreeting={interfacePrefs.showGreeting}
           />
         ) : view === 'stats' ? (
-          <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <Suspense fallback={<ViewLoading />}>
             <StatsView
-              onStartSession={() => {setView('timer'); engine.start()}}
+              onStartSession={startFromStats}
               key={engine.lastEvent?.at ?? 'stats'}
               stats={engine.stats}
               lang={lang}
-              chartDays={last7Days(engine.stats, lang)}
-              totalMinutes={sumMinutes(last7Days(engine.stats, lang))}
               onStatsChange={engine.setStats}
             />
           </Suspense>
         ) : tipsStack.length === 0 ? (
-          <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <Suspense fallback={<ViewLoading />}>
             <TipsView onOpenTopic={(topicId) => setTipsStack([{ topicId }])} />
           </Suspense>
         ) : tipsStack.length === 1 ? (
-          <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <Suspense fallback={<ViewLoading />}>
             <TopicViewLazy
               topicId={tipsStack[0].topicId}
               onBack={() => setTipsStack([])}
@@ -373,7 +376,7 @@ function Shell() {
             />
           </Suspense>
         ) : (
-          <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <Suspense fallback={<ViewLoading />}>
             <ArticleViewLazy
               topicId={tipsStack[0].topicId}
               articleId={tipsStack[tipsStack.length - 1].articleId ?? ''}
@@ -396,7 +399,7 @@ function Shell() {
 
       <Onboarding open={!onboardingDone} onDone={() => setOnboardingDone(true)} />
 
-      <AppSettingsModal
+      {appSettingsOpen && <Suspense fallback={<DialogLoading title={t('settings.app')} onClose={() => setAppSettingsOpen(false)} />}><AppSettingsModal
         open={appSettingsOpen}
         theme={theme}
         onTheme={setThemeAndPersist}
@@ -423,9 +426,9 @@ function Shell() {
           engine.refreshStats()
         }}
         onClose={() => setAppSettingsOpen(false)}
-      />
+      /></Suspense>}
 
-      <Suspense fallback={null}>
+      {cloudSyncOpen && <Suspense fallback={<DialogLoading title={t('sync.title')} onClose={() => setCloudSyncOpen(false)} />}>
         <CloudSyncModalLazy
           open={cloudSyncOpen}
           onClose={() => setCloudSyncOpen(false)}
@@ -435,7 +438,7 @@ function Shell() {
             engine.refreshStats()
           }}
         />
-      </Suspense>
+      </Suspense>}
 
       {syncToastMessage && (
         <div
@@ -446,7 +449,7 @@ function Shell() {
         </div>
       )}
 
-      <ShortcutsModal
+      {shortcutsOpen && <Suspense fallback={<DialogLoading title={t('shortcuts.title')} onClose={() => setShortcutsOpen(false)} />}><ShortcutsModal
         open={shortcutsOpen}
         shortcuts={interfacePrefs.shortcuts}
         onSaveShortcuts={(shortcuts) => {
@@ -457,11 +460,11 @@ function Shell() {
           })
         }}
         onClose={() => setShortcutsOpen(false)}
-      />
+      /></Suspense>}
 
       <A11yLiveAnnouncer message={null} />
 
-      <TimerSettingsModal
+      {timerSettingsOpen && <Suspense fallback={<DialogLoading title={t('settings.timer')} onClose={() => setTimerSettingsOpen(false)} />}><TimerSettingsModal
         open={timerSettingsOpen}
         settings={engine.settings}
         goals={engine.goals}
@@ -471,9 +474,9 @@ function Shell() {
           if (goals) engine.updateGoals(goals)
           setTimerSettingsOpen(false)
         }}
-      />
+      /></Suspense>}
 
-      <SoundSettingsDialog
+      {soundSettingsOpen && <Suspense fallback={<DialogLoading title={t('sound.settings')} onClose={() => setSoundSettingsOpen(false)} />}><SoundSettingsDialog
         open={soundSettingsOpen}
         current={soundPrefs.baseTexture}
         binaural={soundPrefs.binauralMode}
@@ -488,7 +491,7 @@ function Shell() {
         onAddFile={addSoundFile}
         onRemove={removeSound}
         onClose={() => setSoundSettingsOpen(false)}
-      />
+      /></Suspense>}
 
       <InstallPrompt
         focusCompleted={engine.lastEvent?.kind === 'focus'}

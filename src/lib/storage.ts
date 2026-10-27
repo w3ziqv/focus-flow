@@ -1,6 +1,8 @@
 import { trackCloudWrite } from './sync/outbox'
 import { canonical, setReplicaValue, type ReplicaDocument } from './desktop/crdt'
 import { getPersistence } from './desktop/runtime'
+export { weekStartOf } from '../domain/calendar'
+import { weekStartOf } from '../domain/calendar'
 import {
   DEFAULT_NARRATION,
   DEFAULT_SHORTCUTS,
@@ -117,13 +119,6 @@ export function isSettings(value: unknown): Settings | null {
     rounds: num(v.rounds, DEFAULT_SETTINGS.rounds, 1, 20),
     autoStart: typeof v.autoStart === 'boolean' ? v.autoStart : DEFAULT_SETTINGS.autoStart,
   }
-}
-
-export function weekStartOf(date: Date = new Date()): string {
-  const d = new Date(date)
-  const day = d.getDay()
-  d.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
-  return d.toDateString()
 }
 
 export function isChecklistItem(value: unknown): ChecklistItem | null {
@@ -378,6 +373,7 @@ export function saveSessions(sessions: SessionLogEntryV2[]): boolean {
 export function addSession(entry: SessionLogEntryV2): SessionLogEntryV2[] {
   const sanitized = isSessionEntry(entry)
   const existing = loadSessions()
+  if (sanitized && existing.some(session => session.id === sanitized.id)) return existing
   const updated = sanitized ? [sanitized, ...existing].slice(0, MAX_SESSIONS) : existing.slice(0, MAX_SESSIONS)
   saveSessions(updated)
   return updated
@@ -895,6 +891,7 @@ function isSnapshot(value: unknown): SessionSnapshotV2 | null {
     task: typeof v.task === 'string' ? v.task.slice(0, 200) : '',
     taskDone: v.taskDone === true,
   }
+  if (typeof v.id === 'string' && v.id.trim() && v.id.length <= 64) snapshot.id = v.id
   if (v.phaseSettings) snapshot.phaseSettings = isSettings(v.phaseSettings) ?? undefined
   if (Array.isArray(v.checklist)) {
     const items = isChecklist(v.checklist)
