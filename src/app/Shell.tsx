@@ -44,6 +44,7 @@ export function Shell(): React.JSX.Element {
   const engine = useTimerEngine()
   const { t, lang } = useI18n()
   const [view, setView] = useState<View>('timer')
+  const [guidesVisit, setGuidesVisit] = useState(0)
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
@@ -107,6 +108,7 @@ export function Shell(): React.JSX.Element {
 
   const changeView = useCallback((next: View) => {
     setView(next)
+    if (next === 'tips') setGuidesVisit(visit => visit + 1)
   }, [])
 
   const startFromStats = useCallback(() => {
@@ -223,7 +225,7 @@ export function Shell(): React.JSX.Element {
               onStatsChange={engine.setStats}
             />
           </Suspense>
-        ) : <Suspense fallback={<ViewLoading />}><GuidesView /></Suspense>}
+        ) : <Suspense fallback={<ViewLoading />}><GuidesView key={guidesVisit} /></Suspense>}
 
       </main>
 

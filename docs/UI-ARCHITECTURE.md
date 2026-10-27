@@ -135,6 +135,8 @@ Globalne skróty nie działają wewnątrz modalnego UI, pól tekstowych, podczas
 ani z Ctrl/Alt/Meta. Space na przycisku pozostaje natywną aktywacją. Fokus mode
 jest modalnym UI i ma własne przyciski timera. Escape w poradach cofa jeden poziom.
 SegmentedTabs stosuje roving tabindex, strzałki z zawijaniem i Home/End.
+Ponowne wybranie Przewodników resetuje ich trasę tak jak przed wydzieleniem
+ekranu; jawny licznik wizyty w Shell zmienia tylko klucz tego ekranu.
 Resize nie zmienia kluczy komponentów ani stanu formularza/fazy. Zoom jest
 dozwolony; 320 px, dotyk i 200% są oddzielnymi scenariuszami weryfikacji.
 
