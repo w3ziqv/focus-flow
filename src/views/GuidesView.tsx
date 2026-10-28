@@ -1,10 +1,11 @@
+import type { TopicId } from '../types'
 import { lazy, memo, Suspense, useEffect, useState } from 'react'
 import { ViewLoading } from '../ui/LoadingState'
 
 const TopicsIndex = lazy(() => import('./TopicsIndex'))
 const TopicView = lazy(() => import('./TopicView'))
 const ArticleView = lazy(() => import('./ArticleView'))
-interface Route { topicId: string; articleId?: string }
+interface Route { topicId: TopicId; articleId?: string }
 
 /** Guide navigation has no timer dependency. Unmounting the screen resets its route. */
 function GuidesView(): React.JSX.Element {

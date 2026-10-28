@@ -9,6 +9,11 @@ UI architecture updated 2026-10-27: [component/state map](UI-ARCHITECTURE.md),
 [ADR-0011](adr/0011-ui-ownership-and-render-boundaries.md). Primitives now live
 in `ui/`, feature UI in `features/`, composition in `views/` and `app/`.
 
+Localization updated 2026-10-28: [four-language UI contract](LOCALIZATION.md).
+Layouts must accommodate translated labels at 320 px and Chinese text without spaces.
+The weekly export dialog uses the shared focus/keyboard manager; pending actions
+may move focus outside the panel, and the top dialog still owns Tab/Escape.
+
 ## Token ownership
 
 `src/design/tokens.json` is the single authored source for semantic colors,

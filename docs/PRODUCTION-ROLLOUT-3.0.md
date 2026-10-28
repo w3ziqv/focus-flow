@@ -1,9 +1,47 @@
 # Stable 3.0 production rollout
 
-Status on 2026-10-18: preparation in progress; stable 3.0 is not published.
+Status on 2026-10-28: UI implementation is complete; stable 3.0 is not published.
 The production web deployment still uses source `a2f5f22` and Firebase
 `focus-flow-70527`. The alpha.2 test cloud is `focus-flow-v3-test-20261010`.
 Do not promote the test Preview into production.
+
+## Current candidate (2026-10-28)
+
+The subsequent test-infrastructure repair PR #8 merged as `cb3e238`, with all
+required checks PASS. Literal production build run: `40720464290`. Before
+publication, the owner added full localization (PL/EN audit, ES, Simplified ZH)
+and a source-backed review of all 27 guides. The following staging/evidence is
+therefore a **baseline**, not authorization to publish the expanded work.
+Read the latest handoff and verify the eventual new commit.
+
+Protected candidate PR [#6](https://github.com/w3ziqv/focus-flow/pull/6) passed
+all required checks and merged into `codex/v3.0-release` as
+`575f070997b7824ddcabaec28eb2bc1c102e1815`. Draft production PR
+[#7](https://github.com/w3ziqv/focus-flow/pull/7) must remain unmerged until
+the current acceptance gates pass. Production Desktop packaging/runtime is
+[run 40710979304](https://github.com/w3ziqv/focus-flow/actions/runs/40710979304).
+See the latest [verification](VERIFICATION-3.0.md) and
+[handoff](modernization/HANDOFF-UI-RELEASE.md) for its actual result.
+
+Web deployment `dpl_8vXsRVKyQSCoMBfdZC6rms79Kxfw` is READY, target=production,
+with that exact source, production variables, verified six headers and staged
+browser/PWA smoke. It has **no custom domains**. `autoAssignCustomDomains=false`
+is a deliberate staging guard. On 28.10 both custom domains still point to the
+previous deployment below. Restore deliberate domain assignment only at the
+accepted publication step; do not infer publication from target=production.
+
+Production rules read-back still has SHA-256
+`4c8bd509f7ff07d72d75c9104bcb6145e54d607198024d8d99ae8b619cf901bf`;
+test rules/source have
+`d16c2a2209cf73e577d0433e04464736c1450f3ce308976ea1feb456fe980bab`.
+No production data migration or rules deployment has happened in this stage.
+The private 27.10 data snapshot passed loopback migration/restoration; **refresh
+the snapshot and restoration check immediately before the eventual rollout**.
+
+Physical checks are specified in
+[the current acceptance procedure](TESTING-UI-RELEASE-2026-10-28.md).
+Old owner acceptances below remain historical. No new physical PASS has been
+received for this candidate.
 
 ## Verified preparation
 

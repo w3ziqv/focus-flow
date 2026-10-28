@@ -1,4 +1,5 @@
 import type { HeatmapDay } from '../../lib/stats'
+import { formatNumber } from '../../lib/translations'
 import { useI18n } from '../../lib/i18n'
 
 interface ActivityHeatmapProps {
@@ -15,13 +16,13 @@ const LEVEL_CLASSES: Record<0 | 1 | 2 | 3 | 4, string> = {
 }
 
 export function ActivityHeatmap({ days, totalMinutes }: ActivityHeatmapProps): React.JSX.Element {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   return (
     <div className="rounded-2xl border border-line bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-overline text-ink-3">{t('stats.heatmapTitle')}</p>
-        <span className="text-caption text-ink-3">{totalMinutes} min</span>
+        <span className="text-caption text-ink-3">{formatNumber(lang, totalMinutes)} {t('unit.minuteShort')}</span>
       </div>
 
       <div

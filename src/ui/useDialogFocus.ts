@@ -59,7 +59,7 @@ export function useDialogFocus(open: boolean, panel: RefObject<HTMLElement | nul
     })
     if (topDialog() === entry) (controls()[0] ?? element).focus()
     const keydown = (event: KeyboardEvent) => {
-      if (topDialog() !== entry) return
+      if (event.isComposing || event.defaultPrevented || topDialog() !== entry) return
       if (event.key === 'Escape') {
         event.stopPropagation()
         event.preventDefault()
@@ -74,9 +74,11 @@ export function useDialogFocus(open: boolean, panel: RefObject<HTMLElement | nul
         }
       }
     }
-    element.addEventListener('keydown', keydown)
+    // A disabled pending action can move focus to body. The top dialog still
+    // owns Escape and must recover focus on the next Tab in that case.
+    document.addEventListener('keydown', keydown)
     return () => {
-      element.removeEventListener('keydown', keydown)
+      document.removeEventListener('keydown', keydown)
       const wasTop = activeDialog === entry
       dialogs.delete(entry)
       updateBackground()

@@ -1,4 +1,6 @@
 import type { Lang, NarrationSettings, NarrationVerbosity } from '../types'
+import { localeFor } from '../domain/language'
+import { translate } from './translations'
 
 export type TimerNarrationEvent =
   | { type: 'session-start'; task?: string | null }
@@ -30,30 +32,29 @@ export function shouldAnnounce(eventType: TimerNarrationEvent['type'], verbosity
 }
 
 export function formatNarrationText(event: TimerNarrationEvent, lang: Lang): string {
-  const isPl = lang === 'pl'
   switch (event.type) {
     case 'session-start': {
       const task = event.task?.trim()
       if (task) {
-        return isPl ? `Rozpoczęto sesję skupienia: ${task}` : `Focus session started: ${task}`
+        return translate(lang, 'narration.startTask', { task })
       }
-      return isPl ? 'Rozpoczęto sesję skupienia' : 'Focus session started'
+      return translate(lang, 'narration.start')
     }
     case 'session-pause':
-      return isPl ? 'Licznik wstrzymany' : 'Timer paused'
+      return translate(lang, 'narration.pause')
     case 'session-resume':
-      return isPl ? 'Wznowiono licznik' : 'Timer resumed'
+      return translate(lang, 'narration.resume')
     case 'session-complete':
-      return isPl ? 'Sesja skupienia zakończona. Czas na przerwę' : 'Focus session completed. Time for a break'
+      return translate(lang, 'narration.complete')
     case 'break-start':
       if (event.mode === 'long') {
-        return isPl ? 'Długa przerwa rozpoczęta' : 'Long break started'
+        return translate(lang, 'narration.longBreak')
       }
-      return isPl ? 'Krótka przerwa rozpoczęta' : 'Short break started'
+      return translate(lang, 'narration.shortBreak')
     case 'break-complete':
-      return isPl ? 'Przerwa zakończona. Gotowy na kolejną sesję?' : 'Break completed. Ready for the next session?'
+      return translate(lang, 'narration.breakComplete')
     case 'round-advance':
-      return isPl ? `Runda ${event.round} z ${event.totalRounds}` : `Round ${event.round} of ${event.totalRounds}`
+      return translate(lang, 'narration.round', { round: event.round, totalRounds: event.totalRounds })
   }
 }
 
@@ -90,7 +91,7 @@ export function speakNarration(
     }
 
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = lang === 'pl' ? 'pl-PL' : 'en-US'
+    utterance.lang = lang === 'en' ? 'en-US' : localeFor(lang)
     utterance.rate = 1.0
     utterance.pitch = 1.0
 
@@ -99,9 +100,8 @@ export function speakNarration(
     if (voices.length > 0) {
       const prefix = lang.toLowerCase()
       const matchingVoice =
-        voices.find((v) => v.lang.toLowerCase().startsWith(prefix)) ??
-        voices.find((v) => v.default) ??
-        voices[0]
+        voices.find((v) => v.lang.toLowerCase().replace('_', '-') === utterance.lang.toLowerCase()) ??
+        voices.find((v) => v.lang.toLowerCase().split(/[-_]/)[0] === prefix && (lang !== 'zh' || !/[-_](hk|mo|yue)\b/i.test(v.lang)))
       if (matchingVoice) {
         utterance.voice = matchingVoice
       }

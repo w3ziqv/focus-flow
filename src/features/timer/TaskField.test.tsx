@@ -29,7 +29,7 @@ describe('TaskField Component', () => {
     expect(screen.getByRole('button', { name: /Pisanie|Writing/i })).toBeDefined()
     expect(screen.getByRole('button', { name: /Przegląd kodu|Code Review/i })).toBeDefined()
     expect(screen.getByRole('button', { name: /Czytanie|Reading/i })).toBeDefined()
-    expect(screen.getByRole('button', { name: /Inbox Zero/i })).toBeDefined()
+    expect(screen.getByRole('button', { name: /Pusta skrzynka/i })).toBeDefined()
   })
 
   it('populates input immediately upon clicking a preset without modal prompt', () => {

@@ -1,5 +1,7 @@
 mod cloud;
 mod discovery;
+mod guide_sources;
+mod menu_language;
 mod storage;
 mod tray_dial;
 
@@ -226,40 +228,12 @@ fn publish_timer(
     let menu_key = format!("{}:{}", timer.lang, timer.running);
     let mut previous_menu = state.menu_key.lock().unwrap();
     if *previous_menu != menu_key {
-        let pl = timer.lang == "pl";
         for item in state.menu_items.lock().unwrap().iter() {
             let label = match item.id().as_ref() {
                 "toggle" => &timer.toggle_label,
                 "reset" => &timer.reset_label,
                 "show" => &timer.show_label,
-                "skip" => {
-                    if pl {
-                        "Pomiń fazę"
-                    } else {
-                        "Skip phase"
-                    }
-                }
-                "mini" => {
-                    if pl {
-                        "Mały timer"
-                    } else {
-                        "Floating timer"
-                    }
-                }
-                "preferences" => {
-                    if pl {
-                        "Ustawienia"
-                    } else {
-                        "Preferences"
-                    }
-                }
-                _ => {
-                    if pl {
-                        "Zakończ"
-                    } else {
-                        "Quit"
-                    }
-                }
+                action => menu_language::label(&timer.lang, action),
             };
             item.set_text(label).map_err(|e| e.to_string())?;
         }
@@ -305,14 +279,73 @@ fn toggle_mini_window(app: tauri::AppHandle) -> Result<(), String> {
     }
     Ok(())
 }
+#[tauri::command]
+async fn open_guide_source(id: String, window: tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("Guide access forbidden for this window".into());
+    }
+    let url = guide_sources::source_url(&id).ok_or("Unknown guide source")?;
+    tauri::async_runtime::spawn_blocking(move || cloud::open_external_browser(&url))
+        .await
+        .map_err(|_| "guide-browser-error".to_string())?
+        .map_err(|_| "guide-browser-error".to_string())
+}
 fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
-    let toggle = MenuItem::with_id(app, "toggle", "Start / Pause", true, None::<&str>)?;
-    let skip = MenuItem::with_id(app, "skip", "Skip phase", true, None::<&str>)?;
-    let reset = MenuItem::with_id(app, "reset", "Reset", true, None::<&str>)?;
-    let show = MenuItem::with_id(app, "show", "Show Focus Flow", true, None::<&str>)?;
-    let mini = MenuItem::with_id(app, "mini", "Floating timer", true, None::<&str>)?;
-    let prefs = MenuItem::with_id(app, "preferences", "Preferences", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    let snapshot = app.state::<DataStore>().load().ok().flatten();
+    let lang = menu_language::stored_language(
+        snapshot
+            .as_ref()
+            .and_then(|data| data.values.get("ff2_lang").map(String::as_str)),
+    );
+    let toggle = MenuItem::with_id(
+        app,
+        "toggle",
+        menu_language::label(&lang, "toggle"),
+        true,
+        None::<&str>,
+    )?;
+    let skip = MenuItem::with_id(
+        app,
+        "skip",
+        menu_language::label(&lang, "skip"),
+        true,
+        None::<&str>,
+    )?;
+    let reset = MenuItem::with_id(
+        app,
+        "reset",
+        menu_language::label(&lang, "reset"),
+        true,
+        None::<&str>,
+    )?;
+    let show = MenuItem::with_id(
+        app,
+        "show",
+        menu_language::label(&lang, "show"),
+        true,
+        None::<&str>,
+    )?;
+    let mini = MenuItem::with_id(
+        app,
+        "mini",
+        menu_language::label(&lang, "mini"),
+        true,
+        None::<&str>,
+    )?;
+    let prefs = MenuItem::with_id(
+        app,
+        "preferences",
+        menu_language::label(&lang, "preferences"),
+        true,
+        None::<&str>,
+    )?;
+    let quit = MenuItem::with_id(
+        app,
+        "quit",
+        menu_language::label(&lang, "quit"),
+        true,
+        None::<&str>,
+    )?;
     let menu = Menu::with_items(app, &[&toggle, &skip, &reset, &show, &mini, &prefs, &quit])?;
     *app.state::<DesktopState>().menu_items.lock().unwrap() =
         vec![toggle, skip, reset, show, mini, prefs, quit];
@@ -460,6 +493,7 @@ pub fn run() {
             cloud::cloud_documents,
             cloud::cloud_commit,
             cloud::cloud_delete_account,
+            open_guide_source,
             load_data,
             save_data,
             restore_data,

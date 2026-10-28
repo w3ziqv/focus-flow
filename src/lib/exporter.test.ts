@@ -22,7 +22,7 @@ describe('Consolidated Exporter Subsystem (src/lib/exporter.ts)', () => {
 
   it('serializes to RFC 5545 iCalendar format through unified serialize entry point', async () => {
     const fixedNow = new Date('2026-09-20T12:00:00.000Z')
-    const ics = await Exporter.serialize('ics', { sessions: sampleSessions, now: fixedNow })
+    const ics = await Exporter.serialize('ics', { sessions: sampleSessions, now: fixedNow, lang: 'en' })
     expect(ics).toContain('BEGIN:VCALENDAR')
     expect(ics).toContain('SUMMARY:Focus: Architecture Deepening')
     expect(ics).toContain('END:VCALENDAR')
@@ -36,7 +36,7 @@ describe('Consolidated Exporter Subsystem (src/lib/exporter.ts)', () => {
   })
 
   it('serializes to GitHub-Flavored Markdown tables', async () => {
-    const md = await Exporter.serialize('markdown', { sessions: sampleSessions })
+    const md = await Exporter.serialize('markdown', { sessions: sampleSessions, lang: 'en' })
     expect(md).toContain('# Focus Flow — Session History')
     expect(md).toContain('| Architecture Deepening |')
   })

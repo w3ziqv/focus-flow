@@ -1,5 +1,7 @@
 /// <reference types="vitest/config" />
 import fs from 'node:fs'
+import { LANGUAGE_CODES, isLang } from './src/domain/language'
+import { manifestForLanguage } from './src/lib/pwaManifest'
 import { defineConfig, type Plugin, type UserConfig, type UserConfigExport } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -24,6 +26,21 @@ const fontPreload = (outDir: string): Plugin => ({
   },
 })
 
+const localizedManifests = (): Plugin => ({
+  name: 'localized-manifests',
+  generateBundle() {
+    for (const lang of LANGUAGE_CODES) this.emitFile({ type: 'asset', fileName: `manifest-${lang}.webmanifest`, source: JSON.stringify(manifestForLanguage(lang)) })
+  },
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const match = /^\/manifest-([a-z]+)\.webmanifest$/.exec(req.url ?? '')
+      if (!match || !isLang(match[1])) { next(); return }
+      res.setHeader('Content-Type', 'application/manifest+json')
+      res.end(JSON.stringify(manifestForLanguage(match[1])))
+    })
+  },
+})
+
 const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
   const desktop = mode === 'desktop'
   const outDir = desktop ? 'dist-desktop' : 'dist'
@@ -45,48 +62,13 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
       },
       tailwindcss(),
       fontPreload(outDir),
+      !desktop && localizedManifests(),
       !desktop && VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
-        manifest: {
-          name: 'Focus Flow',
-          short_name: 'Focus Flow',
-          description: 'A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.',
-          theme_color: '#f5f4ed',
-          background_color: '#f5f4ed',
-          display: 'standalone',
-          display_override: ['standalone', 'minimal-ui'],
-          start_url: '/',
-          id: '/',
-          lang: 'pl',
-          icons: [
-            { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-            { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-            { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-            { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-          ],
-          screenshots: [
-            {
-              src: 'screenshots/desktop.png',
-              sizes: '1280x800',
-              type: 'image/png',
-              form_factor: 'wide',
-              label: 'The Focus Flow dial on desktop',
-            },
-            {
-              src: 'screenshots/mobile.png',
-              sizes: '390x844',
-              type: 'image/png',
-              form_factor: 'narrow',
-              label: 'The Focus Flow dial on a phone',
-            },
-          ],
-          shortcuts: [
-            { name: 'Start Focus', short_name: 'Focus', url: '/?start=focus', description: 'Start a focus session right away' },
-          ],
-        },
+        manifest: manifestForLanguage('en'),
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,woff2}', 'sounds/moodist/*.{mp3,txt,json}'],
+          globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}', 'sounds/moodist/*.{mp3,txt,json}'],
           navigateFallback: '/index.html',
         },
       }),

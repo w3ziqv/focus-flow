@@ -1,5 +1,7 @@
 import { Component, type ReactNode } from 'react'
-import { getPersistence } from '../lib/desktop/runtime'
+import { applyDocumentLanguage } from '../lib/documentLanguage'
+import { recoveryLanguage } from '../lib/recoveryLanguage'
+import { translate } from '../lib/translations'
 
 interface Props {children: ReactNode; onReload?: () => void}
 interface State {failed: boolean}
@@ -9,17 +11,17 @@ export class ApplicationBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(): State {return {failed: true}}
 
+  componentDidCatch(): void {
+    applyDocumentLanguage(recoveryLanguage())
+  }
+
   render(): ReactNode {
     if (!this.state.failed) return this.props.children
-    let polish = navigator.language.startsWith('pl')
-    try {
-      const language = getPersistence().getItem('ff2_lang')
-      if (language === 'pl' || language === 'en') polish = language === 'pl'
-    } catch { /* Recovery must also work with unavailable storage. */ }
+    const lang = recoveryLanguage()
     return <main role="alert" className="mx-auto max-w-xl p-8 text-ink">
-      <h1 className="text-2xl font-medium">{polish ? 'Nie udało się otworzyć widoku' : 'Could not open this view'}</h1>
-      <p className="my-4">{polish ? 'Zapisane dane lokalne nie zostały usunięte. Wczytaj aplikację ponownie. Jeśli jesteś offline, najpierw sprawdź połączenie.' : 'Your saved local data has not been removed. Reload the application. If you are offline, check your connection first.'}</p>
-      <button type="button" className="min-h-11 rounded-full border px-5" onClick={this.props.onReload ?? (() => location.reload())}>{polish ? 'Wczytaj ponownie' : 'Reload application'}</button>
+      <h1 className="text-2xl font-medium">{translate(lang, 'recovery.viewTitle')}</h1>
+      <p className="my-4">{translate(lang, 'recovery.viewDetail')}</p>
+      <button type="button" className="min-h-11 rounded-full border px-5" onClick={this.props.onReload ?? (() => location.reload())}>{translate(lang, 'recovery.reload')}</button>
     </main>
   }
 }

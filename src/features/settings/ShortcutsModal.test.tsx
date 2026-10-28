@@ -42,7 +42,7 @@ describe('ShortcutsModal Component', () => {
     )
 
     expect(screen.getByRole('dialog')).toBeDefined()
-    expect(screen.getByText('Space')).toBeDefined()
+    expect(screen.getByText('Spacja')).toBeDefined()
     expect(screen.getByText('R')).toBeDefined()
     expect(screen.getByText('F')).toBeDefined()
     expect(screen.getByText('Esc')).toBeDefined()

@@ -27,6 +27,7 @@ fn main() {
             "timer_display",
             "publish_timer",
             "toggle_mini",
+            "open_guide_source",
         ]),
     ))
     .expect("Could not build application permissions");

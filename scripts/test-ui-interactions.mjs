@@ -57,7 +57,7 @@ try {
   await page.keyboard.press('Escape')
   assert.equal(await page.getByRole('button', { name: 'Sound settings', exact: true }).locator('[aria-hidden="true"]').count() >= 2, true)
   await page.getByRole('button', { name: 'Guides', exact: true }).click()
-  const learning = page.getByRole('main').getByRole('button', { name: /Retention techniques/ })
+  const learning = page.getByRole('main').getByRole('button', { name: /\bLearning\b/ })
   await learning.click()
   await page.getByRole('heading', { name: 'Learning', exact: true }).waitFor()
   await page.keyboard.press('Escape')
@@ -69,7 +69,7 @@ try {
   await page.getByRole('button', { name: 'Timer', exact: true }).click()
   await page.getByRole('button', { name: 'App', exact: true }).click()
   await page.getByRole('button', { name: /^Language/ }).click()
-  await page.getByRole('button', { name: 'Polish', exact: true }).click()
+  await page.getByRole('button', { name: 'Polski', exact: true }).click()
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Statystyki', exact: true }).waitFor()
   // An independent sync-state event must still update the memoized indicator.

@@ -1,10 +1,12 @@
+import type { TopicId } from '../types'
+import { formatNumber } from '../lib/translations'
 import { Flower2 } from 'lucide-react'
 import { TOPICS } from '../lib/topics'
 import { articlesForTopic } from '../lib/articles'
 import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
 
-export default function TopicsIndex({ onOpenTopic }: { onOpenTopic: (id: string) => void }): React.JSX.Element {
+export default function TopicsIndex({ onOpenTopic }: { onOpenTopic: (id: TopicId) => void }): React.JSX.Element {
   const { t, lang } = useI18n()
 
   return (
@@ -32,13 +34,13 @@ export default function TopicsIndex({ onOpenTopic }: { onOpenTopic: (id: string)
                   className="text-[var(--ac)]"
                   aria-hidden="true"
                 />
-                <span className="text-caption text-ink-3">{count}</span>
+                <span className="text-caption text-ink-3">{formatNumber(lang, count)}</span>
               </div>
               <p className="mt-3 font-serif text-[1.25rem] font-[500] text-ink">
-                {lang === 'pl' ? topic.titlePl : topic.titleEn}
+                {topic.copy[lang].title}
               </p>
               <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
-                {lang === 'pl' ? topic.descPl : topic.descEn}
+                {topic.copy[lang].description}
               </p>
             </button>
           )

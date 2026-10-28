@@ -237,7 +237,7 @@ export function Shell(): React.JSX.Element {
         <div className="mb-2 flex items-center justify-center">
           <SyncStatusIndicator onClick={dialogs.openCloud} />
         </div>
-        <div>{t('footer', { year: 2026 })}</div>
+        <div>{t('footer', { year: String(new Date().getFullYear()) })}</div>
       </footer>
 
       <Onboarding open={!onboardingDone} onDone={() => setOnboardingDone(true)} />

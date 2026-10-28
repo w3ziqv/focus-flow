@@ -15,7 +15,7 @@ export function TipsAccordion({ categories }: TipsAccordionProps): React.JSX.Ele
     <div className="mt-8 border-t border-line">
       {categories.map((category) => {
         const open = openId === category.id
-        const title = lang === 'pl' ? category.titlePl : category.titleEn
+        const title = category.titles[lang]
         const Icon = category.icon
         return (
           <section key={category.id} className="border-b border-line">

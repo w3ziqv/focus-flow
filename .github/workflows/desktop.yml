@@ -176,6 +176,14 @@ jobs:
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:browser
       - run: npm run test:ui-interactions
+      - run: npm run test:localization
+      - name: Localization evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: localization-evidence
+          path: test-artifacts/localization
+          if-no-files-found: warn
       - name: Accessibility and Polish UI
         run: |
           npm run dev -- --host 127.0.0.1 --port 1420 --strictPort > /tmp/focus-flow-dev.log 2>&1 &

@@ -49,7 +49,7 @@ describe('Onboarding', () => {
     renderOnboarding(vi.fn())
 
     fireEvent.click(screen.getByRole('button', { name: 'Dalej' }))
-    expect(screen.getByText(/Skróty: Space startuje/)).toBeTruthy()
+    expect(screen.getByText(/Spacja: start/)).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Dalej' }))
     expect(screen.getByText(/ikonę instalacji w pasku adresu/)).toBeTruthy()
@@ -64,8 +64,8 @@ describe('Onboarding', () => {
     renderOnboarding(vi.fn())
 
     fireEvent.click(screen.getByRole('button', { name: 'Dalej' }))
-    expect(screen.getByText(/bez konta i bez chmury/)).toBeTruthy()
-    expect(screen.queryByText(/Skróty: Space startuje/)).toBeNull()
+    expect(screen.getByText(/Konto nie jest wymagane/)).toBeTruthy()
+    expect(screen.queryByText(/Spacja: start/)).toBeNull()
   })
 
   it('guides iPhone users through the share sheet', () => {

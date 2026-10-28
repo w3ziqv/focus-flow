@@ -81,3 +81,31 @@ it('restores the background even when a parent unmounts before its child', () =>
   expect(screen.getByText('Nested background').closest('[inert]')).toBeNull()
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Open parent' }))
 })
+
+it('recovers Tab and Escape when a pending action moves focus outside the top dialog', () => {
+  render(<Nested />)
+  const opener = screen.getByRole('button', { name: 'Open parent' })
+  opener.focus(); fireEvent.click(opener)
+  const childTrigger = screen.getByRole('button', { name: 'Open child' })
+  childTrigger.focus(); fireEvent.click(childTrigger)
+  ;(document.activeElement as HTMLElement).blur()
+  expect(document.activeElement).toBe(document.body)
+  fireEvent.keyDown(document.body, { key: 'Tab' })
+  expect(screen.getByRole('dialog', { name: 'Child' }).contains(document.activeElement)).toBe(true)
+  ;(document.activeElement as HTMLElement).blur()
+  fireEvent.keyDown(document.body, { key: 'Escape' })
+  expect(screen.queryByRole('dialog', { name: 'Child' })).toBeNull()
+  expect(screen.getByRole('dialog', { name: 'Parent' })).toBeTruthy()
+  expect(document.activeElement).toBe(childTrigger)
+})
+
+
+it('lets an input method consume Escape before closing the dialog', () => {
+  render(<Nested />)
+  fireEvent.click(screen.getByRole('button', { name: 'Open parent' }))
+  const draft = screen.getByRole('textbox', { name: 'Unsaved draft' })
+  fireEvent.keyDown(draft, { key: 'Escape', isComposing: true })
+  expect(screen.getByRole('dialog', { name: 'Parent' })).toBeTruthy()
+  fireEvent.keyDown(draft, { key: 'Escape', isComposing: false })
+  expect(screen.queryByRole('dialog')).toBeNull()
+})

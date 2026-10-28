@@ -17,6 +17,7 @@ import {
   loadInstallDismissed,
   loadInterface,
   loadLang,
+  systemLang,
   loadMilestones,
   loadOnboardingDone,
   loadPresets,
@@ -198,7 +199,7 @@ export class FocusStore {
 
   public static getPreferences(): UserPreferences {
     return {
-      lang: loadLang() ?? 'en',
+      lang: loadLang() ?? systemLang(),
       theme: loadTheme() ?? 'light',
       volume: loadVolume(),
       sound: loadSoundPreferences(),

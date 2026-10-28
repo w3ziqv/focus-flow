@@ -6,6 +6,9 @@ import { initializeNativeNotifications } from './lib/notifications'
 import { installChunkRecovery } from './lib/chunkRecovery'
 import { detectPlatform } from './lib/platform'
 import { ApplicationBoundary } from './app/ApplicationBoundary'
+import { recoveryLanguage } from './lib/recoveryLanguage'
+import { translate } from './lib/translations'
+import { applyDocumentLanguage } from './lib/documentLanguage'
 
 if (detectPlatform() !== 'tauri') installChunkRecovery(import.meta.url)
 
@@ -19,22 +22,23 @@ async function mount(): Promise<void> {
       : (await import('./App')).default
     createRoot(root).render(<StrictMode><ApplicationBoundary><Component /></ApplicationBoundary></StrictMode>)
   } catch {
-    const polish = navigator.language.startsWith('pl')
+    const lang = recoveryLanguage()
+    applyDocumentLanguage(lang)
     const panel = document.createElement('div')
     panel.className = 'mx-auto max-w-xl p-8 text-ink'
     panel.setAttribute('role', 'alert')
     const heading = document.createElement('h1')
-    heading.textContent = polish ? 'Nie udało się otworzyć aplikacji' : 'Could not open the application'
+    heading.textContent = translate(lang, 'recovery.appTitle')
     const detail = document.createElement('p')
-    detail.textContent = polish ? 'Zapisane dane nie zostały usunięte. Spróbuj wczytać aplikację ponownie.' : 'Your saved data has not been removed. Try reloading the application.'
+    detail.textContent = translate(lang, 'recovery.appDetail')
     const retry = document.createElement('button')
     retry.className = 'm-2 min-h-11 rounded-full border px-5'
-    retry.textContent = polish ? 'Spróbuj ponownie' : 'Try again'
+    retry.textContent = translate(lang, 'recovery.retry')
     retry.onclick = () => location.reload()
     const restore = document.createElement('button')
     restore.className = retry.className
-    restore.textContent = polish ? 'Przywróć ostatnią kopię' : 'Restore last backup'
-    restore.onclick = () => { void nativeInvoke('restore_data').then(() => location.reload()).catch(() => { detail.textContent = polish ? 'Nie udało się przywrócić kopii. Spróbuj ponownie.' : 'Could not restore the backup. Try again.' }) }
+    restore.textContent = translate(lang, 'recovery.restore')
+    restore.onclick = () => { void nativeInvoke('restore_data').then(() => location.reload()).catch(() => { detail.textContent = translate(lang, 'recovery.restoreFailed') }) }
     panel.append(heading, detail, retry)
     if (detectPlatform() === 'tauri') panel.append(restore)
     root.replaceChildren(panel)

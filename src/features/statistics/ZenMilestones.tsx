@@ -1,3 +1,5 @@
+import { localeFor } from '../../domain/language'
+import type { Lang } from '../../domain/language'
 import type { MilestoneRecord, StatsV2, SessionLogEntryV2 } from '../../types'
 import { useI18n } from '../../lib/i18n'
 import type { TranslationKey } from '../../lib/translations'
@@ -49,10 +51,10 @@ const MILESTONE_DEFS: MilestoneDef[] = [
   },
 ]
 
-function formatDate(iso: string, lang: string): string {
+function formatDate(iso: string, lang: Lang): string {
   try {
     const d = new Date(iso)
-    return d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', {
+    return d.toLocaleDateString(localeFor(lang), {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

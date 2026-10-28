@@ -1,5 +1,187 @@
 # Przekazanie: architektura UI, weryfikacja i pełne wydanie Focus Flow
 
+## Kontynuacja 28.10.2026 — aktualny kandydat i otwarte bramki
+
+### Lokalizacja i poradniki — implementacja 28.10
+
+Wdrożono PL/EN/ES/ZH-Hans w UI, recovery, narracji, eksportach, metadanych
+PWA i menu desktopu oraz pełną redakcję 27 poradników z 28 źródłami. Kontrakty:
+[LOCALIZATION](../LOCALIZATION.md), [przegląd wszystkich poradników](../GUIDES-REVIEW-2026-10-28.md).
+Raport implementacji, znalezionych regresji i lokalnych kontroli:
+[2026-10-28-localization](2026-10-28-localization.md). 872 unit / 68 plików PASS; 108 otwarć
+poradników w czterech językach i 20 stanów axe PASS na roboczym web buildzie.
+Wynik ten nie zastępuje CI dokładnego commita po zamrożeniu źródeł. Test natywny
+lokalnie wymaga brakującego javascriptcoregtk-4.1; cztery izolowane testy menu/
+katalogu i fmt PASS. Dodatkowy commit `b70f732` naprawia klawiaturę dialogu po
+utracie fokusu przez oczekującą akcję oraz uwzględnia aktywne IME.
+
+Po inspekcji Preview dodano też tłumaczenie tytułu karty/opisów dokumentu (w tym
+mini timera) i poprawiono rok stopki bez separatora tysięcy. Słowniki: 439 kluczy.
+PR #9 jest otwarty; wcześniejsze `6d30348` CI/Security PASS, Desktop FAILED na
+Clippy w jednym teście. `d725d8c` usuwa tę konwersję; nowe CI w toku. Końcowe SHA
+metadanych dokumentu wymaga własnych pełnych kontroli.
+
+Świeży npm audit: cztery low w dev z jednego niezałatanego advisory deepmerge;
+próg high przechodzi, runtime audit 0. Nie pisać „pełny audit 0”. Nowy PR/CI,
+chroniony kandydat i instalatory wymagają odczytu po ukończeniu. Main #7 nadal
+draft, produkcyjne domeny/reguły nadal stare, bez publikacji.
+
+### Rozszerzenie zakresu po testach przeglądarkowych
+
+Właściciel zlecił następnie audyt tłumaczeń całej aplikacji, dodanie hiszpańskiego
+i chińskiego (przyjęto uproszczony), sprawdzenie wszystkich 27 przewodników na
+podstawie źródeł i profesjonalną redakcję; nowe przewodniki są opcjonalne, po
+testach aplikacji. **To jest dalsza praca przed publikacją, nie anulowanie celu
+wydania.** Nowy kod języków/treści będzie wymagał własnego dokładnego commita,
+buildów i weryfikacji. PR #7 pozostaje draftem.
+
+Baseline przed tą pracą: chroniony `codex/v3.0-release` =
+`cb3e2389d64ed65894c8e50c6069f10321f9c444`, po zwykłym merge PR #8. Head PR #8
+`17cd7ae` (uzupełniony o bazę, bez zmiany drzewa względem `9214af0`) zaliczył
+CI `40717230990`, Security `40717231009` i pełny Desktop `40717230923`, w tym
+zainstalowany Linux/Windows. Wcześniejszy run `40716037103` też PASS. Produkcyjny
+Desktop literalnego `cb3e238` `40720464290`: PASS wszystkich natywnych
+paczek, zainstalowanego Linux/Windows i Windows upgrade/rollback; cztery pobrane
+instalatory oraz ścisłe metadane/SHA-256 PASS. Świeży staging smoke tego SHA
+(header/PWA/mobile/persistence/project) też PASS. Staging tego SHA: `dpl_HpU3dGWv15T84MdPXzUnpyexLiaj`, bez domen własnych.
+
+Rzeczywiste testy Google w IAB na kodzie `5143cd7` (pełne źródła aplikacji/builda
+porównano z `cb3e238`: identyczne):
+
+- Właściciel wybrał konto w systemowych oknach Google, które nie są widoczne
+  w inwentarzu narzędzia. Logowanie i sync PASS; reload strony → odtworzenie
+  konta → rzeczywisty Sync Now z nowym timestampem PASS.
+- Dwa niezależne originy HTTPS (`ldcctiyxq` i `g6sjsqy9a`), ten sam testowy
+  Firebase/kod. Oba logowania PASS. Drugi świeży profil pobrał 501 sesji /
+  12525 minut: zachowano istniejącą sesję i dodano 500 syntetycznych.
+- Paginacja 50 → 100 i wyszukiwanie poza pierwszą stroną PASS. Edycja TEST 499
+  dotarła do drugiego profilu; usunięcie tej jednej syntetycznej sesji dotarło
+  do pierwszego. Końcowo oba mają 500 sesji / 12500 minut.
+- Porównanie końcowego eksportu z kopią sprzed importu potwierdziło wszystkie
+  oczekiwane ID oraz niezmienione id/date/minutes/task/checklist pierwotnej sesji.
+  Nie przywracano starego profilu, więc późniejsze wybory języka/motywu użytkownika
+  pozostały zachowane. Dane TEST pozostają w izolowanej chmurze do dalszych prób.
+- Jeden dodatkowy odczyt nadpisał wcześniejszy surowy snapshot testowej chmury.
+  To błąd obsługi kopii, nie utrata pierwotnej sesji: odrębny pełny eksport profilu
+  sprzed importu jest zachowany i porównany; kopie produkcji są nienaruszone.
+  Nowszy surowy snapshot ma poprawną nazwę `test-cloud-after-browser-tests.json`
+  i dodatkową kopię z timestampem. Nie opisuj go jako kopii sprzed testu.
+- W testowym Auth dopisano wyłącznie dwa powyższe kontrolowane hosty Preview,
+  z prywatnymi kopiami konfiguracji i odczytem zachowania pozostałych pól.
+  Produkcyjnego Auth nie zmieniano. Stable test alias wskazuje teraz ten sam
+  kod przez `dpl_43emV5Rc3UB2uxY4YxiVFFPBytuK` (redeploy bez zmiany źródeł).
+- Próba 127.0.0.1 odrzucona przez allowlist; localhost po poprawieniu hosta nie
+  otworzył widocznego popupu i nie jest PASS. Drugi HTTPS rozwiązał tę przeszkodę.
+
+Raport bez PII: ignorowany `test-artifacts/ui-architecture/browser-google-verification.json`.
+Eksporty i snapshoty z danymi są poza Git w prywatnym katalogu kopii z 28.10.
+Właściciel ma **jedno konto do testów**: zmiana dwóch rzeczywistych kont Google
+pozostaje niedostępna. Dwa fizyczne urządzenia, odcięcie sieci/reconnect z realnym
+Google, produkcyjny desktop OAuth/revocation/keyring i fizyczne funkcje OS nadal
+są osobnymi, niewykonanymi bramkami. Nie zastępuj ich powyższymi dwoma originami.
+
+**Etap architektury UI wdrożony. Publikacja produkcyjna jeszcze niewykonana.**
+Mapa komponentów i przepływu stanu, katalogi i przewodnik:
+[UI-ARCHITECTURE](../UI-ARCHITECTURE.md). Kontrakty i przykłady:
+[UI-COMPONENTS](../UI-COMPONENTS.md). Pomiary i uzasadnienie:
+[raport UI](2026-10-27-ui.md), ADR-0011.
+
+- Zachowano wcześniejsze zmiany w `8903be5`; architektura UI jest w `01d2c2c`.
+  Kolejne commity naprawiają lockfile czystego npm ci, reset porad i natywne
+  advisories (webpki/roots/Tokio). Żadnej kontroli ani progu audit nie obniżono.
+- [PR #6](https://github.com/w3ziqv/focus-flow/pull/6) przeszedł wszystkie wymagane
+  kontrole na head `482db00` i został zwyczajnie scalony do chronionego
+  `codex/v3.0-release`. Bez admin bypass i bez zmiany ochrony. Auto-merge repo
+  jest wyłączone; nie zmieniano tego ustawienia.
+- **Kandydat:** `575f070997b7824ddcabaec28eb2bc1c102e1815`. Lokalny checkout
+  pozostaje `codex/v3.0-stable`; późniejsze zmiany dokumentacji nie są nowymi
+  produkcyjnymi buildami. Sprawdź status/diff i nie pomyl SHA dokumentacji
+  z metadanymi instalatora.
+- [PR #7 do main](https://github.com/w3ziqv/focus-flow/pull/7) jest draftem.
+  Nie scalać przed wynikami bieżącej akceptacji fizycznej.
+- Świeże [CI 40711072975](https://github.com/w3ziqv/focus-flow/actions/runs/40711072975)
+  i [Security 40711072823](https://github.com/w3ziqv/focus-flow/actions/runs/40711072823)
+  PASS: 844 unit/64 pliki, lint/typecheck/tokens/boundaries, audit npm,
+  buildy frontendu i izolacja, Firestore, Rust audit. Checkout PR to syntetyczny
+  merge `369ec403265b582c7d1efc716e8298165242b2f6`; porównanie pełnych drzew
+  z kandydatem dało identyczny `9de9aebb77e125feed2e671f3efdc90ed42e16f9` i pusty diff.
+- Produkcyjne instalatory i runtime dokładnego SHA:
+  [Desktop 40710979304](https://github.com/w3ziqv/focus-flow/actions/runs/40710979304).
+  **PASS**: natywne Linux/Windows/macOS, instalacja i uruchomienie Linux/Windows,
+  Windows upgrade alpha.2 → kandydat i rollback z kopii sprzed aktualizacji.
+  Pobrano cztery instalatory, wszystkie SHA-256 i czteropolowe metadane
+  (`production`, projekt produkcyjny, Desktop client, dokładny commit) PASS.
+  Lokalne paczki i płaski manifest: ignorowany
+  `test-artifacts/ui-architecture/installers-production-575f070/release-payload/`.
+- Osobny Desktop PR #7 `40711072751` pozostaje FAILED: próba 1 zerwała połączenie
+  proxy przy screenshot, próba 2 zaliczyła wszystkie asercje, lecz sprzątanie
+  mktemp zderzyło się z kończącym portalem (ENOTEMPTY). Nie uznawano ich za PASS.
+  Naprawa skryptu testowego `9214af0`, [PR #8](https://github.com/w3ziqv/focus-flow/pull/8):
+  bezpośredni WebKit dla obu paczek Linux i ograniczone ponowienia sprzątania
+  wyłącznie profilu mktemp. Pierwotny błąd testu i wyczerpane cleanup nadal fail.
+  Próby izolowane potwierdziły te trzy polityki. Runtime-only `40716032967`
+  PASS Linux/Windows i Windows upgrade/rollback, na paczkach produkcyjnych
+  `575f070` po porównaniu pełnych źródeł aplikacji/builda. Native job celowo
+  skipped, nie jest to nowy build. Pełne CI PR #8 jest odrębną kontrolą.
+
+Web/PWA: `dpl_8vXsRVKyQSCoMBfdZC6rms79Kxfw`, dokładny kandydat, target=production,
+READY, zmienne produkcyjne, bez domen własnych. Świeży smoke PASS: sześć
+nagłówków identycznych z vercel.json, zadanie i ID timera po reload, dostępny
+Google UI bez logowania, PWA/offline/nawigacja, 390 px i brak page errors.
+Zrzut i raport są w ignorowanym `test-artifacts/ui-architecture/staged-575f070/`.
+Linki dostępu z parametrami i logi są prywatnie poza Git.
+
+`autoAssignCustomDomains=false` pozostaje zabezpieczeniem stagingu. Odczyt
+28.10 obu domen nadal wskazuje `dpl_7kbjGztvYdG7HrryQyMG3boTXZMJ` / `a2f5f22`.
+Produkcyjne reguły nadal: `4c8bd509f7ff07d72d75c9104bcb6145e54d607198024d8d99ae8b619cf901bf`;
+test/source: `d16c2a2209cf73e577d0433e04464736c1450f3ce308976ea1feb456fe980bab`.
+Nie wykonano produkcyjnej migracji ani deploy reguł.
+
+### Co blokuje publikację i jak kontynuować
+
+Właściciel poprosił o instrukcję wykonania testów; **nie podał jeszcze nowych
+wyników PASS**. [Procedura i formularz](../TESTING-UI-RELEASE-2026-10-28.md)
+opisują dwa fizyczne urządzenia, Google/restart/offline/edycję/usunięcie,
+maskowanie i zmianę konta, następnie produkcyjny desktop, revocation/brak
+magazynu poświadczeń, funkcje OS i upgrade/rollback. Osobny profil przeglądarki
+nie oddziela chmury tego samego konta. Pełny restart testować w trwałym profilu,
+ponieważ zamknięcie wszystkich okien incognito usuwa dane.
+
+Właściciel następnie upoważnił agenta do użycia zalogowanej przeglądarki i
+przejęcia testów. Inwentarz udostępnił tylko IAB, bez Chrome/Firefox i bez
+natywnych okien. Zastany testowy PWA miał alpha.1; przed zmianami wyeksportowano
+pełny JSON do prywatnej kopii. Na niezmiennym Preview `5143cd7` potwierdzono UI
+3.0.0, ale początkowy Google OAuth zwrócił `auth/unauthorized-domain`.
+Po prywatnym snapshotcie testowej chmury (17 dokumentów) i konfiguracji Auth,
+dopisano wyłącznie `focus-flow-ldcctiyxq-w3ziqvs-projects.vercel.app` w testowym
+authorizedDomains, zachowując pozostałe pola i domeny; odczyt po zmianie PASS.
+Produkcja bez zmian. Ponowne Google OAuth w IAB pozostaje na Connecting; popup
+Google nie jest widoczny w inwentarzu kart. **Nie jest to PASS OAuth.** Agent
+poprosił o sprawdzenie okna i podał oficjalną procedurę podłączenia Chrome przez
+Settings → Computer Use → Chrome → Install, następnie @Chrome. Nie zastępuj
+tego połączenia kopiowaniem cookies/poświadczeń ani osłabieniem zabezpieczeń.
+
+Izolowany web użytkownika nadal ma `5143cd7` na
+`https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app` (test Firebase).
+Porównano wszystkie źródła aplikacji/builda z kandydatem: identyczne. Nie
+zmieniano tej wersji podczas testów użytkownika. Syntetyczny import 500 sesji
+jest w `test-artifacts/ui-architecture/acceptance/TEST-500-sessions.json`;
+rzeczywisty import w świeżym profilu dał 500 sesji / 12 500 minut.
+
+Prywatne kopie źródeł/danych/reguł i test migracji/restore z 27.10 zachowane
+poza repo (`~/.local/state/focus-flow-checkpoints/2026-10-27-ui/`, 0700,
+snapshoty 0600). Bieżący odczyt reguł i prywatny dostęp stagingu są w
+`2026-10-28-release/`. Odśwież snapshot i sprawdzenie restore tuż przed
+faktycznym rolloutem; stara kopia nie dowodzi aktualności danych.
+
+Po domknięciu bramek stosuj [rollout](../PRODUCTION-ROLLOUT-3.0.md). Po scaleniu
+do main ponownie zapisz **rzeczywisty końcowy SHA**, uruchom produkcyjny Desktop
+na main, zweryfikuj jego instalatory/metadane i staging tego SHA. Nie publikuj
+paczki wcześniejszego merge tylko dlatego, że kod aplikacji jest równoważny.
+Kolejność reguły/klient/domeny oraz rollback musi zachować aktualne dane.
+Autoryzacja użytkownika obejmuje publikację po zaliczeniu warunków; nie proś
+ponownie o samą zgodę, lecz zbierz brakujące rzeczywiste wyniki/dostępy.
+
 ## Kontynuacja 27.10.2026 — bieżący etap
 
 Wdrożono mapę i granice `app/views/features/ui`, własność stanu, izolację renderów,

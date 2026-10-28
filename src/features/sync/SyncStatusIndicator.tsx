@@ -1,3 +1,4 @@
+import { localeFor } from '../../domain/language'
 import { memo } from 'react'
 /**
  * Focus Flow — Tier 1 Ambient Sync Status Indicator (Stage 6 / Milestone v2.6)
@@ -28,7 +29,7 @@ const DEFAULT_STATE: CloudSyncState = {
 }
 
 export const SyncStatusIndicator: React.NamedExoticComponent<SyncStatusIndicatorProps> = memo(function SyncStatusIndicator({ onClick, className = '' }: SyncStatusIndicatorProps): React.JSX.Element {
-  const {t} = useI18n()
+  const {t, lang} = useI18n()
   const [online, setOnline] = useState(() => navigator.onLine)
   const [syncState, setSyncState] = useState<CloudSyncState>(() => loadCloudSyncState() ?? DEFAULT_STATE)
 
@@ -55,7 +56,7 @@ export const SyncStatusIndicator: React.NamedExoticComponent<SyncStatusIndicator
     try {
       const d = new Date(iso)
       if (Number.isNaN(d.getTime())) return t('sync.pending')
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      return d.toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })
     } catch {
       return t('sync.last')
     }

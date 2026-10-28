@@ -1,3 +1,4 @@
+import { localeFor } from '../domain/language'
 import type { Lang, MilestoneRecord, SessionLogEntry, SessionLogEntryV2, Stats, StatsV2 } from '../types'
 import { deleteSession, loadStats, saveStats, weekStartOf } from './storage'
 import { creditFocusSession } from '../domain/sessionStatistics'
@@ -215,8 +216,8 @@ export function lastNDays(stats: Stats, lang: Lang, daysCount: number): ChartDay
     const key = dayKey(d)
     const label =
       daysCount <= 7
-        ? d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { weekday: 'short' })
-        : d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'numeric' })
+        ? d.toLocaleDateString(localeFor(lang), { weekday: 'short' })
+        : d.toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'numeric' })
     out.push({
       label,
       minutes: Math.round(stats.history[key] ?? 0),
@@ -259,7 +260,7 @@ export function generateHeatmap(stats: Stats, lang: Lang, count = 30): HeatmapDa
 
     out.push({
       dateKey: key,
-      dateLabel: d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', {
+      dateLabel: d.toLocaleDateString(localeFor(lang), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',

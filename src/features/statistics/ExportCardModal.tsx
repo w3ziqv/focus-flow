@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useDialogFocus } from '../../ui/useDialogFocus'
 import { Download, Copy, Check, X } from 'lucide-react'
 import { useI18n } from '../../lib/i18n'
+import { localeFor } from '../../domain/language'
 import { PillButton } from '../../ui/PillButton'
 import { downloadWeeklyCard, copyWeeklyCardToClipboard, type WeeklyCardData } from '../../lib/cardExport'
 
@@ -16,17 +18,21 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
   const [copying, setCopying] = useState(false)
   const [copied, setCopied] = useState(false)
   const [downloaded, setDownloaded] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useDialogFocus(open, panelRef, onClose)
 
   if (!open) return null
 
   const handleDownload = async () => {
     try {
+      setFailed(false)
       setDownloading(true)
       await downloadWeeklyCard(cardData)
       setDownloaded(true)
       setTimeout(() => setDownloaded(false), 3000)
     } catch {
-      // Ignored
+      setFailed(true)
     } finally {
       setDownloading(false)
     }
@@ -34,14 +40,16 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
 
   const handleCopy = async () => {
     try {
+      setFailed(false)
       setCopying(true)
       const ok = await copyWeeklyCardToClipboard(cardData)
+      if (!ok) setFailed(true)
       if (ok) {
         setCopied(true)
         setTimeout(() => setCopied(false), 3000)
       }
     } catch {
-      // Ignored
+      setFailed(true)
     } finally {
       setCopying(false)
     }
@@ -49,16 +57,14 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="card-modal-title"
+      data-dialog-root
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in"
     >
-      <div className="relative w-full max-w-lg rounded-2xl border border-line bg-card p-6 shadow-xl">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="card-modal-title" tabIndex={-1} className="relative max-h-[90dvh] overflow-auto w-full max-w-lg rounded-2xl border border-line bg-card p-6 shadow-xl">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-ink-3 hover:bg-sunken focus-visible:ring-2 focus-visible:ring-[var(--ac)]"
+          className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-lg text-ink-3 hover:bg-sunken focus-visible:ring-2 focus-visible:ring-[var(--ac)]"
           aria-label={t('settings.cancel')}
         >
           <X className="size-5" />
@@ -79,19 +85,18 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
           <div className="flex items-baseline justify-between">
             <span className="text-caption font-medium text-ink-3">{cardData.dateRangeLabel}</span>
             <span className="font-serif text-[20px] font-medium text-ink">
-              {(cardData.totalMinutes / 60).toFixed(1)}h
+              {new Intl.NumberFormat(localeFor(cardData.lang), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(cardData.totalMinutes / 60)} {t('unit.hourShort')}
             </span>
           </div>
           <p className="text-[13px] text-ink-2">
-            {cardData.lang === 'pl'
-              ? String(cardData.totalMinutes) + ' min w ' + String(cardData.activeDaysCount) + ' aktywnych dniach'
-              : String(cardData.totalMinutes) + ' min across ' + String(cardData.activeDaysCount) + ' active days'}
+            {t('card.summary', { minutes: cardData.totalMinutes, days: cardData.activeDaysCount })}
           </p>
         </div>
 
+        {failed && <p role="alert" className="mt-4 text-[13px] text-ink">{t('stats.cardError')}</p>}
         {/* Action status notification */}
         {(copied || downloaded) && (
-          <div className="mt-4 flex items-center gap-2 text-[13px] font-medium text-[var(--ac-strong)]">
+          <div role="status" className="mt-4 flex items-center gap-2 text-[13px] font-medium text-[var(--ac-strong)]">
             <Check className="size-4" />
             <span>{copied ? t('stats.cardCopied') : t('stats.cardDownloaded')}</span>
           </div>

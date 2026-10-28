@@ -143,10 +143,10 @@ export function TimerView({
         <div className="fade-up mt-4 shrink-0 rounded-2xl border border-line bg-card p-4 text-center sm:mt-8 sm:p-5">
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
           <p className="mt-1 font-serif text-[1.125rem] font-[500] text-ink">
-            {lang === 'pl' ? breakTip.titlePl : breakTip.titleEn}
+            {breakTip.title[lang]}
           </p>
           <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
-            {lang === 'pl' ? breakTip.descPl : breakTip.descEn}
+            {breakTip.description[lang]}
           </p>
         </div>
       )}

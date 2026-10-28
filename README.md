@@ -152,6 +152,8 @@ npm run build
 - [`docs/adr/`](docs/adr/README.md) — Current ADRs supplementing the historical records.
 - [`docs/UI-ARCHITECTURE.md`](docs/UI-ARCHITECTURE.md) — Component/state map and dependency rules.
 - [`docs/UI-COMPONENTS.md`](docs/UI-COMPONENTS.md) — Representative UI contracts and examples.
+- [`docs/LOCALIZATION.md`](docs/LOCALIZATION.md) — Four languages, storage and export contracts, verification.
+- [`docs/GUIDES-REVIEW-2026-10-28.md`](docs/GUIDES-REVIEW-2026-10-28.md) — Review of all 27 guides and primary references.
 - [`docs/modernization/2026-10-26.md`](docs/modernization/2026-10-26.md) — Audit, changes, measurements and verification limits.
 - [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
 

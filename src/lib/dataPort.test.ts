@@ -620,3 +620,20 @@ describe('dataPort - isBackupFile predicate', () => {
   })
 })
 
+
+describe('four-language backup compatibility', () => {
+  it.each(['pl', 'en', 'es', 'zh'] as const)('round-trips %s without replacing session IDs or custom labels', async lang => {
+    const session = { id: `TEST-locale-${lang}`, date: '2026-10-28T10:00:00.000Z', minutes: 25, task: 'Prueba 中文 👨‍👩‍👧‍👦' }
+    saveLang(lang)
+    saveSessions([session])
+    savePresets([{ id: 'custom', label: 'Mi propio texto 自定义' }])
+    const backup = await exportDataString()
+    saveLang('en')
+    saveSessions([])
+    expect(await importData(backup)).toEqual({ success: true, count: 1 })
+    const restored = await exportData()
+    expect(restored.data.lang).toBe(lang)
+    expect(restored.data.sessions).toEqual([session])
+    expect(restored.data.presets).toEqual([{ id: 'custom', label: 'Mi propio texto 自定义' }])
+  })
+})
