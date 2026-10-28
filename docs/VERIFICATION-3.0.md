@@ -1,8 +1,76 @@
 # Verification — 3.0 release preparation
 
-Updated: 2026-10-18. Local baseline: 2026-10-03. Base `a2f5f22`, branch `feature/v3-desktop`. These are
-observed local results. The stable tag remains blocked by the acceptance gates
-below. GitHub CI results must be recorded for the pushed commit separately.
+Updated: 2026-10-28. The current candidate is recorded first; the following dated
+sections preserve historical results. Initial local baseline: 2026-10-03,
+base `a2f5f22`, branch `feature/v3-desktop`. The stable tag remains blocked by
+the acceptance gates below.
+
+## 2026-10-28 UI candidate
+
+This is the pre-localization baseline. PR #8 subsequently merged as `cb3e238`;
+its exact required CI (`40717230990`), Security (`40717231009`) and Desktop
+(`40717230923`) all PASS. Production Desktop `40720464290` is a separate run
+for literal `cb3e238`; inspect its current result. The owner then requested a
+full translation audit, Spanish/Simplified Chinese and review of all 27 guides.
+Those changes require new release evidence before publication.
+
+Real Google browser follow-up PASS on application-equivalent `5143cd7`: owner
+selected accounts in native popups, account restored and synchronized after page
+reload; two independent HTTPS origins transferred 501 sessions / 12525 minutes,
+including the original session plus 500 synthetic records. Pagination and search,
+online edit propagation and deletion propagation PASS. Final exports show 500
+sessions / 12500 minutes, the expected ID set and unchanged original session
+content. The owner has only one test account; real account switching remains
+unavailable. This is not physical two-device or real network-cut acceptance.
+Private exports remain outside Git. See the updated handoff for limitations and
+the corrected snapshot history.
+
+Candidate: `575f070997b7824ddcabaec28eb2bc1c102e1815` on protected
+`codex/v3.0-release`; application source matches test candidate `5143cd7`.
+PR #6 merged after all required application/security/browser/installed checks.
+Current main PR #7 remains draft; production publication is pending acceptance.
+
+- [Application CI 40711072975](https://github.com/w3ziqv/focus-flow/actions/runs/40711072975):
+  PASS (844 unit tests, lint/typecheck/tokens/boundaries, npm audit, both frontend
+  builds and isolation).
+- [Security 40711072823](https://github.com/w3ziqv/focus-flow/actions/runs/40711072823):
+  Firestore and Rust PASS. Patched native webpki/roots/Tokio versions remain in
+  the lockfile; advisory policy was not relaxed.
+- These PR jobs checkout the synthetic merge `369ec403265b582c7d1efc716e8298165242b2f6`.
+  Fetched both commits and verified equal full trees
+  `9de9aebb77e125feed2e671f3efdc90ed42e16f9` and an empty diff with the candidate.
+- [Production Desktop 40710979304](https://github.com/w3ziqv/focus-flow/actions/runs/40710979304)
+  checks out the literal candidate SHA: PASS for native Linux/Windows/macOS,
+  installed Linux/Windows and Windows baseline install → in-place upgrade →
+  pre-update backup rollback. All four installer hashes and strict native
+  metadata were verified after download. Public metadata identifies production
+  project `focus-flow-70527` and source `575f070`; no stable tag/release exists.
+- The separate PR Desktop run `40711072751` failed twice: screenshot transport
+  closed through the tauri-driver proxy, then a rerun completed every assertion
+  but portal shutdown recreated a file during temporary-profile cleanup. These
+  runs remain failures. Repair `9214af0` uses direct native WebKit for both Linux
+  packages and bounded cleanup retries, retaining exhausted/original failures.
+  [Runtime-only 40716032967](https://github.com/w3ziqv/focus-flow/actions/runs/40716032967)
+  PASS on the same verified production installers after an exact application
+  source comparison. It intentionally skips packaging; it is not a new build.
+  Full required PR checks are tracked in
+  [PR #8](https://github.com/w3ziqv/focus-flow/pull/8).
+- Web staging `dpl_8vXsRVKyQSCoMBfdZC6rms79Kxfw`: literal candidate SHA,
+  production target/configuration, READY. Six HTTP headers exactly match
+  `vercel.json`; task/timer identity after reload, configured Google UI without
+  sign-in, PWA installation/offline navigation, 390px layout and no page errors
+  PASS. Own fresh synthetic browser profile; no Google sign-in or cloud writes.
+- Both custom domains still use `dpl_7kbjGztvYdG7HrryQyMG3boTXZMJ`.
+  Production rules still differ from source. Rules/domain read-back on 28.10
+  confirmed this; no live migration or publication was performed.
+- Physical OAuth, two-device scenarios, revocation, credential-store fallback,
+  OS integration and physical upgrade/rollback remain PENDING. Use
+  [the exact procedure and result form](TESTING-UI-RELEASE-2026-10-28.md).
+
+Implementation/local measurements: [UI report](modernization/2026-10-27-ui.md).
+Raw staging evidence and screenshots remain in ignored
+`test-artifacts/ui-architecture/staged-575f070/`; access parameters and private
+backups are outside Git/CI.
 
 ## 2026-10-18 candidate and final-version CI
 
