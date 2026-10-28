@@ -1,3 +1,4 @@
+import type { Lang } from '../domain/language'
 import type { SessionLogEntryV2 } from '../types'
 import {
   downloadCsv,
@@ -9,7 +10,7 @@ import {
 } from './export'
 import { exportData, exportDataString, importData, type BackupFileV2, type ImportResult } from './dataPort'
 import { triggerDownload } from './download'
-import { loadSessions } from './storage'
+import { loadLang, systemLang, loadSessions } from './storage'
 import {
   copyWeeklyCardToClipboard,
   downloadWeeklyCard,
@@ -24,6 +25,7 @@ export interface ExportOptions {
   sessions?: SessionLogEntryV2[]
   filename?: string
   now?: Date
+  lang?: Lang
 }
 
 /**
@@ -40,14 +42,15 @@ export class Exporter {
   public static async serialize(format: ExportFormat, options: Omit<ExportOptions, 'format'> = {}): Promise<string> {
     const sessions = options.sessions ?? loadSessions()
     const now = options.now ?? new Date()
+    const lang = options.lang ?? loadLang() ?? systemLang()
 
     switch (format) {
       case 'ics':
-        return serializeToICal(sessions, now)
+        return serializeToICal(sessions, now, lang)
       case 'csv':
         return serializeToCsv(sessions)
       case 'markdown':
-        return serializeToMarkdown(sessions, now)
+        return serializeToMarkdown(sessions, now, lang)
       case 'json':
         return exportDataString()
       default: {
@@ -65,7 +68,9 @@ export class Exporter {
 
     switch (format) {
       case 'ics':
-        if (options.filename || options.now) {
+        if (options.lang) {
+          downloadICal(sessions, options.filename, options.now, options.lang)
+        } else if (options.filename || options.now) {
           downloadICal(sessions, options.filename, options.now)
         } else {
           downloadICal(sessions)
@@ -79,7 +84,9 @@ export class Exporter {
         }
         break
       case 'markdown':
-        if (options.filename || options.now) {
+        if (options.lang) {
+          downloadMarkdown(sessions, options.filename, options.now, options.lang)
+        } else if (options.filename || options.now) {
           downloadMarkdown(sessions, options.filename, options.now)
         } else {
           downloadMarkdown(sessions)

@@ -45,7 +45,7 @@ describe('useTimerEngine: Cold-Start Wake & Webhook Integration', () => {
     expect(result.current.remainingMs).toBe(5 * 60_000)
 
     // Should have surfaced peaceful wake notice
-    expect(result.current.wakeNotice).toBe('Focus session completed while you were away.')
+    expect(result.current.wakeNotice).toBe('Sesja skupienia została ukończona podczas Twojej nieobecności.')
 
     // Stats credited
     expect(result.current.stats.minutes).toBe(25)
@@ -157,7 +157,7 @@ describe('useTimerEngine: Cold-Start Wake & Webhook Integration', () => {
 
     expect(result.current.running).toBe(false)
     expect(result.current.mode).toBe('short')
-    expect(result.current.wakeNotice).toBe('Focus session completed while you were away.')
+    expect(result.current.wakeNotice).toBe('Sesja skupienia została ukończona podczas Twojej nieobecności.')
     expect(loadSessions()).toHaveLength(1)
   })
 

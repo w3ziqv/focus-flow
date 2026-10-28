@@ -1,6 +1,8 @@
 import { trackCloudWrite } from './sync/outbox'
 import { canonical, setReplicaValue, type ReplicaDocument } from './desktop/crdt'
 import { getPersistence } from './desktop/runtime'
+import { isLang, languageFromLocales, parseStoredLanguage } from '../domain/language'
+import { translate } from './translations'
 export { weekStartOf } from '../domain/calendar'
 import { weekStartOf } from '../domain/calendar'
 import {
@@ -303,7 +305,7 @@ function migrateLegacy(): void {
   const legacyTheme = readString(`${LEGACY_PREFIX}theme`)
   if (legacyTheme === 'dark' || legacyTheme === 'light') write(KEYS.theme, legacyTheme)
   const legacyLang = readString(`${LEGACY_PREFIX}lang`)
-  if (legacyLang === 'pl' || legacyLang === 'en') write(KEYS.lang, legacyLang)
+  if (isLang(legacyLang)) write(KEYS.lang, legacyLang)
   write(KEYS.migrated, new Date().toISOString())
 }
 
@@ -632,17 +634,14 @@ export function loadPresets(): TaskPreset[] {
     return val.map(isTaskPreset).filter((p): p is TaskPreset => p !== null).slice(0, 50)
   })
   if (stored && stored.length > 0) return stored
-  const lang = loadLang()
-  if (lang === 'pl') {
-    return [
-      { id: 'deep-work', label: 'Głęboka praca' },
-      { id: 'writing', label: 'Pisanie' },
-      { id: 'code-review', label: 'Przegląd kodu' },
-      { id: 'reading', label: 'Czytanie' },
-      { id: 'inbox-zero', label: 'Inbox Zero' },
-    ]
-  }
-  return [...DEFAULT_TASK_PRESETS]
+  const lang = loadLang() ?? systemLang()
+  return [
+    { id: 'deep-work', label: translate(lang, 'preset.deepWork') },
+    { id: 'writing', label: translate(lang, 'preset.writing') },
+    { id: 'code-review', label: translate(lang, 'preset.codeReview') },
+    { id: 'reading', label: translate(lang, 'preset.reading') },
+    { id: 'inbox-zero', label: translate(lang, 'preset.inboxZero') },
+  ]
 }
 
 export function savePresets(presets: TaskPreset[]): boolean {
@@ -657,14 +656,11 @@ export function savePresets(presets: TaskPreset[]): boolean {
 
 export function loadLang(): Lang | null {
   migrateLegacy()
-  const stored = read<Lang>(KEYS.lang, (v) => (v === 'pl' || v === 'en' ? v : null))
-  if (stored) return stored
-  const raw = readString(KEYS.lang)
-  return raw === 'en' ? 'en' : raw === 'pl' ? 'pl' : null
+  return parseStoredLanguage(readString(KEYS.lang))
 }
 
 export function saveLang(lang: Lang): void {
-  write(KEYS.lang, lang)
+  if (isLang(lang)) write(KEYS.lang, lang)
 }
 
 export function loadTheme(): Theme | null {
@@ -867,13 +863,12 @@ export function systemTheme(): Theme {
 
 /**
  * Detects default user language from device/browser settings.
- * Defaults to 'pl' if browser locale begins with Polish ('pl'), otherwise 'en' for global users.
+ * Uses the first supported browser language, falling back to English.
  */
 export function systemLang(): Lang {
   if (typeof navigator === 'undefined') return 'en'
   const nav = navigator as Navigator & { userLanguage?: string }
-  const navLang = (nav.language || nav.userLanguage || '').toLowerCase()
-  return navLang.startsWith('pl') ? 'pl' : 'en'
+  return languageFromLocales([nav.language || nav.userLanguage || '', ...(nav.languages ?? [])])
 }
 
 const SESSION_KEY = `${PREFIX}session`

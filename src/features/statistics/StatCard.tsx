@@ -14,7 +14,7 @@ export function StatCard({ value, label, emphasized = false }: StatCardProps): R
       >
         {value}
       </span>
-      <span className="whitespace-nowrap text-overline text-ink-3">{label}</span>
+      <span className="text-center text-overline text-ink-3">{label}</span>
     </div>
   )
 }

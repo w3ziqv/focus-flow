@@ -43,8 +43,8 @@ describe('SoundSettingsDialog Component', () => {
     expect(screen.getByRole('button', { name: /Fale oceanu|Ocean waves/i })).toBeDefined()
 
     // Layer 2: Entrainment Resonance section
-    expect(screen.getByRole('button', { name: /Alpha Focus \(10 Hz\)/i })).toBeDefined()
-    expect(screen.getByRole('button', { name: /Theta Rest \(6 Hz\)/i })).toBeDefined()
+    expect(screen.getByRole('button', { name: /Alfa \(10 Hz\)/i })).toBeDefined()
+    expect(screen.getByRole('button', { name: /Teta \(6 Hz\)/i })).toBeDefined()
 
     // Headphone guidance note
     expect(
@@ -65,11 +65,11 @@ describe('SoundSettingsDialog Component', () => {
     const onBinauralChange = vi.fn()
     renderDialog({ ...defaultProps, onBinauralChange })
 
-    const alphaBtn = screen.getByRole('button', { name: /Alpha Focus \(10 Hz\)/i })
+    const alphaBtn = screen.getByRole('button', { name: /Alfa \(10 Hz\)/i })
     fireEvent.click(alphaBtn)
     expect(onBinauralChange).toHaveBeenCalledWith('alpha')
 
-    const thetaBtn = screen.getByRole('button', { name: /Theta Rest \(6 Hz\)/i })
+    const thetaBtn = screen.getByRole('button', { name: /Teta \(6 Hz\)/i })
     fireEvent.click(thetaBtn)
     expect(onBinauralChange).toHaveBeenCalledWith('theta')
   })

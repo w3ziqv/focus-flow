@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import type { InterfacePrefs, Theme, WebhookSettings } from '../../types'
 import { useI18n } from '../../lib/i18n'
+import { LANGUAGE_CODES, LANGUAGE_META } from '../../domain/language'
 import type { TranslationKey } from '../../lib/translations'
 import { THEMES, THEME_TOKENS } from '../../lib/theme'
 import { getAvailableVoices, speakNarration } from '../../lib/speech'
@@ -311,7 +312,7 @@ export function AppSettingsModal({
                 </div>
                 <div>
                   <div className="text-[14px] font-medium text-ink leading-snug">{t('settings.language')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">{lang === 'pl' ? t('lang.pl') : t('lang.en')}</div>
+                  <div className="text-[12px] text-ink-3 leading-snug">{LANGUAGE_META[lang].name}</div>
                 </div>
               </div>
               <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
@@ -474,7 +475,7 @@ export function AppSettingsModal({
                 <div>
                   <div className="text-[14px] font-medium text-ink leading-snug">{t('webhookTitle')}</div>
                   <div className="text-[12px] text-ink-3 leading-snug">
-                    {webhookSettings.enabled ? 'HTTP POST (Aktywny)' : t('webhookEnabled')}
+                    {webhookSettings.enabled ? t('webhook.active') : t('webhookEnabled')}
                   </div>
                 </div>
               </div>
@@ -535,22 +536,14 @@ export function AppSettingsModal({
       {/* Subview: Language */}
       {section === 'language' && (
         <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
-          <button
-            type="button"
-            onClick={() => setLang('pl')}
-            className="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-sunken/60 min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <span className="text-[14px] font-medium text-ink">{t('lang.pl')}</span>
-            {lang === 'pl' && <Check size={16} className="text-accent" aria-hidden="true" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setLang('en')}
-            className="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-sunken/60 min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <span className="text-[14px] font-medium text-ink">{t('lang.en')}</span>
-            {lang === 'en' && <Check size={16} className="text-accent" aria-hidden="true" />}
-          </button>
+          {LANGUAGE_CODES.map(code => (
+            <button key={code} type="button" lang={LANGUAGE_META[code].htmlLang}
+              aria-pressed={lang === code} onClick={() => setLang(code)}
+              className="flex w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-sunken/60 min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <span className="text-[14px] font-medium text-ink">{LANGUAGE_META[code].name}</span>
+              {lang === code && <Check size={16} className="text-accent" aria-hidden="true" />}
+            </button>
+          ))}
         </div>
       )}
 
@@ -638,7 +631,7 @@ export function AppSettingsModal({
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.toggleTimer')}</span>
               <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
-                Space
+                {t('shortcuts.space')}
               </kbd>
             </div>
             <div className="flex items-center justify-between p-3">
@@ -680,7 +673,7 @@ export function AppSettingsModal({
       {section === 'data' && (
         <div className="flex flex-col gap-4">
           <p className="text-[13px] text-ink-2 leading-relaxed">
-            Eksportuj historię sesji do popularnych formatów lub zarządzaj pełną kopią zapasową aplikacji.
+            {t('data.description')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button

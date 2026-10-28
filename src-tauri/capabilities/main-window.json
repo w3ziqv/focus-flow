@@ -46,6 +46,7 @@
     "allow-cloud-document",
     "allow-cloud-documents",
     "allow-cloud-commit",
-    "allow-cloud-delete-account"
+    "allow-cloud-delete-account",
+    "allow-open-guide-source"
   ]
 }

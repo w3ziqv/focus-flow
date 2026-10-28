@@ -34,7 +34,8 @@
     "test:browser": "node scripts/test-browser.mjs",
     "test:web-offline": "node scripts/test-web-offline.mjs",
     "test:rules": "node scripts/test-firestore-rules.mjs",
-    "test:migration": "node scripts/test-migration.mjs"
+    "test:migration": "node scripts/test-migration.mjs",
+    "test:localization": "node scripts/test-localization.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",

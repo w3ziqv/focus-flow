@@ -1,7 +1,8 @@
+import { formatNumber } from '../lib/translations'
 import { memo, useMemo, useState, useRef, useEffect } from 'react'
 import { Edit2, Trash2, Check, X, Share2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
-import type { StatsV2, SessionLogEntryV2 } from '../types'
+import type { Lang, StatsV2, SessionLogEntryV2 } from '../types'
 import { groupByDay, loadSessions, timeLabel } from '../lib/sessions'
 import { isRemoteWrite } from '../lib/sync/outbox'
 import { updateSessionTask } from '../lib/storage'
@@ -28,7 +29,7 @@ import type { WeeklyCardData } from '../lib/cardExport'
 
 interface StatsViewProps {
   stats: StatsV2
-  lang: 'pl' | 'en'
+  lang: Lang
   chartDays?: ReturnType<typeof last7Days>
   totalMinutes?: number
   onStartSession?: () => void
@@ -166,7 +167,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
   return (
     <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24 space-y-10">
       <div>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-overline text-ink-3">{t('app.name')}</p>
             <h1 className="mt-2 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{t('stats.view')}</h1>
@@ -182,10 +183,10 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
-          <StatCard value={stats.today} label={t('stat.today')} emphasized />
-          <StatCard value={stats.week} label={t('stat.week')} />
-          <StatCard value={stats.streak} label={t('stat.streak')} />
-          <StatCard value={stats.minutes} label={t('stat.minutes')} />
+          <StatCard value={formatNumber(lang, stats.today)} label={t('stat.today')} emphasized />
+          <StatCard value={formatNumber(lang, stats.week)} label={t('stat.week')} />
+          <StatCard value={formatNumber(lang, stats.streak)} label={t('stat.streak')} />
+          <StatCard value={formatNumber(lang, stats.minutes)} label={t('stat.minutes')} />
         </div>
       </div>
 
@@ -227,7 +228,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
 
         {days.length === 0 ? (
           <p className="mt-4 rounded-2xl border border-line bg-card p-5 text-[14px] leading-relaxed text-ink-2">
-            {sessions.length === 0 ? t('log.empty') : t('stats.tasksEmpty')}
+            {sessions.length === 0 ? t('log.empty') : t('log.noMatches')}
           </p>
         ) : (
           <div className="mt-4 space-y-6">
@@ -338,7 +339,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
 
                           <div className={`flex items-center gap-2 shrink-0 ${isEditing ? 'self-end sm:self-auto' : ''}`}>
                             <span className="tnum text-[14px] font-medium text-[var(--ac-strong)]">
-                              {entry.minutes} min
+                              {formatNumber(lang, entry.minutes)} {t('unit.minuteShort')}
                             </span>
                             <button
                               type="button"

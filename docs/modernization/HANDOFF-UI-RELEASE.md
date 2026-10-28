@@ -2,6 +2,24 @@
 
 ## Kontynuacja 28.10.2026 — aktualny kandydat i otwarte bramki
 
+### Lokalizacja i poradniki — implementacja 28.10
+
+Wdrożono PL/EN/ES/ZH-Hans w całym UI, recovery, narracji, eksportach, metadanych
+PWA i menu desktopu oraz pełną redakcję 27 poradników z 28 źródłami. Kontrakty:
+[LOCALIZATION](../LOCALIZATION.md), [przegląd wszystkich poradników](../GUIDES-REVIEW-2026-10-28.md).
+Raport implementacji, znalezionych regresji i lokalnych kontroli:
+[2026-10-28-localization](2026-10-28-localization.md). 867 unit PASS; 108 otwarć
+poradników w czterech językach i 20 stanów axe PASS na roboczym web buildzie.
+Wynik ten nie zastępuje CI dokładnego commita po zamrożeniu źródeł. Test natywny
+lokalnie wymaga brakującego javascriptcoregtk-4.1; cztery izolowane testy menu/
+katalogu i fmt PASS. Dodatkowy commit `b70f732` naprawia klawiaturę dialogu po
+utracie fokusu przez oczekującą akcję oraz uwzględnia aktywne IME.
+
+Świeży npm audit: cztery low w dev z jednego niezałatanego advisory deepmerge;
+próg high przechodzi, runtime audit 0. Nie pisać „pełny audit 0”. Nowy PR/CI,
+chroniony kandydat i instalatory wymagają odczytu po ukończeniu. Main #7 nadal
+draft, produkcyjne domeny/reguły nadal stare, bez publikacji.
+
 ### Rozszerzenie zakresu po testach przeglądarkowych
 
 Właściciel zlecił następnie audyt tłumaczeń całej aplikacji, dodanie hiszpańskiego
@@ -16,8 +34,10 @@ Baseline przed tą pracą: chroniony `codex/v3.0-release` =
 `17cd7ae` (uzupełniony o bazę, bez zmiany drzewa względem `9214af0`) zaliczył
 CI `40717230990`, Security `40717231009` i pełny Desktop `40717230923`, w tym
 zainstalowany Linux/Windows. Wcześniejszy run `40716037103` też PASS. Produkcyjny
-Desktop literalnego `cb3e238` to `40720464290`; odczytaj wynik przed uznaniem za
-PASS. Staging tego SHA: `dpl_HpU3dGWv15T84MdPXzUnpyexLiaj`, bez domen własnych.
+Desktop literalnego `cb3e238` `40720464290`: PASS wszystkich natywnych
+paczek, zainstalowanego Linux/Windows i Windows upgrade/rollback; cztery pobrane
+instalatory oraz ścisłe metadane/SHA-256 PASS. Świeży staging smoke tego SHA
+(header/PWA/mobile/persistence/project) też PASS. Staging tego SHA: `dpl_HpU3dGWv15T84MdPXzUnpyexLiaj`, bez domen własnych.
 
 Rzeczywiste testy Google w IAB na kodzie `5143cd7` (pełne źródła aplikacji/builda
 porównano z `cb3e238`: identyczne):

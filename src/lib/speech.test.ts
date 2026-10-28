@@ -149,3 +149,23 @@ describe('Speech & Narration Engine', () => {
     })
   })
 })
+
+it('chooses a regional Chinese voice and leaves selection to the browser when none fits', () => {
+  const spoken: SpeechSynthesisUtterance[] = []
+  class Utterance {
+    lang = ''; voice?: SpeechSynthesisVoice; rate = 1; pitch = 1
+    constructor(public text: string) {}
+  }
+  const hk = { lang: 'zh-HK', default: false } as SpeechSynthesisVoice
+  const cn = { lang: 'zh-CN', default: false } as SpeechSynthesisVoice
+  vi.stubGlobal('SpeechSynthesisUtterance', Utterance)
+  vi.stubGlobal('speechSynthesis', { paused: false, speak: (u: SpeechSynthesisUtterance) => spoken.push(u), getVoices: () => [hk, cn] })
+  try {
+    speakNarration('专注开始', 'zh', true)
+    expect(spoken[0].lang).toBe('zh-CN')
+    expect(spoken[0].voice).toBe(cn)
+    speakNarration('Sesión iniciada', 'es', true)
+    expect(spoken[1].lang).toBe('es-ES')
+    expect(spoken[1].voice).toBeUndefined()
+  } finally { vi.unstubAllGlobals() }
+})

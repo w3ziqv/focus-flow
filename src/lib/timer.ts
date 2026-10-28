@@ -1,9 +1,11 @@
+import { translate } from './translations'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChecklistItem, GoalSettings, Mode, SessionSnapshotV2, Settings, StatsV2 } from '../types'
 import {
   isChecklist,
   loadGoals,
   loadLang,
+  systemLang,
   loadSession,
   loadSettings,
   loadStats,
@@ -74,7 +76,7 @@ function getInitialTimerData(): {
   const now = Date.now()
 
   if (rawSnapshot?.running === true && rawSnapshot.endTs !== null && rawSnapshot.endTs <= now) {
-    const lang = loadLang() ?? 'en'
+    const lang = loadLang() ?? systemLang()
     const reconciliation = reconcileExpiredSession(rawSnapshot, currentSettings, currentStats, now, lang)
     return {
       snapshot: reconciliation.newSnapshot,
@@ -379,11 +381,9 @@ export function useTimerEngine(): TimerEngine {
       // Deadline passed in memory while tab was asleep or hidden
       if (runningRef.current && endTsRef.current !== null && endTsRef.current <= now) {
         if (modeRef.current === 'focus') {
-          const lang = loadLang() ?? 'en'
+          const lang = loadLang() ?? systemLang()
           setWakeNotice(
-            lang === 'pl'
-              ? 'Sesja skupienia została ukończona podczas Twojej nieobecności.'
-              : 'Focus session completed while you were away.',
+            translate(lang, 'wakeReconciled'),
           )
         }
         setRemainingMs(0)
@@ -398,7 +398,7 @@ export function useTimerEngine(): TimerEngine {
       const snap = loadSession()
       if (snap?.running === true && snap.endTs !== null && snap.endTs <= now) {
         applyPendingSettings()
-        const lang = loadLang() ?? 'en'
+        const lang = loadLang() ?? systemLang()
         const reconciliation = reconcileExpiredSession(
           snap,
           settingsRef.current,

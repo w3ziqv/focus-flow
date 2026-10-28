@@ -1,3 +1,6 @@
+import { LANGUAGE_META } from '../../domain/language'
+import { recoveryLanguage } from '../../lib/recoveryLanguage'
+import { translate } from '../../lib/translations'
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { Pause, Play, ExternalLink } from 'lucide-react'
@@ -7,6 +10,7 @@ import { applyTheme } from '../../lib/theme'
 
 export default function MiniDial(): JSX.Element {
   const [timer, setTimer] = useState<TimerDisplay | null>(null)
+  const lang = timer?.lang ?? recoveryLanguage()
   const [focused, setFocused] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
@@ -25,7 +29,7 @@ export default function MiniDial(): JSX.Element {
     return () => { cancelled = true; dispose?.(); window.removeEventListener('focus', onFocus); window.removeEventListener('blur', onBlur) }
   }, [])
   useEffect(() => {
-    if (timer) { applyTheme(timer.theme); document.documentElement.lang = timer.lang }
+    if (timer) { applyTheme(timer.theme); document.documentElement.lang = LANGUAGE_META[timer.lang].htmlLang }
     document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
     document.body.style.minWidth = '0'
@@ -37,8 +41,8 @@ export default function MiniDial(): JSX.Element {
       <div data-tauri-drag-region className="truncate text-caption text-ink-2">{timer?.modeLabel ?? 'Focus Flow'}</div>
       <div data-tauri-drag-region className="font-serif text-[28px] leading-none tabular-nums">{String(Math.floor(seconds / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}</div>
     </div>
-    <button className="flex min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-sunken" aria-label={timer?.toggleLabel ?? 'Start / Pause'} onClick={() => send('toggle')}>{timer?.running ? <Pause size={18}/> : <Play size={18}/>}</button>
-    <button className="flex min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-sunken" aria-label={timer?.showLabel ?? 'Show Focus Flow'} onClick={() => send('show')}><ExternalLink size={16}/></button>
-    {error && <span role="alert" className="sr-only">{error}</span>}
+    <button className="flex min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-sunken" aria-label={timer?.toggleLabel ?? translate(lang, 'timer.start')} onClick={() => send('toggle')}>{timer?.running ? <Pause size={18}/> : <Play size={18}/>}</button>
+    <button className="flex min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-sunken" aria-label={timer?.showLabel ?? translate(lang, 'desktop.show')} onClick={() => send('show')}><ExternalLink size={16}/></button>
+    {error && <span role="alert" className="sr-only">{translate(lang, 'desktop.error.operation')}</span>}
   </div>
 }

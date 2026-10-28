@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderWeeklyCardCanvas, generateWeeklyCardBlob, type WeeklyCardData } from './cardExport'
+import { renderWeeklyCardCanvas, generateWeeklyCardBlob, fitCanvasText, type WeeklyCardData } from './cardExport'
 
 const mockCardData: WeeklyCardData = {
   lang: 'pl',
@@ -29,6 +29,7 @@ describe('cardExport (v2.3)', () => {
   it('renders canvas with correct scale and dimensions in DOM environment', async () => {
     // Mock 2D context for jsdom
     const mockCtx = {
+      measureText: vi.fn((text: string) => ({ width: [...text].length * 8 })),
       scale: vi.fn(),
       fillRect: vi.fn(),
       strokeRect: vi.fn(),
@@ -59,6 +60,7 @@ describe('cardExport (v2.3)', () => {
   it('generates PNG blob via canvas.toBlob', async () => {
     const mockBlob = new Blob(['mock-png'], { type: 'image/png' })
     const mockCtx = {
+      measureText: vi.fn((text: string) => ({ width: [...text].length * 8 })),
       scale: vi.fn(),
       fillRect: vi.fn(),
       strokeRect: vi.fn(),
@@ -84,5 +86,15 @@ describe('cardExport (v2.3)', () => {
     const blob = await generateWeeklyCardBlob(mockCardData)
     expect(blob).toBeDefined()
     expect(blob.type).toBe('image/png')
+  })
+})
+
+
+describe('canvas text width', () => {
+  it('fits Chinese and joined emoji by pixels rather than character count', () => {
+    const ctx = { measureText: (text: string) => ({ width: [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)].length * 20 }) }
+    expect(fitCanvasText(ctx, '中文学习计划', 80)).toBe('中文学…')
+    expect(fitCanvasText(ctx, '👨‍👩‍👧‍👦ABC', 60)).toBe('👨‍👩‍👧‍👦A…')
+    expect(fitCanvasText(ctx, '中文', 80)).toBe('中文')
   })
 })

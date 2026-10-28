@@ -1,4 +1,5 @@
 import type { TaskBreakdownItem } from '../../lib/stats'
+import { formatNumber } from '../../lib/translations'
 import { useI18n } from '../../lib/i18n'
 
 interface TaskBreakdownProps {
@@ -6,7 +7,7 @@ interface TaskBreakdownProps {
 }
 
 export function TaskBreakdown({ items }: TaskBreakdownProps): React.JSX.Element | null {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   if (items.length === 0) {
     return null
@@ -21,8 +22,8 @@ export function TaskBreakdown({ items }: TaskBreakdownProps): React.JSX.Element 
             <div className="flex items-center justify-between text-[14px]">
               <span className="truncate font-medium text-ink pr-2">{item.name}</span>
               <span className="shrink-0 text-caption text-ink-2">
-                <span className="tnum font-medium text-ink">{item.minutes} min</span>{' '}
-                <span className="text-ink-3">({item.percentage}%)</span>
+                <span className="tnum font-medium text-ink">{formatNumber(lang, item.minutes)} {t('unit.minuteShort')}</span>{' '}
+                <span className="text-ink-3">({formatNumber(lang, item.percentage)}%)</span>
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-sunken">

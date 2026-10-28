@@ -237,7 +237,7 @@ describe('AppSettingsModal Component', () => {
       expect(testWebhookSpy).toHaveBeenCalledWith('https://api.my-server.com/hook')
 
       await waitFor(() => {
-        expect(screen.getByText(/Pomyślnie wysłano \(status 200\)|Dispatched successfully \(status 200\)/i)).toBeDefined()
+        expect(screen.getByText(/Wysłano zdarzenie testowe|Test event sent/i)).toBeDefined()
       })
     })
 
@@ -278,7 +278,7 @@ describe('AppSettingsModal Component', () => {
       resolvePromise!({ success: true, status: 200 })
 
       await waitFor(() => {
-        expect(screen.getByText(/Pomyślnie wysłano \(status 200\)|Dispatched successfully \(status 200\)/i)).toBeDefined()
+        expect(screen.getByText(/Wysłano zdarzenie testowe|Test event sent/i)).toBeDefined()
       })
     })
   })

@@ -1,3 +1,4 @@
+import { translate } from './translations'
 /**
  * Reconciles sessions that expired while the system was asleep or tab was suspended.
  */
@@ -74,10 +75,7 @@ export function reconcileExpiredSession(
       checklist: snapshot.checklist && snapshot.checklist.length > 0 ? [...snapshot.checklist] : undefined,
     }, stats, new Date(now)).stats
 
-    notice =
-      lang === 'pl'
-        ? 'Sesja skupienia została ukończona podczas Twojej nieobecności.'
-        : 'Focus session completed while you were away.'
+    notice = translate(lang, 'wakeReconciled')
   }
 
   // Next mode and next round calculation

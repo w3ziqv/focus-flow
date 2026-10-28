@@ -4,6 +4,7 @@ import type { SessionSnapshotV2, Settings, StatsV2, WebhookSettings } from '../t
 import {
   loadSessions,
   loadStats,
+  saveLang,
   saveSession,
   saveSettings,
   saveStats,
@@ -670,6 +671,7 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
     })
 
     it('cold mount with expired session reconciles once and ignores immediate wake events', () => {
+      saveLang('en')
       const now = 1_700_000_000_000
       vi.setSystemTime(now)
 

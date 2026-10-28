@@ -54,7 +54,7 @@ export function ShortcutsModal({
   if (!open) return null
 
   const formatKeyDisplay = (key: string): string => {
-    if (key === ' ') return 'Space'
+    if (key === ' ') return t('shortcuts.space')
     return key.toUpperCase()
   }
 

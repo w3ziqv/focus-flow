@@ -165,7 +165,7 @@ impl Drop for AuthGuard {
     }
 }
 
-fn open_oauth_browser(url: &str) -> Result<(), String> {
+pub(crate) fn open_external_browser(url: &str) -> Result<(), String> {
     #[cfg(target_os = "linux")]
     {
         let appdir = std::env::var_os("APPDIR").map(std::path::PathBuf::from);
@@ -209,7 +209,7 @@ fn sign_in(cloud: Cloud, generation: u64) -> Result<User, String> {
         ("code_challenge_method", "S256"),
         ("prompt", "select_account"),
     ]);
-    open_oauth_browser(url.as_str())?;
+    open_external_browser(url.as_str())?;
     let deadline = Instant::now() + Duration::from_secs(120);
     let code = loop {
         if AUTH_GENERATION.load(Ordering::SeqCst) != generation {

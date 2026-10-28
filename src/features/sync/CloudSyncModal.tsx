@@ -8,10 +8,11 @@ import { isSyncCancelled, syncErrorCode, syncErrorMessageKey } from '../../lib/s
 import { Modal } from '../../ui/Modal'
 import { PillButton } from '../../ui/PillButton'
 import { Switch } from '../../ui/Switch'
+import { localeFor } from '../../domain/language'
 
 interface Props {open: boolean; onClose: () => void; onSyncComplete?: (message: string) => void}
 function Content({onSyncComplete}: Pick<Props, 'onSyncComplete'>): React.JSX.Element {
-  const {t} = useI18n()
+  const {t, lang} = useI18n()
   const adapter = getCloudSyncAdapter()
   const [state, setState] = useState(() => adapter.getDetailedSyncState())
   const [availability, setAvailability] = useState<{configured: boolean; persistent: boolean} | null>(null)
@@ -60,7 +61,7 @@ function Content({onSyncComplete}: Pick<Props, 'onSyncComplete'>): React.JSX.Ele
     <p>{t('sync.description')}</p><p className="text-xs">{t('sync.scope')}</p>
     {connected && <section className="rounded-xl border border-line p-3">
       <p className="font-medium text-ink">{state.displayName ?? state.email}</p><p className="text-xs">{state.email}</p><p className="mt-2">{t('sync.connected')}</p>
-      <p className="mt-2 text-xs">{t('sync.last')} {state.lastSyncedAt ? new Date(state.lastSyncedAt).toLocaleString() : t('sync.pending')}</p>
+      <p className="mt-2 text-xs">{t('sync.last')} {state.lastSyncedAt ? new Date(state.lastSyncedAt).toLocaleString(localeFor(lang)) : t('sync.pending')}</p>
     </section>}
     <section className="flex items-center gap-3 rounded-xl border border-line p-3"><Shield size={18} aria-hidden="true"/><div className="flex-1"><p className="font-medium text-ink">{t('sync.mask')}</p><p className="text-xs">{t('sync.maskDescription')}</p></div><Switch hideLabel checked={mask} disabled={busy} label={t('sync.mask')} onChange={toggleMask}/></section>
     {!connected && !switchAccount && <PillButton className="w-full" disabled={busy || !availability?.configured} onClick={() => {void signIn()}}>{busy ? t('sync.connecting') : availability?.configured === false ? t('sync.unavailable') : t('sync.signIn')}</PillButton>}

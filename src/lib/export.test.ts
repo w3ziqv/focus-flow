@@ -284,15 +284,15 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
     it('generates plural-aware daily summary blockquote at the bottom', () => {
       // 3 sessions totaling 100 minutes (1 hour 40 minutes)
       const mdMultiple = serializeToMarkdown(sampleSessions, fixedNow)
-      expect(mdMultiple).toContain('> **Daily Summary**: 3 sessions completed · 1 hour 40 minutes of deep focus.')
+      expect(mdMultiple).toContain('> **Summary**: 3 sessions completed · 1 hour 40 minutes of deep focus.')
 
       // 1 session of 25 minutes
       const mdSingle = serializeToMarkdown([sampleSessions[0]], fixedNow)
-      expect(mdSingle).toContain('> **Daily Summary**: 1 session completed · 25 minutes of deep focus.')
+      expect(mdSingle).toContain('> **Summary**: 1 session completed · 25 minutes of deep focus.')
 
       // 0 sessions
       const mdEmpty = serializeToMarkdown([], fixedNow)
-      expect(mdEmpty).toContain('> **Daily Summary**: 0 sessions completed · 0 minutes of deep focus.')
+      expect(mdEmpty).toContain('> **Summary**: 0 sessions completed · 0 minutes of deep focus.')
 
       // Exact hours without leftover minutes (120 minutes)
       const twoHoursSession: SessionLogEntryV2 = {
@@ -302,7 +302,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
         task: 'Deep Work Marathon',
       }
       const md2h = serializeToMarkdown([twoHoursSession], fixedNow)
-      expect(md2h).toContain('> **Daily Summary**: 1 session completed · 2 hours of deep focus.')
+      expect(md2h).toContain('> **Summary**: 1 session completed · 2 hours of deep focus.')
     })
   })
 
@@ -409,7 +409,7 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
 
       const md = serializeToMarkdown([], fixedNow)
       expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 0 sessions · 0 minutes*\n\n`)
-      expect(md).toContain('> **Daily Summary**: 0 sessions completed · 0 minutes of deep focus.')
+      expect(md).toContain('> **Summary**: 0 sessions completed · 0 minutes of deep focus.')
     })
 
     it('handles session with null task cleanly in all formats', () => {
@@ -527,7 +527,24 @@ describe('Multi-Format Session Export Serializers (Milestone M1 / v2.4)', () => 
 
       const md = serializeToMarkdown([singleMinSession], fixedNow)
       expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 1 session · 1 minute*\n\n`)
-      expect(md).toContain('> **Daily Summary**: 1 session completed · 1 minute of deep focus.')
+      expect(md).toContain('> **Summary**: 1 session completed · 1 minute of deep focus.')
     })
+  })
+})
+
+describe('localized human-readable exports', () => {
+  it.each(['pl', 'es', 'zh'] as const)('localizes %s while preserving machine identifiers and task text', lang => {
+    const sessions = [{ id: 'TEST-localized', date: '2026-10-28T10:00:00.000Z', minutes: 25, task: 'Mi texto 中文 {round}' }]
+    const date = new Date('2026-10-28T12:00:00.000Z')
+    const md = serializeToMarkdown(sessions, date, lang)
+    const ics = serializeToICal(sessions, date, lang).replace(/\r\n /g, '')
+    expect(md).not.toContain('Session History')
+    expect(md).not.toContain('Daily Summary')
+    expect(md).toContain('Mi texto 中文 {round}')
+    expect(ics).toContain('UID:ff-session-TEST-localized@focus-flow.local')
+    expect(ics).toContain('Mi texto 中文 {round}')
+    expect(ics).not.toContain('Duration:')
+    expect(ics).toContain('DTEND:20261028T100000Z')
+    expect(serializeToCsv(sessions)).toContain('id,date_iso,date_local,time_local,duration_minutes,task')
   })
 })
