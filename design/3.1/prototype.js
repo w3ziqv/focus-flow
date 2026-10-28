@@ -188,6 +188,7 @@ document.querySelector('#catalog-toggle').addEventListener('click',()=>{const n=
 document.querySelector('#device-toggle').addEventListener('click',e=>{const mobile=document.body.classList.toggle('device-mobile');e.currentTarget.setAttribute('aria-pressed',String(mobile));e.currentTarget.textContent=mobile?'Widok komputera':'Widok telefonu'})
 document.addEventListener('click',e=>{
  const target=e.target.closest('button,a');if(!target)return
+ if(target.matches('.skip')){e.preventDefault();const main=app.querySelector('.dialog h1')||app.querySelector('#workspace');if(main){main.tabIndex=-1;main.focus()}return}
  if(target.closest('#catalog')&&target.matches('a')){document.querySelector('#catalog').hidden=true;document.querySelector('#catalog-toggle').setAttribute('aria-expanded','false')}
  if(target.matches('.switch')){target.setAttribute('aria-checked',String(target.getAttribute('aria-checked')!=='true'));return}
  if(target.closest('.pill-options')&&target.tagName==='BUTTON'){for(const n of target.parentElement.querySelectorAll('button'))n.setAttribute('aria-pressed',String(n===target));return}

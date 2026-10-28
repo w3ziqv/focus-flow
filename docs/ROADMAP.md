@@ -82,8 +82,28 @@ Keep the current modular boundaries during implementation:
 | `src/ui`, `src/design` | Shared controls, focus/dialog contracts, typography and semantic theme tokens. |
 | `src/domain`, `src/lib` | Domain rules, persistence, platform and sync adapters; account identity and deletion records stay authoritative. |
 
-The seven prototype palettes are Papier/Paper, Atrament/Ink, Obsydian/Obsidian,
-Szałwia/Sage, E-ink, Lawenda/Lavender and Piasek/Sand. Map the existing `light`
+### Themes in the 3.1 release
+
+Include **all seven palettes** as equal options in Appearance settings, with a
+live preview across the interface. The palette scope is settled; usability and
+contrast testing may refine individual color values without removing a theme.
+
+| Theme | Character |
+| --- | --- |
+| Papier / Paper | Warm white with a restrained teal accent. |
+| Atrament / Ink | Dark teal surfaces and soft light text. |
+| Obsydian / Obsidian | Black surfaces with high contrast. |
+| Szałwia / Sage | Light natural greens. |
+| E-ink | Monochrome with no decorative motion. |
+| Lawenda / Lavender | Pale violet surfaces and a plum accent. |
+| Piasek / Sand | Warm sand surfaces and a terracotta accent. |
+
+Keep a user's selected theme after updating. Changing a palette must preserve
+the active timer, settings drafts, history and account. Cover timer/focus modes,
+settings, guides, charts and empty/offline/error states in every theme. Show
+text labels and selection indicators alongside color previews.
+
+Map the existing `light`
 and `dark` preferences to the corresponding Paper/Ink presentation without
 discarding saved preferences. Keep `obsidian`, `sage` and `eink` identifiers.
 Define page/surface, primary/secondary text, control boundary, accent/on-accent,
