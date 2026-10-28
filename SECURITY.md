@@ -4,10 +4,29 @@ Security fixes target the 3.0 release line. Older versions and prereleases may
 use different cloud schemas or test projects; their reports do not establish
 current production behavior.
 
-Do not post secrets, personal session data or exploit details in a public issue.
-Use the repository's [Security page](https://github.com/w3ziqv/focus-flow/security)
-for private vulnerability reporting when available. Otherwise arrange a private
-channel with the maintainer before sharing details.
+## Reporting a vulnerability
+
+Private vulnerability reporting is enabled. Use **Report a vulnerability** on
+[GitHub Security Advisories](https://github.com/w3ziqv/focus-flow/security/advisories)
+to contact the maintainer privately. Do not open a public issue with secrets,
+personal history, tokens or an unpatched exploit.
+
+Include the affected version/platform, reproduction steps using synthetic data,
+expected and actual behavior, impact and any proposed mitigation. Keep the report
+limited to what is needed to reproduce the problem. Do not test against another
+person's account or production data. The maintainer will triage privately and
+coordinate a fix and disclosure; reporter credit can be agreed before publication.
+
+### Supported versions
+
+| Version | Security maintenance |
+| --- | --- |
+| Latest 3.0.x | Supported |
+| Earlier 3.0 prereleases and 2.x | Upgrade; fixes are not backported by default |
+
+A published dependency advisory is reviewed against actual exposure. Security
+fixes can ship as 3.0.x patches ahead of the feature roadmap. No test suite or
+language choice guarantees that a release has no vulnerabilities.
 
 ## Data and security boundaries
 
