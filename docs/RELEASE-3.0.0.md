@@ -1,9 +1,7 @@
-# Focus Flow 3.0.0 — draft release notes
+# Focus Flow 3.0.0
 
-Publication is pending. The protected candidate is `e146fe3`; main remains a
-draft PR. Complete the physical/account acceptance, refresh the private
-snapshot/restore check, then verify the literal final main commit and its
-production artifacts before publishing `v3.0.0`.
+Release source, production build metadata and installer SHA-256 values are
+recorded with the GitHub release. Preserve a full backup before updating.
 
 ## History and synchronization
 
@@ -50,24 +48,32 @@ Use [installation and rollback](INSTALL-UPDATE.md). An older client supporting
 only Polish/English may reject a new JSON backup containing `es` or `zh`; restore
 that backup with a version supporting those languages.
 
-## Validation and remaining acceptance
+## Validation
 
-The localization PR passed 872 unit tests in 68 files, type/lint/token/boundary
+The application passed 872 unit tests in 68 files, type/lint/token/boundary
 checks, Firestore emulator/adapter tests, Rust audit, native packaging for three
-systems, installed Linux/Windows runtime, browser and accessibility checks.
-The exact clean source also passed 108 guide views in four languages, exports,
-timer/history persistence, responsive layouts and localized PWA offline checks.
+systems, installed Linux/Windows runtime, browser and automated accessibility
+checks. Localization checks covered 108 guide views in four languages, exports,
+timer/history persistence, responsive layouts and localized PWA offline use.
 
-Production candidate web staging passed header, project, persistence, localized
-manifest/guide, offline and mobile smoke checks without custom-domain assignment.
-Production installer results, hashes and literal source metadata are recorded in
-[verification](VERIFICATION-3.0.md). These are preparation results, not publication.
-The runtime npm audit is zero; the full development audit has four low entries
-from one unpatched deepmerge advisory, with the existing high threshold unchanged.
+The release process separately verifies the production web build, six headers,
+Firebase project, literal source metadata and hashes for all four installers.
+Windows CI also tests an in-place upgrade and recovery from a pre-update backup.
+Exact final results are recorded in [verification](VERIFICATION-3.0.md).
+The runtime npm audit is zero; the development audit has four low entries from
+one unpatched deepmerge advisory. The existing high threshold remains unchanged.
 
-Physical two-device/network-cut acceptance, real two-account isolation,
-production desktop OAuth/revocation/credential-store behavior and current
-physical OS/upgrade/rollback checks remain open. Earlier owner results cover
-preceding installers and do not certify this production build. Only one Google
-test account is available. See [the test procedure](TESTING-UI-RELEASE-2026-10-28.md)
-and [production rollout](PRODUCTION-ROLLOUT-3.0.md) for the remaining gates.
+## Verification limits
+
+Physical two-device/network-cut scenarios, real two-account isolation,
+production desktop Google login/restart/revocation/credential-store behavior,
+and current physical OS/upgrade/rollback checks were not completed for this
+release. Publication with those checks unexecuted was explicitly accepted by
+the owner on 2026-10-28. Automated checks do not replace those results.
+Earlier physical acceptance applies to preceding installers.
+
+Use [installation and rollback](INSTALL-UPDATE.md) when updating. A web rollback
+alone does not reverse a migrated cloud schema. Keep a pre-update export and
+native data-directory backup, preserve newer data separately and keep older
+clients offline while following a reviewed rollback. The remaining manual
+procedure is in [the acceptance guide](TESTING-UI-RELEASE-2026-10-28.md).

@@ -5,6 +5,19 @@ The production web deployment still uses source `a2f5f22` and Firebase
 `focus-flow-70527`. The alpha.2 test cloud is `focus-flow-v3-test-20261010`.
 Do not promote the test Preview into production.
 
+## Owner decision — 2026-10-28
+
+The owner explicitly accepted: “Akceptuję wydanie 3.0 bez wymienionych testów
+ręcznych” after being shown the missing physical two-device/network-cut,
+two-account isolation, production desktop login/restart/revocation/credential-store,
+current OS and physical upgrade/rollback checks. This changes their status to
+**waived for publication, not executed and not PASS**. Previous physical results
+remain historical. The waiver does not cover snapshots/restore, CI/security,
+exact source/build metadata, installer hashes, rules compatibility or rollback.
+Proceed with the remaining release sequence under the existing publication
+authorization. Record the literal final main SHA and do not reuse an earlier
+candidate's binaries as that final build.
+
 ## Current candidate (2026-10-28)
 
 The current protected candidate is `e146fe3e29e75826951302f8a44a7167389a572a`,
@@ -112,9 +125,10 @@ into a committed fixture. Keep any failure output private too.
 
 ## Release sequence
 
-1. Complete the remaining physical acceptance checks listed in
-   [VERIFICATION-3.0.md](VERIFICATION-3.0.md), and physical two-device cloud scenarios.
-   Real test-cloud SDK and emulator acceptance are supplementary evidence.
+1. Record the physical acceptance in [VERIFICATION-3.0.md](VERIFICATION-3.0.md).
+   The dated owner waiver above permits publication with the specified manual
+   checks not executed. Do not relabel them as passed. Real SDK/emulator results
+   remain supplementary evidence.
 2. Build and verify the production candidate on protected `codex/v3.0-release`
    using the configured production **Desktop app** client. Its ID/parameter are
    stored in GitHub `Production`; see [CLOUD-SETUP.md](CLOUD-SETUP.md).

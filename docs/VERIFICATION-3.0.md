@@ -5,6 +5,19 @@ sections preserve historical results. Initial local baseline: 2026-10-03,
 base `a2f5f22`, branch `feature/v3-desktop`. The stable tag remains blocked by
 the acceptance gates below.
 
+## Owner acceptance of unexecuted manual checks — 2026-10-28
+
+The owner explicitly accepted: “Akceptuję wydanie 3.0 bez wymienionych testów
+ręcznych” after being shown the missing physical two-device/network-cut,
+two-account isolation, production desktop login/restart/revocation/credential-store,
+current OS and physical upgrade/rollback checks. This changes their status to
+**waived for publication, not executed and not PASS**. Previous physical results
+remain historical. The waiver does not cover snapshots/restore, CI/security,
+exact source/build metadata, installer hashes, rules compatibility or rollback.
+Proceed with the remaining release sequence under the existing publication
+authorization. Record the literal final main SHA and do not reuse an earlier
+candidate's binaries as that final build.
+
 ## 2026-10-28 four-language candidate
 
 Protected candidate `e146fe3e29e75826951302f8a44a7167389a572a` merged through

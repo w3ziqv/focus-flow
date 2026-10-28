@@ -1,5 +1,18 @@
 # Przekazanie: architektura UI, weryfikacja i pełne wydanie Focus Flow
 
+## Decyzja właściciela o publikacji — 28.10.2026
+
+Po przedstawieniu brakujących testów właściciel wybrał: **„Akceptuję wydanie
+3.0 bez wymienionych testów ręcznych”**. Obejmuje to dwa fizyczne urządzenia
+z odcięciem sieci, dwa konta Google, produkcyjny desktop login/restart,
+revocation/brak magazynu poświadczeń, bieżące funkcje OS i fizyczny upgrade/rollback.
+Status tych prób to **niewykonane, zaakceptowane odstępstwo**, nigdy PASS.
+Publikacja jest autoryzowana po zaliczeniu pozostałych kontroli: świeże kopie i
+restore, pełne CI, dokładny końcowy commit main, jego produkcyjne buildy, hashe,
+konfiguracja/reguły i możliwość rollbacku. Poniższe zapisy o blokadzie przez
+ręczne testy opisują wcześniejszy stan i są zastąpione tą decyzją. Wydanie jest
+w przygotowaniu; nie oznaczać jako opublikowane bez odczytu usług/tagu/assetów.
+
 ## Kontynuacja 28.10.2026 — aktualny kandydat i otwarte bramki
 
 ### Aktualny kandydat po lokalizacji i przeglądzie treści

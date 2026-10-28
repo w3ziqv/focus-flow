@@ -1,7 +1,10 @@
 # Akceptacja fizyczna kandydata UI — 28.10.2026
 
-Status: **oczekuje na wyniki właściciela**. Żaden punkt poniżej nie jest zaliczony
-samym przygotowaniem instrukcji ani automatycznym testem CI.
+Status: **niewykonane próby ręczne, zaakceptowane odstępstwo dla publikacji**.
+28.10 właściciel wyraźnie zaakceptował wydanie 3.0 bez wymienionych wyników.
+Instrukcja pozostaje do późniejszej akceptacji; automatyczne CI ani decyzja
+właściciela nie zmieniają niewykonanej próby w PASS. Świeże kopie/restore,
+pełne CI i dokładny końcowy commit/paczki nadal są obowiązkowe.
 
 Kandydat produkcyjny: `e146fe3e29e75826951302f8a44a7167389a572a`.
 Izolowany web testowy: `d7b4d64e377e11206535cc3c4c9fb7963d7d4b3f`; porównano
