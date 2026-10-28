@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { LANGUAGE_META } from '../domain/language'
+import { applyDocumentLanguage } from '../lib/documentLanguage'
 import { recoveryLanguage } from '../lib/recoveryLanguage'
 import { translate } from '../lib/translations'
 
@@ -12,7 +12,7 @@ export class ApplicationBoundary extends Component<Props, State> {
   static getDerivedStateFromError(): State {return {failed: true}}
 
   componentDidCatch(): void {
-    document.documentElement.lang = LANGUAGE_META[recoveryLanguage()].htmlLang
+    applyDocumentLanguage(recoveryLanguage())
   }
 
   render(): ReactNode {

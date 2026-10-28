@@ -15,9 +15,12 @@ Nazwy w przełączniku są nazwami własnymi języków: Polski, English, Españo
 - `src/lib/translations.ts`: czysta interpolacja w jednym przebiegu, formaty
   liczb i odmiana liczby poradników. Tekst zadania zawierający np. `{round}`
   pozostaje tekstem użytkownika, nie kolejnym szablonem.
-- `I18nProvider`: bieżący język, zapis wyboru, HTML `lang` i wybór manifestu.
+- `I18nProvider`: bieżący język, zapis wyboru, HTML `lang`, metadane dokumentu i wybór manifestu.
   Subskrybuje lokalne zdarzenia pamięci oraz zmiany z innych kart; import kopii
   aktualizuje język bez ponownego montowania silnika timera.
+- `documentLanguage.ts`: wspólne ustawienie języka HTML, tytułu karty i opisów
+  dokumentu, również dla recovery i małego timera. Rok w stopce jest oznaczeniem
+  kalendarzowym, przekazywanym jako napis bez separatora tysięcy.
 - Narracja, powiadomienia, eksporty i recovery używają tych samych funkcji
   tłumaczeń poza Reactem. Głos systemowy musi odpowiadać językowi; gdy go nie ma,
   wybór pozostaje silnikowi TTS, zamiast wymuszać obcy głos domyślny.

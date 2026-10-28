@@ -435,5 +435,7 @@ export const zh = {
   "export.md.summary": "汇总",
   "export.md.totals": "已完成专注：{count} 次 · 专注时间：{duration}。",
   "stats.cardError": "无法保存或复制卡片，请尝试重新下载。",
-  "topic.sourceError": "无法打开浏览器。请重试或复制链接地址。"
+  "topic.sourceError": "无法打开浏览器。请重试或复制链接地址。",
+  "app.documentTitle": "Focus Flow — 番茄钟与环境音",
+  "app.metaDescription": "番茄钟计时器，提供环境音、专注记录和可选同步。"
 } as const

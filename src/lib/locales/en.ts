@@ -435,5 +435,7 @@ export const en = {
   "export.md.summary": "Summary",
   "export.md.totals": "Completed sessions: {count} · focus time: {duration}.",
   "stats.cardError": "Could not save or copy the card. Try downloading it again.",
-  "topic.sourceError": "Could not open the browser. Try again or copy the link address."
+  "topic.sourceError": "Could not open the browser. Try again or copy the link address.",
+  "app.documentTitle": "Focus Flow — Pomodoro timer and ambient sounds",
+  "app.metaDescription": "A Pomodoro timer with ambient sounds, session history and optional sync."
 } as const

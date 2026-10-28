@@ -435,5 +435,7 @@ export const es = {
   "export.md.summary": "Resumen",
   "export.md.totals": "Sesiones completadas: {count} · tiempo de concentración: {duration}.",
   "stats.cardError": "No se pudo guardar o copiar la tarjeta. Intenta descargarla de nuevo.",
-  "topic.sourceError": "No se pudo abrir el navegador. Inténtalo de nuevo o copia la dirección del enlace."
+  "topic.sourceError": "No se pudo abrir el navegador. Inténtalo de nuevo o copia la dirección del enlace.",
+  "app.documentTitle": "Focus Flow — temporizador Pomodoro y sonidos de fondo",
+  "app.metaDescription": "Temporizador Pomodoro con sonidos de fondo, historial de sesiones y sincronización opcional."
 } as const

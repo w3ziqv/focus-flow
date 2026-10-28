@@ -23,6 +23,7 @@ describe('four complete UI dictionaries', () => {
 
   it('formats numbers for the chosen language', () => {
     expect(formatNumber('es', 12500.5)).toBe('12.500,5')
+    expect(translate('en', 'footer', { year: '2026' })).toBe('© 2026 Focus Flow')
     expect(formatNumber('zh', 12500.5)).toBe('12,500.5')
     expect(translate('zh', 'log.totalSessions', {count:12500})).toContain('12,500')
   })

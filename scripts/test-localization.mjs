@@ -86,6 +86,7 @@ try {
     for (const name of Object.values(names)) await page.getByRole('button', { name, exact: true }).waitFor()
     await page.getByRole('button', { name: names[lang], exact: true }).click()
     assert.equal(await page.locator('html').getAttribute('lang'), htmlLang[lang])
+    assert.equal(await page.title(), d['app.documentTitle'])
     if (await page.locator('link[rel="manifest"]').count()) {
       const manifest = await page.evaluate(async () => (await fetch(document.querySelector('link[rel="manifest"]').href)).json())
       assert.equal(manifest.lang, htmlLang[lang])
@@ -99,6 +100,7 @@ try {
     assert.equal(current.phase.endTs, original.phase.endTs)
     assert.equal(current.phase.running, true)
     assert.equal(current.sessions, original.sessions)
+    assert.ok((await page.locator('footer').textContent()).includes(`© ${new Date().getFullYear()} Focus Flow`), `${lang}: ungrouped footer year`)
     await audit(`${lang}:timer`)
     await page.screenshot({ path: `${output}/${lang}-timer.png`, fullPage: true })
     for (const width of [320, 390, 1440]) { await page.setViewportSize({ width, height: 900 }); await noOverflow(`${lang}:timer:${width}`) }
@@ -165,6 +167,7 @@ try {
     await page.reload()
     await page.getByRole('button', { name: d['timer.pause'], exact: true }).waitFor()
     assert.equal(await page.locator('html').getAttribute('lang'), htmlLang[lang])
+    assert.equal(await page.title(), d['app.documentTitle'])
     report.languages.push({ lang, timerPreserved: true, historyPreserved: true, reload: true, guideCount: 27, markdown: true })
     console.log(`PASS: ${lang} controls, export, guides and persistence`)
     previous = lang

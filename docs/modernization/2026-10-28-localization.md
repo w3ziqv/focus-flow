@@ -3,7 +3,7 @@
 ## Zakres
 
 Dodano hiszpański oraz chiński uproszczony, a polski i angielski poddano audytowi.
-Słowniki UI mają po 437 kluczy o zgodnych parametrach. Objęto ekran timera,
+Słowniki UI mają po 439 kluczy o zgodnych parametrach. Objęto ekran timera,
 ustawienia, dźwięki, statystyki, synchronizację, onboarding, instalację PWA,
 narrację, komunikaty po wznowieniu i recovery oraz eksporty. Nie zmieniano
 schematu synchronizacji, ID sesji ani znaczenia danych użytkownika.
@@ -40,7 +40,7 @@ Wyniki w tej sekcji dotyczą kolejnych roboczych buildów, nie są dowodem publi
 ani zaliczeniem późniejszego, innego SHA. CI dla końcowego commita jest osobnym
 wymaganiem. Surowe logi i zrzuty pozostają w ignorowanych artefaktach.
 
-- Unit: 867 testów, 67 plików PASS. Obejmują cztery słowniki, parametry, plurale,
+- Unit: 872 testy, 68 plików PASS. Obejmują cztery słowniki, parametry, plurale,
   kopie v2 w czterech językach, grafemy PNG, recovery z JSON/legacy, źródła, IME
   i fokus. Zmienione asercje dawnej treści nie utrwalają błędnych twierdzeń naukowych.
 - Typecheck, ESLint, design:check, granice UI i pięć prób desktop config PASS.
@@ -61,6 +61,15 @@ wymaganiem. Surowe logi i zrzuty pozostają w ignorowanych artefaktach.
   cargo fmt PASS. Pełna lokalna próba kompilacji zatrzymała się na brakującym
   `javascriptcoregtk-4.1`; nie jest PASS. Pełny native/Clippy/instalatory i runtime
   Linux/Windows muszą przejść właściwe CI.
+
+### Dalsza kontrola rzeczywistego Preview
+
+Na niezmiennym Preview `6d30348` potwierdzono chroniony dostęp i poprawny manifest
+chiński z nagłówkami. Ręczna inspekcja UI ujawniła angielski tytuł karty oraz
+separator tysięcy w roku stopki. Wspólny adapter metadanych obejmuje teraz główny
+widok, recovery i mini timer; stopka przekazuje rok jako napis. Kontrola 108
+widoków sprawdza również tytuł dokumentu i rok. Dodano testy metadanych w czterech
+językach i aktualizacji języka przez zapis/import bez remountu lokalnego stanu.
 
 ## Świeży audit zależności
 

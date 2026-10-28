@@ -4,7 +4,7 @@ import type { Lang } from '../types'
 import { loadLang, saveLang, systemLang } from './storage'
 import { translate } from './translations'
 import type { TranslationKey } from './translations'
-import { LANGUAGE_META } from '../domain/language'
+import { applyDocumentLanguage } from './documentLanguage'
 
 
 export type I18nContextValue = {
@@ -19,9 +19,7 @@ export function I18nProvider({ children }: { children: ReactNode }): React.JSX.E
   const [lang, setLangState] = useState<Lang>(() => loadLang() ?? systemLang())
 
   useEffect(() => {
-    document.documentElement.lang = LANGUAGE_META[lang].htmlLang
-    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]')
-    if (manifest) manifest.href = `/manifest-${lang}.webmanifest`
+    applyDocumentLanguage(lang)
   }, [lang])
 
   useEffect(() => {

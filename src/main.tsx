@@ -8,7 +8,7 @@ import { detectPlatform } from './lib/platform'
 import { ApplicationBoundary } from './app/ApplicationBoundary'
 import { recoveryLanguage } from './lib/recoveryLanguage'
 import { translate } from './lib/translations'
-import { LANGUAGE_META } from './domain/language'
+import { applyDocumentLanguage } from './lib/documentLanguage'
 
 if (detectPlatform() !== 'tauri') installChunkRecovery(import.meta.url)
 
@@ -23,7 +23,7 @@ async function mount(): Promise<void> {
     createRoot(root).render(<StrictMode><ApplicationBoundary><Component /></ApplicationBoundary></StrictMode>)
   } catch {
     const lang = recoveryLanguage()
-    document.documentElement.lang = LANGUAGE_META[lang].htmlLang
+    applyDocumentLanguage(lang)
     const panel = document.createElement('div')
     panel.className = 'mx-auto max-w-xl p-8 text-ink'
     panel.setAttribute('role', 'alert')

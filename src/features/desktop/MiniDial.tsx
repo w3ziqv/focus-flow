@@ -1,4 +1,4 @@
-import { LANGUAGE_META } from '../../domain/language'
+import { applyDocumentLanguage } from '../../lib/documentLanguage'
 import { recoveryLanguage } from '../../lib/recoveryLanguage'
 import { translate } from '../../lib/translations'
 import { useEffect, useState } from 'react'
@@ -29,11 +29,12 @@ export default function MiniDial(): JSX.Element {
     return () => { cancelled = true; dispose?.(); window.removeEventListener('focus', onFocus); window.removeEventListener('blur', onBlur) }
   }, [])
   useEffect(() => {
-    if (timer) { applyTheme(timer.theme); document.documentElement.lang = LANGUAGE_META[timer.lang].htmlLang }
+    if (timer) applyTheme(timer.theme)
     document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
     document.body.style.minWidth = '0'
   }, [timer])
+  useEffect(() => { applyDocumentLanguage(lang) }, [lang])
   const send = (name: string) => { void nativeInvoke('desktop_action', { name }).catch(failure => setError(String(failure))) }
   const seconds = Math.ceil((timer?.remainingMs ?? 0) / 1000)
   return <div className={`flex h-20 w-[220px] items-center rounded-2xl border border-line bg-page px-2 text-ink transition-opacity ${focused ? 'opacity-100' : 'opacity-70'}`}>

@@ -4,16 +4,22 @@
 
 ### Lokalizacja i poradniki — implementacja 28.10
 
-Wdrożono PL/EN/ES/ZH-Hans w całym UI, recovery, narracji, eksportach, metadanych
+Wdrożono PL/EN/ES/ZH-Hans w UI, recovery, narracji, eksportach, metadanych
 PWA i menu desktopu oraz pełną redakcję 27 poradników z 28 źródłami. Kontrakty:
 [LOCALIZATION](../LOCALIZATION.md), [przegląd wszystkich poradników](../GUIDES-REVIEW-2026-10-28.md).
 Raport implementacji, znalezionych regresji i lokalnych kontroli:
-[2026-10-28-localization](2026-10-28-localization.md). 867 unit PASS; 108 otwarć
+[2026-10-28-localization](2026-10-28-localization.md). 872 unit / 68 plików PASS; 108 otwarć
 poradników w czterech językach i 20 stanów axe PASS na roboczym web buildzie.
 Wynik ten nie zastępuje CI dokładnego commita po zamrożeniu źródeł. Test natywny
 lokalnie wymaga brakującego javascriptcoregtk-4.1; cztery izolowane testy menu/
 katalogu i fmt PASS. Dodatkowy commit `b70f732` naprawia klawiaturę dialogu po
 utracie fokusu przez oczekującą akcję oraz uwzględnia aktywne IME.
+
+Po inspekcji Preview dodano też tłumaczenie tytułu karty/opisów dokumentu (w tym
+mini timera) i poprawiono rok stopki bez separatora tysięcy. Słowniki: 439 kluczy.
+PR #9 jest otwarty; wcześniejsze `6d30348` CI/Security PASS, Desktop FAILED na
+Clippy w jednym teście. `d725d8c` usuwa tę konwersję; nowe CI w toku. Końcowe SHA
+metadanych dokumentu wymaga własnych pełnych kontroli.
 
 Świeży npm audit: cztery low w dev z jednego niezałatanego advisory deepmerge;
 próg high przechodzi, runtime audit 0. Nie pisać „pełny audit 0”. Nowy PR/CI,

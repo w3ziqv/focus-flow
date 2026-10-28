@@ -1,18 +1,19 @@
+import { translate } from './translations'
 import type { Lang } from '../domain/language'
 import { LANGUAGE_META } from '../domain/language'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
-const copy: Record<Lang, { description: string; desktop: string; mobile: string; start: string; short: string; action: string }> = {
-  pl: { description: 'Timer Pomodoro z dźwiękami tła, historią sesji i opcjonalną synchronizacją.', desktop: 'Timer Focus Flow na komputerze', mobile: 'Timer Focus Flow na telefonie', start: 'Rozpocznij skupienie', short: 'Skupienie', action: 'Rozpocznij sesję skupienia' },
-  en: { description: 'A Pomodoro timer with ambient sounds, session history and optional sync.', desktop: 'The Focus Flow timer on desktop', mobile: 'The Focus Flow timer on a phone', start: 'Start Focus', short: 'Focus', action: 'Start a focus session' },
-  es: { description: 'Temporizador Pomodoro con sonidos de fondo, historial de sesiones y sincronización opcional.', desktop: 'Temporizador Focus Flow en un ordenador', mobile: 'Temporizador Focus Flow en un teléfono', start: 'Iniciar concentración', short: 'Concentración', action: 'Iniciar una sesión de concentración' },
-  zh: { description: '番茄钟计时器，提供环境音、专注记录和可选同步。', desktop: '电脑上的 Focus Flow 计时器', mobile: '手机上的 Focus Flow 计时器', start: '开始专注', short: '专注', action: '开始一个专注时段' },
+const copy: Record<Lang, { desktop: string; mobile: string; start: string; short: string; action: string }> = {
+  pl: { desktop: 'Timer Focus Flow na komputerze', mobile: 'Timer Focus Flow na telefonie', start: 'Rozpocznij skupienie', short: 'Skupienie', action: 'Rozpocznij sesję skupienia' },
+  en: { desktop: 'The Focus Flow timer on desktop', mobile: 'The Focus Flow timer on a phone', start: 'Start Focus', short: 'Focus', action: 'Start a focus session' },
+  es: { desktop: 'Temporizador Focus Flow en un ordenador', mobile: 'Temporizador Focus Flow en un teléfono', start: 'Iniciar concentración', short: 'Concentración', action: 'Iniciar una sesión de concentración' },
+  zh: { desktop: '电脑上的 Focus Flow 计时器', mobile: '手机上的 Focus Flow 计时器', start: '开始专注', short: '专注', action: '开始一个专注时段' },
 }
 /** All locales share installation identity, scope and start URL. */
 export function manifestForLanguage(lang: Lang): Partial<ManifestOptions> {
   const text = copy[lang]
   return {
-    name: 'Focus Flow', short_name: 'Focus Flow', description: text.description,
+    name: 'Focus Flow', short_name: 'Focus Flow', description: translate(lang, 'app.metaDescription'),
     theme_color: '#f5f4ed', background_color: '#f5f4ed', display: 'standalone', display_override: ['standalone', 'minimal-ui'],
     start_url: '/', id: '/', scope: '/', lang: LANGUAGE_META[lang].htmlLang,
     icons: [

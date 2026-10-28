@@ -435,5 +435,7 @@ export const pl = {
   "export.md.summary": "Podsumowanie",
   "export.md.totals": "Ukończone sesje: {count} · czas skupienia: {duration}.",
   "stats.cardError": "Nie udało się zapisać lub skopiować karty. Spróbuj pobrać ją ponownie.",
-  "topic.sourceError": "Nie udało się otworzyć przeglądarki. Spróbuj ponownie lub skopiuj adres odnośnika."
+  "topic.sourceError": "Nie udało się otworzyć przeglądarki. Spróbuj ponownie lub skopiuj adres odnośnika.",
+  "app.documentTitle": "Focus Flow — timer Pomodoro i dźwięki tła",
+  "app.metaDescription": "Timer Pomodoro z dźwiękami tła, historią sesji i opcjonalną synchronizacją."
 } as const
