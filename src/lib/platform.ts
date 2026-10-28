@@ -2,7 +2,7 @@ export type Platform = 'tauri' | 'electron' | 'pwa' | 'browser'
 export type OS = 'ios' | 'android' | 'desktop'
 
 /**
- * Runtime capability seam (docs/ARCHITECTURE.md ADR-006).
+ * Runtime capability seam for platform-specific adapters.
  * Platform-specific adapters (file storage, native notifications, tray)
  * branch on this value instead of feature-detecting all over the codebase.
  */
