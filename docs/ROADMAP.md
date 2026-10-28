@@ -10,6 +10,10 @@ priority over scheduled features.
 
 ## 3.0 — foundation
 
+Released as [3.0.0](https://github.com/w3ziqv/focus-flow/releases/tag/v3.0.0)
+on 28 October 2026. The web/PWA and production desktop installers share source
+`b35d2db90feb723826efa5515665b8cf695b818d`.
+
 - Offline web/PWA and desktop timer, history, goals and exports.
 - Optional cloud history with bounded writes, retries, deletion markers,
   masking and migration/account-change backups.
@@ -39,13 +43,92 @@ with work or require a permanently running video.
 2. Produce editable desktop/mobile designs for idle, running, paused and break
    states, plus statistics, audio/settings and the offline/error cases.
 3. Build the shared type, color, spacing and control states through existing
-   tokens/components. Keep all five themes and four languages. Expand buttons
+   tokens/components. Preserve the five existing theme preferences and add
+   lavender and sand as optional themes. Keep four languages. Expand buttons
    and labels where translation needs more room; keep visible keyboard focus.
 4. Apply the new hierarchy gradually: timer/navigation first, settings/audio
    next, then statistics/history and guides. Preserve drafts, active deadlines,
    scroll position where useful and account ownership through each change.
 5. Compare the release candidate with 3.0 on the same devices and data before
    publishing. Capture startup, input response, rendering and bundle changes.
+
+### Reviewable interface proposal
+
+The [interactive prototype](../design/3.1/index.html) contains 75 named screens
+and states, with desktop/phone layouts and seven working color palettes.
+Open the HTML file locally, or serve `design/3.1` with a static HTTP server.
+Use **Wszystkie ekrany** to navigate the complete inventory. The first five
+editable direction screens are also available in
+[Figma](https://www.figma.com/design/YGVSnyAZLZX4maFu6vX1DH?node-id=5-224).
+
+The prototype covers timer phases, focus/pause/completion, small steps, goals,
+history/search/filters/edit/delete/export, guide layouts, every settings section,
+cloud/account/offline/error states, backup/import/recovery, PWA installation,
+native mini/tray controls, webhook and experimental P2P. Garden, extended guide
+discovery and `/about` screens carry their future version labels. Prototype
+interactions use synthetic data and memory only: they do not sign in, send data,
+read application storage, import real backups or change OS settings. Its Polish
+copy demonstrates layout; production translation checks still apply to all four
+languages before 3.1 ships.
+
+Keep the current modular boundaries during implementation:
+
+| Area | Responsibility and state owner |
+| --- | --- |
+| `src/app`, `src/views` | Shell, routes, lazy dialogs and view composition; navigation/dialog state stays here. |
+| `src/features/timer`, `src/hooks` | Timer display and engine commands. The engine owns deadlines; form drafts stay in the timer dialog. |
+| `src/features/audio`, `src/features/settings` | Audio controls, settings drafts and preferences; unrelated panels do not subscribe to timer ticks. |
+| `src/features/statistics`, `src/features/guides` | Derived history, pagination/search/export and guide navigation; no duplicate authoritative history. |
+| `src/ui`, `src/design` | Shared controls, focus/dialog contracts, typography and semantic theme tokens. |
+| `src/domain`, `src/lib` | Domain rules, persistence, platform and sync adapters; account identity and deletion records stay authoritative. |
+
+### Themes in the 3.1 release
+
+Include **all seven palettes** as equal options in Appearance settings, with a
+live preview across the interface. The palette scope is settled; usability and
+contrast testing may refine individual color values without removing a theme.
+
+| Theme | Character |
+| --- | --- |
+| Papier / Paper | Warm white with a restrained teal accent. |
+| Atrament / Ink | Dark teal surfaces and soft light text. |
+| Obsydian / Obsidian | Black surfaces with high contrast. |
+| Szałwia / Sage | Light natural greens. |
+| E-ink | Monochrome with no decorative motion. |
+| Lawenda / Lavender | Pale violet surfaces and a plum accent. |
+| Piasek / Sand | Warm sand surfaces and a terracotta accent. |
+
+Keep a user's selected theme after updating. Changing a palette must preserve
+the active timer, settings drafts, history and account. Cover timer/focus modes,
+settings, guides, charts and empty/offline/error states in every theme. Show
+text labels and selection indicators alongside color previews.
+
+Map the existing `light`
+and `dark` preferences to the corresponding Paper/Ink presentation without
+discarding saved preferences. Keep `obsidian`, `sage` and `eink` identifiers.
+Define page/surface, primary/secondary text, control boundary, accent/on-accent,
+focus background/foreground, and danger/background pairs. Color must never be
+the only status cue. Normal text requires 4.5:1 contrast; essential control
+boundaries require 3:1. E-ink stays monochrome and suppresses decoration/motion.
+
+Representative component contracts for 3.1:
+
+- **Timer dial:** receives phase, remaining time and commands; only the time
+  display updates each second. Theme/navigation changes preserve the deadline.
+- **Settings dialog:** owns its draft, traps keyboard focus, closes with Escape
+  and restores focus to its trigger. Saving applies validated values; cancellation
+  leaves the running timer unchanged. Long mobile panels scroll without hiding
+  the final action or causing horizontal overflow.
+- **History list:** searches the complete dataset, pages visible rows and keys
+  sessions by stable ID. Editing/deleting uses existing domain commands and
+  deletion records, with a separate destructive confirmation.
+- **Sync status:** exposes connected/pending/offline/error in text and offers
+  recovery without resetting local history. Account changes require an explicit
+  history choice and a preserved copy; credentials stay in the native store.
+
+Before implementation, test the prototype with users and record the resulting
+decisions. Its visual and keyboard checks do not replace real device, native
+runtime, translated UI, sync or migration acceptance for the eventual release.
 
 ### Acceptance
 

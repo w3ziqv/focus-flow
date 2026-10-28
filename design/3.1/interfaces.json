@@ -1,0 +1,539 @@
+{
+  "version": "3.1 proposal",
+  "screens": [
+    {
+      "id": "timer",
+      "title": "Timer · gotowy",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "short-break",
+      "title": "Krótka przerwa",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "long-break",
+      "title": "Długa przerwa",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "focus-running",
+      "title": "Sesja · tryb skupienia",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "focus-paused",
+      "title": "Sesja · pauza",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "break-running",
+      "title": "Przerwa · w trakcie",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "complete",
+      "title": "Zakończona sesja",
+      "group": "Timer",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "reset-confirm",
+      "title": "Zakończyć sesję?",
+      "group": "Timer",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "microsteps",
+      "title": "Małe kroki",
+      "group": "Timer",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "timer-settings",
+      "title": "Ustawienia timera",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "statistics",
+      "title": "Historia · z danymi",
+      "group": "Historia",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "history-empty",
+      "title": "Historia · pusta",
+      "group": "Historia",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "history-filter",
+      "title": "Filtry historii",
+      "group": "Historia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "session-edit",
+      "title": "Edytuj sesję",
+      "group": "Historia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "session-delete",
+      "title": "Usunąć tę sesję?",
+      "group": "Historia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "export-card",
+      "title": "Udostępnij podsumowanie",
+      "group": "Historia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "activity",
+      "title": "Aktywność i obserwacje",
+      "group": "Historia",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "guides",
+      "title": "Biblioteka poradników",
+      "group": "Poradniki",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "guide-category",
+      "title": "Kategoria poradników",
+      "group": "Poradniki",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "guide-article",
+      "title": "Czytanie poradnika",
+      "group": "Poradniki",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "guide-not-found",
+      "title": "Poradnik niedostępny",
+      "group": "Poradniki",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "settings",
+      "title": "Ustawienia",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "appearance",
+      "title": "Wygląd",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "theme-comparison",
+      "title": "Porównanie motywów",
+      "group": "Ustawienia",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "language",
+      "title": "Język",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "accessibility",
+      "title": "Dostępność",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "voice-unavailable",
+      "title": "Głos niedostępny",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "shortcuts",
+      "title": "Skróty klawiaturowe",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "shortcut-conflict",
+      "title": "Zmień skrót",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "audio",
+      "title": "Dźwięk",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "audio-error",
+      "title": "Nie można odtworzyć pliku",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "notifications",
+      "title": "Powiadomienia",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "notifications-granted",
+      "title": "Powiadomienia włączone",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "notifications-denied",
+      "title": "Powiadomienia zablokowane",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud",
+      "title": "Konto i synchronizacja",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-connecting",
+      "title": "Łączenie konta",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-connected",
+      "title": "Konto połączone",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-pending",
+      "title": "Zmiany czekają na wysłanie",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-offline",
+      "title": "Synchronizacja · offline",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-config-error",
+      "title": "Nie udało się połączyć",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "account-change",
+      "title": "Zmiana konta",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "account-choice",
+      "title": "Historia po zmianie konta",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-disconnect",
+      "title": "Wylogować się?",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "data",
+      "title": "Kopie i eksport",
+      "group": "Dane",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "import-preview",
+      "title": "Sprawdź import",
+      "group": "Dane",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "import-success",
+      "title": "Kopia odtworzona",
+      "group": "Dane",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "import-error",
+      "title": "Nie można odczytać kopii",
+      "group": "Dane",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "recovery",
+      "title": "Odzyskiwanie danych",
+      "group": "Dane",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "desktop",
+      "title": "Aplikacja desktopowa",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "mini",
+      "title": "Pływający mini timer",
+      "group": "Desktop i integracje",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "tray",
+      "title": "Menu zasobnika",
+      "group": "Desktop i integracje",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "desktop-error",
+      "title": "Funkcja systemowa niedostępna",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "credential-error",
+      "title": "Magazyn poświadczeń niedostępny",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "pwa-install",
+      "title": "Zainstaluj aplikację web",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "webhook",
+      "title": "Webhook",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "webhook-error",
+      "title": "Webhook nie odpowiada",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "peer",
+      "title": "Połączenie lokalne",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "peer-pairing",
+      "title": "Parowanie urządzeń",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "peer-connected",
+      "title": "Urządzenia połączone",
+      "group": "Desktop i integracje",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "welcome",
+      "title": "Pierwsze uruchomienie",
+      "group": "Stany aplikacji",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "loading",
+      "title": "Wczytywanie historii",
+      "group": "Stany aplikacji",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "update-error",
+      "title": "Nowa wersja · błąd wczytania",
+      "group": "Stany aplikacji",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "timer-error",
+      "title": "Problem z zapisem lokalnym",
+      "group": "Stany aplikacji",
+      "kind": "page",
+      "version": "3.1"
+    },
+    {
+      "id": "garden",
+      "title": "Twój ogród",
+      "group": "Planowane 3.2–3.4",
+      "kind": "page",
+      "version": "3.2"
+    },
+    {
+      "id": "garden-opt-in",
+      "title": "Zaproszenie do ogrodu",
+      "group": "Planowane 3.2–3.4",
+      "kind": "modal",
+      "version": "3.2"
+    },
+    {
+      "id": "garden-plants",
+      "title": "Wybór rośliny",
+      "group": "Planowane 3.2–3.4",
+      "kind": "modal",
+      "version": "3.2"
+    },
+    {
+      "id": "guide-search",
+      "title": "Wyszukiwanie poradników",
+      "group": "Planowane 3.2–3.4",
+      "kind": "page",
+      "version": "3.3"
+    },
+    {
+      "id": "guide-bookmarked",
+      "title": "Zapisane poradniki",
+      "group": "Planowane 3.2–3.4",
+      "kind": "page",
+      "version": "3.3"
+    },
+    {
+      "id": "about",
+      "title": "Strona o projekcie · /about",
+      "group": "Planowane 3.2–3.4",
+      "kind": "page",
+      "version": "3.4"
+    },
+    {
+      "id": "about-download",
+      "title": "Wybór wersji desktopowej",
+      "group": "Planowane 3.2–3.4",
+      "kind": "page",
+      "version": "3.4"
+    },
+    {
+      "id": "goals",
+      "title": "Cel dzienny",
+      "group": "Ustawienia",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-delete",
+      "title": "Usunąć dane z chmury?",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-memory",
+      "title": "Logowanie tylko na tę sesję",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "cloud-unconfigured",
+      "title": "Synchronizacja niedostępna",
+      "group": "Synchronizacja",
+      "kind": "modal",
+      "version": "3.1"
+    },
+    {
+      "id": "goal-complete",
+      "title": "Cel dzienny osiągnięty",
+      "group": "Timer",
+      "kind": "modal",
+      "version": "3.1"
+    }
+  ],
+  "themes": [
+    "paper",
+    "ink",
+    "obsidian",
+    "sage",
+    "eink",
+    "lavender",
+    "sand"
+  ]
+}
