@@ -2,7 +2,7 @@ import path from 'node:path'
 
 // Resolve paths instead of matching '../' depth, including lazy imports.
 export const uiBoundaries = {
-  meta: { type: 'problem', schema: [], messages: { boundary: '{{from}} cannot import {{to}}. See docs/UI-ARCHITECTURE.md.' } },
+  meta: { type: 'problem', schema: [], messages: { boundary: '{{from}} cannot import {{to}}. Presentation dependencies must point toward primitives and adapters.' } },
   create(context) {
     const filename = context.filename.replaceAll('\\', '/')
     const source = filename.split('/src/').at(-1)

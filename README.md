@@ -1,187 +1,72 @@
 # Focus Flow
 
-[![Live Demo](https://img.shields.io/badge/demo-focusflow.ink-C96442)](https://focusflow.ink)
+[![Live app](https://img.shields.io/badge/app-focusflow.ink-C96442)](https://focusflow.ink)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6.svg)](tsconfig.json)
 
-A quiet, local-first Pomodoro companion designed to stay out of your way while you work. Focus Flow pairs a warm editorial aesthetic with ambient recordings and generated soundscapes, ephemeral task intentions, and zero-telemetry offline storage.
+Focus Flow is a Pomodoro timer for web, PWA and desktop. It combines adjustable
+focus sessions, ambient sound and a searchable history. It works offline without
+an account; Google synchronization is optional.
 
-The web/PWA works offline without an account. Optional Google/Firebase sync shares
-completed history, settings and goals; task/checklist content is included by default
-and can be masked. Active timers and custom audio files stay on each device.
+## Features
 
-Version **3.0.0** is being prepared; the production-configured **3.0.0-rc.1** candidate is under acceptance. Migration of a private older-data snapshot
-was verified. See the
-[candidate notes](docs/RELEASE-3.0.0-rc.1.md), [draft release notes](docs/RELEASE-3.0.0.md) and
-[production rollout](docs/PRODUCTION-ROLLOUT-3.0.md).
-The last published prerelease is **3.0.0-alpha.2**, with test-cloud Tauri installers,
-native Google login fixes and offline recordings. See [alpha.2 changes](docs/RELEASE-3.0.0-alpha.2.md).
-Stable 3.0 is gated on live OAuth/cloud and Linux/Windows acceptance; macOS and P2P
-remain experimental. See the [roadmap](docs/ROADMAP.md),
-[verification](docs/VERIFICATION-3.0.md), [cloud setup](docs/CLOUD-SETUP.md),
-[installation/backup/rollback](docs/INSTALL-UPDATE.md) and [security](SECURITY.md).
-Automated accessibility checks do not constitute WCAG certification.
+- Focus, short-break and long-break intervals, with configurable rounds and goals.
+- Task names, small checklists, keyboard controls and five visual themes.
+- Rain, ocean recordings, generated noise, timer chimes and optional narration.
+- Session history, statistics and exports to JSON, CSV, Markdown, iCalendar and PNG.
+- Polish, English, Spanish and Simplified Chinese, including 27 practical guides
+  with research references and clearly stated limits.
+- Installable PWA with offline access. Desktop includes a tray, floating timer,
+  system-browser Google login and local audio recordings.
 
-| Desktop View | Mobile Portrait |
-| :---: | :---: |
-| ![Focus Flow Desktop Interface](docs/assets/desktop.png) | ![Focus Flow Mobile Interface](docs/assets/mobile.png) |
+Google sync shares completed history, settings and goals. Task names and
+checklists are included by default and can be masked. Active timers and custom
+audio files stay on each device. Pairing and macOS support remain experimental.
 
----
+| Desktop | Mobile |
+| --- | --- |
+| ![Desktop timer](.github/assets/desktop.png) | ![Mobile timer](.github/assets/mobile.png) |
 
-## Core Features
+## Use and install
 
-### ⏱ Focus & Rhythm
-- **Three-Phase Intervals**: Configurable Focus, Short Break, and Long Break durations with customizable round counts and auto-start options.
-- **Concentric Goal Ring**: Subtle hairline perimeter ring on the dial that fills smoothly toward your optional daily focus target.
-- **Wake Reconciliation**: Accurately credits sessions completed while the computer was asleep or the tab was backgrounded, using wall-clock timestamps (`Date.now()`).
-- **Dedicated Web Worker**: A 250ms heartbeat refreshes the view; wall-clock deadlines reconcile browser throttling and wake-up.
+Open [focusflow.ink](https://focusflow.ink) or install the PWA from a compatible
+browser. Desktop installers and checksums are available on the
+[releases page](https://github.com/w3ziqv/focus-flow/releases).
 
-### ✍️ Intentions & Micro-Steps
-- **Intention Presets**: Single-tap chips (*Deep Work*, *Writing*, *Code Review*, *Reading*, *Inbox Zero*) to anchor your focus without typing.
-- **Ephemeral Micro-Steps**: Up to 3 lightweight checklist items attached to the active session. Completed steps are logged with the session, while incomplete items reset cleanly so you don't accumulate backlog debt.
+Desktop installers are unsigned. Read [installation, backup and rollback](docs/INSTALL-UPDATE.md)
+before updating. Preserve a JSON export and the native data directory. Earlier
+alpha installers use a separate test cloud; their cloud history is not copied
+automatically to production.
 
-### 🎧 Procedural Acoustic Soundscapes
-- **Ambient Sound**: Offline rain and ocean recordings curated by Moodist, with smooth transitions, generated pink/brown noise and procedural fallbacks. See [audio sources and licensing](public/sounds/SOUNDS.md).
-- **Tone Warmth Filter**: Lowpass biquad filter with adjustable cutoff frequency (200–1200 Hz) to shape the sound texture to your preference.
-- **Binaural Beat Entrainment**: Stereo carriers supporting 10 Hz Alpha (Focus) and 6 Hz Theta (Rest) modes.
-- **Tibetan Singing Bowl Chime**: Five inharmonic modal partials with acoustic beating shimmer and mallet transient burst for session completion alerts.
+## Development
 
-### 📊 Reflective Analytics & Milestones
-- **Rolling Visualizations**: 7-day focus duration bar chart and 30-day paper-toned activity mosaic.
-- **Session History Log**: Real-time searchable history with inline task editing and atomic stat recalculation on deletions.
-- **Zen Milestone Stamps**: 5 milestone seals celebrating consistency without guilt-inducing broken-streak penalties.
-- **Exportable Summary Cards**: Generates high-resolution 1200×630 summary cards directly on an offscreen HTML5 `<canvas>` for saving to Obsidian, Notion, or personal logs.
+Requires Node.js 24 and npm. Desktop builds also require Rust and Tauri's native
+system dependencies. Firebase configuration is optional; see `.env.example`.
 
-### 🔒 Privacy & Data Sovereignty
-- **Local by Default**: Offline storage works without an account. Enabling cloud sync uploads the disclosed history/settings and optional task content; webhooks and experimental pairing also share data only when enabled. No application analytics are added.
-- **Multi-Format Exports**: One-click exports to RFC 5545 iCalendar (`.ics`), RFC 4180 CSV (`.csv`) with UTF-8 BOM, and GitHub-Flavored Markdown (`.md`) tables.
-- **Full Backup Archive (Schema v2)**: Single-file JSON snapshot containing all settings, history, custom sound metadata, and interface preferences, with backward compatibility for v1 backups.
-- **Client-Side Webhooks**: Optional direct HTTP POST alerts (`start`, `pause`, `complete`) to services like Home Assistant, Discord, n8n, or Zapier.
-
-### ♿️ Accessibility & Sensory Themes
-- **5 Ergonomic Themes**: Warm Parchment (default), Warm Soot Dark, High-Contrast Obsidian, Botanical Sage, and E-Ink Monochrome.
-- **Accessibility Verification**: Automated A/AA checks, modal keyboard navigation and zoom were tested on the documented screens. Some contrast checks and screen-reader acceptance remain manual; see the verification report.
-- **Keyboard Navigation & Cheat Sheet**: Press `?` to open the shortcuts manager with rebindable keymaps (`Space`, `R`, `F`, `Esc`, `↑ / ↓`).
-- **Screen Reader Support**: Polite live announcements (`aria-live="polite"`) and optional speech narration via Web Speech API with Polish and English support.
-- **Hardware-Accelerated Motion**: Respects `prefers-reduced-motion` and offers an in-app toggle restricting animations strictly to transform and opacity.
-
-### 📚 Evidence-Based Guides Library
-- **Guides Library**: Focus, sleep, nutrition and rest guides with research references and Polish/English content.
-
-### 📱 Progressive Web App (PWA)
-- Installable in compatible browsers; installation and notification support depend on the platform.
-- Offline-ready via Service Worker precaching.
-- Optional notifications and vibration where supported and permitted.
-
----
-
-## Tech Stack
-
-| Layer | Technology | Details |
-|---|---|---|
-| **Frontend** | React 19, TypeScript | Strict typing, `isolatedDeclarations`, `verbatimModuleSyntax` |
-| **Styling** | Tailwind CSS v4 | CSS-first `@theme` configuration with semantic design tokens |
-| **Build & PWA** | Vite 7, `vite-plugin-pwa` | Workbox service worker caching, asset preloading |
-| **Audio** | Web Audio API | Procedural mathematical synthesis, biquad filtering |
-| **Typography** | Fontsource Variable | `@fontsource-variable/fraunces`, `@fontsource-variable/instrument-sans` |
-| **Testing** | Vitest 4, JSDOM | Unit, integration, and adversarial boundary test suites |
-
----
-
-## Project Structure
-
-```text
-focus-flow/
-├── public/              # Static web assets, PWA icons, screenshots, favicon
-├── src/
-│   ├── app/             # Shell, dialogs, navigation and application lifecycle
-│   ├── ui/              # Accessible primitives and shared dialog behavior
-│   ├── features/        # Timer, audio, statistics, settings, sync and desktop UI
-│   ├── domain/          # Pure calendar and session statistics
-│   ├── design/          # Single token source and generated CSS
-│   ├── lib/             # Core engines (audio, storage, export, sync, stats, timer)
-│   ├── views/           # Primary views (Timer, Stats, Guides library)
-│   ├── types.ts         # Central TypeScript interfaces & schemas
-│   └── App.tsx          # Application shell & routing
-├── docs/                # Architecture records (ADR), roadmap, specs, and assets
-└── vite.config.ts       # Vite & PWA configuration
+```sh
+npm ci
+npm run dev
 ```
 
----
-
-## Getting Started
-
-### Prerequisites
-- Node.js 24 (see `.node-version`, aligned with CI and Vercel)
-- npm 10+
-
-### Development Setup
-
-```bash
-# 1. Clone repository
-git clone https://github.com/w3ziqv/focus-flow.git
-cd focus-flow
-
-# 2. Install dependencies
-npm install
-
-# 3. Start local development server
-npm run dev
-
-# 4. Run test suites
-npm test
-
-# 5. Type-check with TypeScript
+```sh
 npm run typecheck
-
-# 6. Lint codebase
 npm run lint
-
-# 7. Build for production
+npm run test:run
 npm run build
 ```
 
----
+For desktop development use `npm run desktop:dev`; create installers with
+`npm run desktop:build`. Ordinary CI desktop builds work offline. Production
+cloud configuration must be provided through the protected release environment.
+Never commit server credentials or private user data.
 
 ## Documentation
 
-- [`docs/DESKTOP.md`](docs/DESKTOP.md) — Version 3.0 development, Tauri commands, and remaining desktop increments.
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — 7-stage technical roadmap specification and release status tracking.
-- [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
-- [`docs/adr/`](docs/adr/README.md) — Current ADRs supplementing the historical records.
-- [`docs/UI-ARCHITECTURE.md`](docs/UI-ARCHITECTURE.md) — Component/state map and dependency rules.
-- [`docs/UI-COMPONENTS.md`](docs/UI-COMPONENTS.md) — Representative UI contracts and examples.
-- [`docs/LOCALIZATION.md`](docs/LOCALIZATION.md) — Four languages, storage and export contracts, verification.
-- [`docs/GUIDES-REVIEW-2026-10-28.md`](docs/GUIDES-REVIEW-2026-10-28.md) — Review of all 27 guides and primary references.
-- [`docs/modernization/2026-10-26.md`](docs/modernization/2026-10-26.md) — Audit, changes, measurements and verification limits.
-- [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
+- [Roadmap](docs/ROADMAP.md)
+- [Security and vulnerability reporting](SECURITY.md)
+- [Data protection and trust boundaries](docs/SECURITY.md)
+- [Installation, backup and rollback](docs/INSTALL-UPDATE.md)
+- [Audio sources and licensing](public/sounds/SOUNDS.md)
 
----
+## Author and license
 
-## Author
-
-Mateusz Szostak — [@w3ziqv](https://github.com/w3ziqv)
-
-## License
-
-MIT License. See [LICENSE](LICENSE) for details.
-
-## Google login and Vercel
-
-Firebase credentials are intentionally not stored in the repository. To keep Google login working:
-
-1. In Firebase Console, rotate/restrict the exposed Web API key and confirm that Google is enabled under **Authentication → Sign-in method**.
-2. Create `.env.local` for local development from `.env.example`.
-3. Add the same variables to the Vercel project `focus-flow` for the **Production** and **Preview** environments:
-   `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`,
-   `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, and `VITE_FIREBASE_APP_ID`.
-4. In Firebase Authentication → Settings → Authorized domains, keep `focusflow.ink`,
-   `www.focusflow.ink`, and the Vercel preview domain(s) that you use.
-
-The app now fails with a clear configuration message instead of silently using a committed key.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for reporting, repeatable checks and current limitations,
-and the [v3 audit](specs/security/SECURITY_REPORT_v3.0.md) for remediation evidence.
+Mateusz Szostak — [@w3ziqv](https://github.com/w3ziqv). MIT; see [LICENSE](LICENSE).

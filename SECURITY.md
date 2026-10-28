@@ -1,15 +1,47 @@
 # Security
 
-The actively developed version is 3.0.0-alpha.2. The 2.x reports in
-`specs/security` describe historical revisions and do not certify current code
-or deployed services. See [the current audit](specs/security/SECURITY_REPORT_v3.0.md).
+Security fixes target the 3.0 release line. Older versions and prereleases may
+use different cloud schemas or test projects; their reports do not establish
+current production behavior.
 
-Do not post secrets, personal session data, or working exploit details in a
-public issue. If GitHub private vulnerability reporting is enabled, use the
-repository's [Security page](https://github.com/w3ziqv/focus-flow/security).
-Otherwise arrange a private channel with the maintainer before sharing details.
+## Reporting a vulnerability
 
-## Verification
+Private vulnerability reporting is enabled. Use **Report a vulnerability** on
+[GitHub Security Advisories](https://github.com/w3ziqv/focus-flow/security/advisories)
+to contact the maintainer privately. Do not open a public issue with secrets,
+personal history, tokens or an unpatched exploit.
+
+Include the affected version/platform, reproduction steps using synthetic data,
+expected and actual behavior, impact and any proposed mitigation. Keep the report
+limited to what is needed to reproduce the problem. Do not test against another
+person's account or production data. The maintainer will triage privately and
+coordinate a fix and disclosure; reporter credit can be agreed before publication.
+
+### Supported versions
+
+| Version | Security maintenance |
+| --- | --- |
+| Latest 3.0.x | Supported |
+| Earlier 3.0 prereleases and 2.x | Upgrade; fixes are not backported by default |
+
+A published dependency advisory is reviewed against actual exposure. Security
+fixes can ship as 3.0.x patches ahead of the feature roadmap. No test suite or
+language choice guarantees that a release has no vulnerabilities.
+
+## Data and security boundaries
+
+See [data protection and trust boundaries](docs/SECURITY.md) for local storage,
+cloud consent, Firestore authorization, native OAuth/IPC and current limitations.
+Back up data before updating; [installation and rollback](docs/INSTALL-UPDATE.md)
+explains the client and cloud compatibility boundary.
+
+Firebase browser configuration is public client configuration. Server credentials,
+service-account keys, user tokens and private snapshots must never be committed,
+attached to public issues or included in CI artifacts.
+
+## Repeatable checks
+
+Requires Node.js 24, Rust and Java 21 for the loopback emulator.
 
 ```sh
 npm ci
@@ -17,88 +49,27 @@ npm audit --audit-level=high
 npm run typecheck
 npm run lint
 npm run test:run
-npx --yes firebase-tools@15.32.1 emulators:exec --only firestore --project demo-focus-flow-security "npm run test:rules && npx vitest run src/lib/sync/adapter.emulator.test.ts"
+npx --yes firebase-tools@15.32.1 emulators:exec --only firestore --project demo-focus-flow-security "npm run test:rules && npm run test:integration"
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 cargo test --locked --release --manifest-path src-tauri/Cargo.toml patched_glib_string_iterator_optimized_regression
 cargo audit --file src-tauri/Cargo.lock
 ```
 
-The emulator needs Java 21. Tests require a loopback emulator and use only the
-`demo-focus-flow-security` project. They never authenticate to or deploy to a
-production Firebase project. npm audits include development dependencies; the
-Firebase Node transport is patched with an explicit `@grpc/grpc-js` override.
-Review and remove that override when Firebase ships a compatible patched pin.
+Emulator tests require a loopback address and a demo project. They do not read or
+write production accounts. Native installation/runtime checks are separate from
+frontend builds. Production installers must match the released source commit,
+cloud project and published SHA-256 manifest.
 
-## Boundaries
-
-- Firestore denies access by default and isolates each account by authenticated
-  UID. Settings are singletons; sessions require bounded list queries. Nested
-  checklists, milestones, goals, and preferences have explicit schemas.
-  Canonical and legacy break-duration aliases are each validated, including when
-  both are supplied; a valid alias cannot hide an invalid second value.
-- New cloud history uses versioned daily documents with calendar-valid IDs and
-  bounded integer minutes. Legacy summary maps are read for migration, backed up
-  locally per UID, and cannot be written under the new rules. Compare exports on
-  staging before tightening production rules; unknown overlaps in old aggregate
-  history cannot be reconstructed from session IDs that no longer exist.
-- Permanent deletion markers prevent recreation of a deleted session ID. Cloud
-  masking enforces empty tasks/checklists on new writes and rewrites older pages.
-  Session batches contain at most six writes, respecting Firestore's additional
-  rule-access budget; other batches are bounded at 400.
-- Desktop OAuth uses the system browser, S256 PKCE, random loopback port and state.
-  Firebase tokens and authenticated requests stay in Rust. Refresh tokens use the
-  OS credential store; its absence means a visibly memory-only session. Only the
-  main window can call typed, account-scoped cloud commands.
-  Credential entries and serialized sessions are scoped to the Firebase project;
-  legacy entries without project identity require reconnection. Test installers
-  cannot restore or delete a production project's saved session.
-  Disconnect also clears native credentials before the lazy transport loads;
-  a credential-store deletion failure is reported without pretending to log out.
-  Cloud-enabled CI candidates require an explicit test-mode dispatch on the
-  isolated test branch. Ordinary CI remains offline; frontend and Rust receive
-  the same validated public project configuration.
-  Google's Desktop token exchange also requires its issued client parameter.
-  CI transports it through an Actions secret; only Rust embeds and sends it to
-  Google's fixed HTTPS endpoint. It is excluded from WebView configuration,
-  manifests, authorization URLs and logs. Installed applications cannot keep
-  this constant confidential; PKCE/state/consent and private user tokens are the
-  security boundary. Web/server secrets and service-account keys are forbidden.
-  On Linux, browser children exclude AppImage library/plugin/interpreter paths;
-  Focus Flow retains its own media runtime and never changes global host state.
-- The desktop main window owns persistence, exit, and discovery. Mini receives
-  only timer display and start/pause/show actions. Filesystem access is restricted
-  to application sound files. Native builds have no remote network CSP allowance.
-- Native snapshots and backups are unencrypted. Unix files use mode `0600`;
-  Windows relies on the current user's application-data directory ACL. OS-level
-  compromise or another process running as the same user is outside this boundary.
-- Peer sync requires manually exchanged identity fingerprints and a private LAN
-  candidate. Pair only devices you trust; peer authentication does not make the
-  paired user's data truthful.
-- Webhooks are user-specified HTTP(S) destinations. They omit credentials and
-  referrers and reject redirects. Do not put secrets in webhook URLs.
-
-Firebase browser configuration is public client configuration, not a service
-account credential. Never commit server keys. Deployment still requires a review
-of the live Firebase rules, authorized domains, API restrictions/App Check, Vercel
-headers, and GitHub repository policy. Local files do not update those services.
-
-On 2026-10-10, GitHub API read-back verified protection of `main`: PRs and
-up-to-date `ci`, `firestore`, `rust`, `browser`, and installed Linux/Windows checks
-are required from the GitHub Actions app. Administrators are included; force
-pushes and branch deletion are disabled, and review conversations must be
-resolved. No additional reviewer is required. This protects source integration;
-it does not certify the remaining manual release gates or production Firebase.
-
-Cloud error details expose only allowlisted error identifiers. Structured SDK
-codes survive retries and reopening without retaining arbitrary SDK messages,
-URLs or credentials. Access-denied errors are distinguished from network errors.
+Dependency audits include development dependencies. The Firebase Node transport
+uses an explicit patched `@grpc/grpc-js` override; remove it only after the
+upstream pin is compatible. The development toolchain currently has four low
+entries from the unpatched [deepmerge advisory](https://github.com/advisories/GHSA-gcqx-w48m-w2h4).
+The runtime npm audit reports zero; that does not certify the whole system.
 
 ## Native dependency backport
 
-GLib 0.18.5 is pinned locally with the minimal upstream mutable-out-pointer fix
-for RUSTSEC-2024-0429. The optimized regression exercises front/back/skip/final
-iterator operations; see [patch evidence](src-tauri/vendor/README.md). A path
-package's absence from cargo-audit results is not proof of remediation. The
-unmaintained `proc-macro-error` notice remains visible; no blanket advisory ignore
-is used. Current results and open release gates are in
-[VERIFICATION-3.0.md](docs/VERIFICATION-3.0.md).
+GLib 0.18.5 carries the minimal upstream mutable-out-pointer fix for
+RUSTSEC-2024-0429. The optimized regression exercises forward/backward/skipping
+iterator operations. See [the pinned patch](src-tauri/vendor/README.md). Absence
+of a path dependency from cargo-audit is not proof of remediation. Unmaintained
+dependency notices remain visible; no blanket advisory ignore is used.

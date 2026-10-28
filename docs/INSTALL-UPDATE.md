@@ -1,10 +1,10 @@
 # Installation, updates and rollback
 
-Stable `3.0.0` is being prepared. The last published prerelease is `3.0.0-alpha.2`;
-the production-configured `3.0.0-rc.1` candidate is under acceptance. Use the
-metadata of the exact downloaded build to distinguish test and production cloud. **Installers are unsigned**:
-Windows may show SmartScreen, and macOS is not notarized and remains experimental.
-SHA-256 verifies downloaded file integrity; it does not establish publisher identity.
+Use the installer and metadata from the same 3.0 release. Production builds
+connect to the production cloud; earlier alpha.2 installers use a separate test
+project. **Installers are unsigned**: Windows may show SmartScreen, and macOS is
+not notarized and remains experimental. SHA-256 verifies file integrity, not
+publisher identity.
 
 ## Download and verify
 
@@ -22,17 +22,9 @@ If the distribution requires FUSE, use its FUSE package or the `.deb` on Ubuntu.
 A local Arch-built `.deb` proves packaging, not Ubuntu ABI compatibility;
 distribution uses the Ubuntu runner artifact.
 
-AppImage bundles its GStreamer media framework, plugins and scanner, so rain,
-waves and timer sounds do not depend on host codec packages. CI separately
-exercises the `.deb` and extracted AppImage, with host plugin discovery excluded
-for the latter. The initial `381608a` AppImage omitted those plugins: a real
-Arch/Hyprland launch reported missing `appsink`, `appsrc` and `autoaudiosink`.
-The owner confirmed that its window and timer worked. On 2026-10-10 the corrected
-`ba300dc` AppImage was launched with the same isolated profile after backing up
-its data directory; the owner accepted the settings appearance and audible
-playback. The prior installer was retained. This does not replace physical
-Windows audio or full installer update/rollback acceptance. Do not treat MP3
-decoding in a `.deb` as AppImage playback acceptance.
+AppImage bundles its GStreamer media framework, plugins and scanner. The `.deb`
+uses the distribution's dependencies. Test playback on the actual target system;
+frontend builds or MP3 decoding in a `.deb` do not certify AppImage playback.
 
 Windows: CI produces an NSIS `.exe` installer. Close the application, run the
 installer as the current user and preserve the same installation scope when
@@ -66,16 +58,11 @@ before rollback so an older client cannot overwrite the new schema. New rules
 reject legacy history maps; older clients may need to remain offline. For web/PWA,
 keep a JSON export: browser storage does not replace an independent backup.
 
-Release acceptance still requires real installation and update on Linux and
-Windows, plus tray/mini/audio/notifications/autostart and suspend/resume checks.
-Building installers and automated fresh-install smoke do not close those gates.
+Automated CI covers installation and startup on Linux/Windows and a disposable
+Windows upgrade/backup rollback. Physical OS integration, current production
+OAuth and credential-store combinations remain subject to the limits described
+in [security](SECURITY.md). Do not run the destructive CI upgrade wrapper on a
+personal profile.
 
-The production Desktop workflow also runs `scripts/test-windows-upgrade.ps1`
-on its disposable Windows runner. It pins the accepted alpha.2 installer by
-SHA-256, creates a task through that application's UI, backs up the entire native
-data directory, installs the candidate in place and verifies task retention.
-It then preserves the newer directory, uninstalls the candidate, restores the
-pre-update backup and checks the older application. This is a separate automated
-installer/data-retention check; it does not certify physical notification,
-login-cycle autostart, screen readers or custom audio migration. Do not run this
-destructive synthetic-profile wrapper on a personal machine.
+Backups containing `es` or `zh` require a client supporting those languages.
+Do not edit or discard the backup to bypass an older client's validation.

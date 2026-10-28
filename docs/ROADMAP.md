@@ -1,94 +1,161 @@
-# Focus Flow — roadmap from 3.0
+# Roadmap
 
-Status: final `3.0.0` metadata is prepared; production-configured `3.0.0-rc.1` is under acceptance;
-the last published test release is `3.0.0-alpha.2`. Stable 3.0 remains blocked by
-live cloud acceptance and manual desktop acceptance. Automated fresh-install
-runtime checks passed on Windows and Ubuntu; remaining gates are listed below.
-Previous specification: [archive](archive/ROADMAP-before-3.0.md).
-Evidence and limitations: [verification](VERIFICATION-3.0.md).
-Production migration/build sequence: [rollout](PRODUCTION-ROLLOUT-3.0.md).
+Focus Flow is a private, useful place to work. The timer stays at
+**focusflow.ink**. Accounts remain optional, active timers stay on one device,
+and personal task content is never required for product analytics.
 
-Direction: a calm offline-capable timer, optional accounts and reliable cloud.
-History, settings, goals and, by default, task/checklist content synchronize.
-Active timers remain independent. Audio files remain local.
-P2P and macOS are experimental. Do not add AI, a task manager or integrations
-without a confirmed user problem. Schedule work after dependencies are resolved.
+The versions below describe planned work. A prototype is a design proposal,
+not an implemented release feature. Security and data-recovery fixes take
+priority over scheduled features.
 
-## 3.0 — reliable work across devices
+## 3.0 — foundation
 
-**Problem:** older history can disappear from statistics, large uploads can fail,
-private checklists can remain in cloud and desktop login can fail.
-**Change:** batches of at most 400 writes, a durable offline queue, permanent
-deletions, daily documents instead of arbitrary maps, migration backups and
-account-switch consent. System-browser PKCE with random loopback and Rust tokens.
-**Success:** all gates below pass on the exact release commit.
-**Dependencies:** Desktop OAuth client, Firebase Auth/Firestore, credential store,
-Linux/Windows access and installer CI.
+- Offline web/PWA and desktop timer, history, goals and exports.
+- Optional cloud history with bounded writes, retries, deletion markers,
+  masking and migration/account-change backups.
+- Polish, English, Spanish and Simplified Chinese, including 27 reviewed guides.
+- Shared keyboard/dialog behavior, responsive history and consistent UI tokens.
+- Root `SECURITY.md`, private vulnerability reporting, verified installer
+  metadata/checksums and installation/backup/rollback instructions.
 
-- [ ] Two independent devices: first connection, >500 sessions, offline operation,
-  partial-failure retry, conflict, permanent deletion, masking >1,000 records,
-  account switch and older totals. The real test-cloud 1105-session SDK scenario
-  passed on 2026-10-18; physical two-device/account-switch acceptance remains.
-- [ ] Desktop: real login, refresh after restart and consent revocation; an
-  unavailable credential store produces an explicitly reported memory-only session.
-  Real Linux Google login and restoration/refresh after restart passed on
-  2026-10-11. On 2026-10-18 the owner confirmed physical Windows Google login,
-  synchronization and operation after app restart. Revocation and unavailable-store
-  acceptance remain open.
-- [ ] Linux and Windows: installation, update with backup, rollback, tray, mini,
-  audio, notifications, autostart and suspend/resume.
-  The owner accepted Linux timer/audio/mini/tray. Windows login/sync/restart are
-  accepted. The owner additionally accepted Linux/Windows notifications, login-cycle
-  autostart, suspend/resume, tray/mini and screen-reader operation on 2026-10-18.
-  Installation update/backup rollback remains a separate gate.
-- [x] Unit tests, emulator, npm/Rust audits, optimized GLib regression, builds and
-  browser tests pass in real CI for the alpha source. Repeat for any release change.
-- [x] Alpha installers have SHA-256 manifests, unsigned status is explicit and
-  downloaded files were verified. Fresh Ubuntu/Windows installed-runtime checks passed.
-- [x] UX on the preceding candidate: understandable errors and retry, offline/pending/syncing/last-success
-  states, consistent PL/EN, keyboard, 200% zoom, contrast and screen-reader acceptance.
+Current validation limits are in [security](SECURITY.md). Unexecuted physical
+checks remain unverified even where publication has been accepted.
 
-Stable publication order: branch → PR with evidence → CI → all acceptance gates
-→ merge → `v3.0.0`, release notes and verified installers. An unavailable gate
-keeps the PR open; passing automated tests alone does not authorize a stable tag.
+## 3.1 — design and everyday usability
 
-## 3.0.x — fixes after release
+### Direction
 
-**Problem:** real environments may expose regressions CI did not reproduce.
-**Change:** small fixes, clear messages and data recovery without changing the
-core flow. **Success:** every regression is reproduced and covered by a test;
-update and rollback are verified. **Dependencies:** reports including version/OS,
-sample data with user consent and no task content in telemetry.
+Use a restrained editorial layout: generous spacing, warm neutral surfaces,
+dark readable text, a measured teal/green accent, large serif headings and clear
+sans-serif controls. Preserve a recognizable timer and one primary action.
+Motion should explain state changes; decorative animation must not compete
+with work or require a permanently running video.
 
-## 3.1 — deliberate active-session handoff
+### Scope
 
-**Problem:** changing devices during work requires manually restoring the session.
-**Change:** optional, explicitly approved handoff with confirmation on the receiving
-device. **Success:** one unambiguous owner and no double counting, including offline
-and resume paths. **Dependencies:** stable 3.0, an ownership protocol and two-device
-tests. Do not automatically start the timer on every device.
+1. Map the frequent journeys: start/pause/reset, switch phase, adjust audio,
+   find/edit a session, export data and inspect sync status. Identify confusing
+   labels and actions hidden behind settings before changing layouts.
+2. Produce editable desktop/mobile designs for idle, running, paused and break
+   states, plus statistics, audio/settings and the offline/error cases.
+3. Build the shared type, color, spacing and control states through existing
+   tokens/components. Keep all five themes and four languages. Expand buttons
+   and labels where translation needs more room; keep visible keyboard focus.
+4. Apply the new hierarchy gradually: timer/navigation first, settings/audio
+   next, then statistics/history and guides. Preserve drafts, active deadlines,
+   scroll position where useful and account ownership through each change.
+5. Compare the release candidate with 3.0 on the same devices and data before
+   publishing. Capture startup, input response, rendering and bundle changes.
 
-## 3.2 — history, summaries and recovering mistakes
+### Acceptance
 
-**Problem:** empty statistics overwhelm users with badges; finding past work or
-recovering an accidental deletion is difficult. **Change:** put summaries and the
-first-session action before badges, improve history, add undo and predictable export.
-**Success:** at least four of five testers independently find a workday, compare
-periods and recover a mistake. **Dependencies:** a testable undo mechanism assigning
-new session IDs so permanently deleted IDs are never resurrected.
+- At least four of five voluntary testers can start/pause a session, find audio
+  controls and export a backup without assistance. Record observations manually;
+  add no behavioral tracking to the app.
+- No horizontal overflow at 320 px; usable at 200% zoom, with touch, keyboard,
+  reduced motion and a real screen reader. All four languages are checked.
+- Switching views, language, theme or size preserves the active timer and form
+  drafts. No new navigation/settings renders are driven by timer ticks alone.
+- No unresolved performance regression beyond measurement noise. Any deliberate
+  tradeoff needs a concrete benefit and a recorded before/after comparison.
 
-## 3.3 — easier P2P and broader platform support
+## 3.2 — an optional personal garden
 
-**Problem:** technical pairing is difficult, and some system WebViews lack WebRTC.
-**Change:** native transport and simpler pairing; extend support only after platform
-acceptance. **Success:** transport, network loss, re-pairing and conflicts are verified
-on every declared platform. **Dependencies:** pairing security review, stable 3.0
-and access to those operating systems.
+### Experience
 
-## UX findings and verification
+Offer an **Ogród / Garden** where completed focus sessions gradually grow plants.
+Make it optional and available offline without an account. The timer remains
+the main screen; the garden is a quiet place to visit after work.
 
-The audit (`/tmp/focus-flow-ux-audit`) found onboarding and the timer understandable.
-Priorities are explaining cloud scope, recoverable errors and Polish messages.
-Empty statistics begin with an action, and integrations belong in advanced settings.
-Preserve the calm appearance and optional account. Screenshots demonstrate appearance;
-accessibility requires separate keyboard, screen-reader, zoom and contrast checks.
+Start with a small choice of plants, simple growth stages and a personal layout.
+No plant dies because of missed days. Avoid streak penalties, competitive ranks,
+paid recovery, forced notifications or prompts during an active session. Include
+a static/reduced-motion presentation and a way to hide or reset the garden
+without deleting work history.
+
+### Implementation and acceptance
+
+- Prototype the growth pace and empty state before adding a large asset catalog.
+- Credit completed sessions once using stable session identities; test duplicate
+  completion, offline/reconnect, import, deletion and account switching.
+- Keep only the necessary cosmetic state. Do not copy task titles/checklists into
+  garden records. Garden progress is a personal visualization, not proof of work.
+- Add optional cloud support only with an explicit schema, bounded payloads,
+  UID rules, migration/export/restore and consent for the affected data.
+- Preserve every existing backup and make a complete export/import round trip.
+  Test whether the garden helps a small volunteer group return without pressure.
+  Do not introduce analytics or remote engagement scoring to measure it.
+
+## 3.3 — a more useful guide library
+
+1. Improve discovery with clear categories, search, reading length, bookmarks and
+   an obvious return to the timer. Cache text and source metadata offline.
+2. Add a practical **Using Focus Flow** collection: planning from past sessions,
+   protecting task content, importing/restoring a backup and choosing audio.
+   Instructions must match the application version they describe.
+3. Expand research-based topics in small reviewed batches. Avoid duplicate
+   articles and unsupported health/productivity promises. Separate evidence,
+   practical examples and limitations; record source and review dates.
+4. Publish every article in PL/EN/ES/Simplified ZH. Check natural language,
+   screen-reader headings, links, narrow screens and older article routes.
+5. Preserve the native source-ID allowlist. Bookmarks and reading position stay
+   local by default; any optional sync requires the same consent/rules discipline
+   as other personal data.
+
+Acceptance: every new route opens in four languages and offline; sources resolve
+or clearly identify access limits; users can find an article and return to the
+running timer without losing it. Review outdated material rather than growing
+the library by count alone.
+
+## 3.4 — project website at /about
+
+Keep **focusflow.ink/** as the application. Add **focusflow.ink/about** as a
+separate, lightweight presentation of the project, with an obvious **Open timer**
+action. Use the same visual language as the app while allowing larger editorial
+sections and restrained, original botanical imagery.
+
+### Page content
+
+- What the timer does, with real desktop/mobile screenshots and an open-app link.
+- Offline use, optional sync, data boundaries and backup/export options.
+- Desktop downloads, platform status, checksums and unsigned-installer disclosure.
+- Four languages, guides, roadmap, frequently asked questions and security contact.
+
+### Delivery
+
+Use statically rendered HTML through the existing Vite build, sharing tokens
+and small components rather than adding a server framework for a single page.
+Provide localized pages under `/about/pl`, `/about/en`, `/about/es` and `/about/zh`,
+with correct language/canonical metadata; `/about` is the entry point.
+
+Keep the timer's PWA ID, scope, start URL and root route stable. Explicitly
+separate `/about` routing from the app's service-worker navigation fallback.
+Visiting the presentation page must not clear a timer, history or preferences.
+Load no analytics, tracking cookies, third-party embeds or externally hosted
+fonts. Optimize images, headings and links, then test keyboard/mobile use and
+no-JavaScript content before indexing the pages.
+
+## Technology and security maintenance
+
+Keep **TypeScript + React** for web/UI and **Rust + Tauri** for native capabilities.
+This supports the existing web/PWA and desktop clients without a second UI
+implementation. A language change alone does not solve security maintenance.
+Add a language or service only for a measured requirement that the current
+boundaries cannot address efficiently.
+
+- Use supported Node LTS and maintained Rust/Tauri toolchains. Node 24 remains
+  the release baseline; evaluate a newer LTS in a separate tested update.
+- Keep lockfiles, weekly dependency proposals and advisory checks on PR/main.
+  Treat high-impact advisories as patch work; review moderate/low findings by
+  actual exposure rather than hiding them or forcing incompatible downgrades.
+- Keep source integration protected, actions pinned, production credentials
+  scoped and test/production projects separate. Test native runtimes separately
+  from frontend builds and verify exact release source plus installer hashes.
+- Prioritize installer signing/notarization and a signed, recoverable update
+  channel before enabling automatic desktop updates.
+- Every data/schema change needs old-backup compatibility, private migration/
+  restore testing and a rollback boundary. Never remove old data to pass a test.
+
+Runtime support and native security references:
+[Node release policy](https://nodejs.org/en/about/previous-releases),
+[Tauri security](https://v2.tauri.app/security/).
