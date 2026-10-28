@@ -6,12 +6,21 @@ installer=$(find src-tauri/target/release/bundle/deb -maxdepth 1 -name '*.deb' -
 sudo apt-get install -y "$(realpath "$installer")"
 profile=$(mktemp -d)
 cleanup() {
+  local smoke_status=$?
   # The document portal can outlive its private DBus session and leave a FUSE
   # mount here. Detach only this mktemp profile's mount before removing it.
   if mountpoint -q "$profile/runtime/doc"; then
     fusermount3 -uz "$profile/runtime/doc"
   fi
-  rm -rf "$profile"
+  # Portal/WebKit shutdown can briefly recreate files after readdir, causing
+  # rm to return ENOTEMPTY. Retry only this disposable mktemp directory; keep
+  # both exhausted cleanup failures and the original smoke failure visible.
+  for attempt in {1..5}; do
+    if rm -rf "$profile"; then return "$smoke_status"; fi
+    sleep .2
+  done
+  echo 'Could not remove the isolated native test profile after portal shutdown' >&2
+  return 1
 }
 trap cleanup EXIT
 export XDG_DATA_HOME="$profile/data" XDG_CONFIG_HOME="$profile/config" XDG_CACHE_HOME="$profile/cache"
@@ -70,6 +79,10 @@ native_smoke() {
 export FOCUS_FLOW_BINARY=/usr/bin/focus-flow
 export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux.png"
 export FOCUS_FLOW_DRIVER_LOG="${RUNNER_TEMP:-/tmp}/tauri-driver-linux.log"
+# Use the same native WebKit capability mapping for both packages. The
+# tauri-driver HTTP proxy intermittently closes a live screenshot connection;
+# the direct driver still executes every UI/IPC/media assertion below.
+export FOCUS_FLOW_DIRECT_WEBKIT_DRIVER=1
 native_smoke
 
 # Exercise the portable package too. The installed .deb uses host GStreamer,
@@ -94,7 +107,6 @@ export GST_PLUGIN_PATH_1_0="$appdir/usr/lib/gstreamer-1.0"
 export GST_PLUGIN_SCANNER_1_0="$appdir/usr/lib/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner"
 export APPDIR="$appdir"
 export FOCUS_FLOW_NATIVE_LIBRARY_PATH="$appdir/usr/lib"
-export FOCUS_FLOW_DIRECT_WEBKIT_DRIVER=1
 export XDG_DATA_HOME="$profile/appimage-data" XDG_CONFIG_HOME="$profile/appimage-config" XDG_CACHE_HOME="$profile/appimage-cache"
 export FOCUS_FLOW_BINARY="$appdir/AppRun"
 export FOCUS_FLOW_SCREENSHOT="${RUNNER_TEMP:-/tmp}/focus-flow-linux-appimage.png"
