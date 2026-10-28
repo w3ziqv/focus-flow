@@ -48,7 +48,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
@@ -116,7 +116,7 @@ jobs:
         run: |
           artifact_sha=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$FOCUS_FLOW_ARTIFACT_RUN" --jq '.head_sha')
           git cat-file -e "$artifact_sha^{commit}"
-          git diff --exit-code "$artifact_sha" HEAD -- package.json package-lock.json src src-tauri
+          git diff --exit-code "$artifact_sha" HEAD -- package.json package-lock.json .node-version vite.config.ts tsconfig.json index.html public src src-tauri
           echo "FOCUS_FLOW_ARTIFACT_SHA=$artifact_sha" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
@@ -129,7 +129,7 @@ jobs:
         run: cd src-tauri/target/release/bundle && sha256sum -c SHA256SUMS.txt
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 22
+          node-version-file: .node-version
       - name: Verify installer cloud target
         run: node scripts/desktop-cloud-config.mjs --verify
       - name: Linux runtime dependencies
@@ -170,11 +170,12 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:browser
+      - run: npm run test:ui-interactions
       - name: Accessibility and Polish UI
         run: |
           npm run dev -- --host 127.0.0.1 --port 1420 --strictPort > /tmp/focus-flow-dev.log 2>&1 &
@@ -185,7 +186,11 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: accessibility-evidence
-          path: /tmp/focus-flow-ux-audit
+          path: |
+            /tmp/focus-flow-ux-audit
+            /tmp/focus-flow-browser-failure.png
+            test-artifacts/modernization/history-mobile
+            test-artifacts/ui-architecture/after
           if-no-files-found: warn
       - run: npm run build
       - run: npm run test:web-offline

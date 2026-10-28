@@ -10,9 +10,9 @@ The web/PWA works offline without an account. Optional Google/Firebase sync shar
 completed history, settings and goals; task/checklist content is included by default
 and can be masked. Active timers and custom audio files stay on each device.
 
-Version **3.0.0-rc.1** is being prepared with production desktop cloud configuration
-and verified migration of a private older-data snapshot. See the
-[candidate notes](docs/RELEASE-3.0.0-rc.1.md) and
+Version **3.0.0** is being prepared; the production-configured **3.0.0-rc.1** candidate is under acceptance. Migration of a private older-data snapshot
+was verified. See the
+[candidate notes](docs/RELEASE-3.0.0-rc.1.md), [draft release notes](docs/RELEASE-3.0.0.md) and
 [production rollout](docs/PRODUCTION-ROLLOUT-3.0.md).
 The last published prerelease is **3.0.0-alpha.2**, with test-cloud Tauri installers,
 native Google login fixes and offline recordings. See [alpha.2 changes](docs/RELEASE-3.0.0-alpha.2.md).
@@ -94,8 +94,11 @@ Automated accessibility checks do not constitute WCAG certification.
 focus-flow/
 ├── public/              # Static web assets, PWA icons, screenshots, favicon
 ├── src/
-│   ├── components/      # UI components (Dial, Settings, AudioMixer, Shortcuts)
-│   ├── hooks/           # Custom hooks (useTimer, useAudio, useLanguage)
+│   ├── app/             # Shell, dialogs, navigation and application lifecycle
+│   ├── ui/              # Accessible primitives and shared dialog behavior
+│   ├── features/        # Timer, audio, statistics, settings, sync and desktop UI
+│   ├── domain/          # Pure calendar and session statistics
+│   ├── design/          # Single token source and generated CSS
 │   ├── lib/             # Core engines (audio, storage, export, sync, stats, timer)
 │   ├── views/           # Primary views (Timer, Stats, Guides library)
 │   ├── types.ts         # Central TypeScript interfaces & schemas
@@ -109,7 +112,7 @@ focus-flow/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20+ (recommended: Node 22 LTS)
+- Node.js 24 (see `.node-version`, aligned with CI and Vercel)
 - npm 10+
 
 ### Development Setup
@@ -146,6 +149,10 @@ npm run build
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — 7-stage technical roadmap specification and release status tracking.
 - [`docs/DESIGN.md`](docs/DESIGN.md) — Design system, color semantics, typography hierarchy, and motion curves.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Architectural Decision Records (ADR-001 through ADR-009).
+- [`docs/adr/`](docs/adr/README.md) — Current ADRs supplementing the historical records.
+- [`docs/UI-ARCHITECTURE.md`](docs/UI-ARCHITECTURE.md) — Component/state map and dependency rules.
+- [`docs/UI-COMPONENTS.md`](docs/UI-COMPONENTS.md) — Representative UI contracts and examples.
+- [`docs/modernization/2026-10-26.md`](docs/modernization/2026-10-26.md) — Audit, changes, measurements and verification limits.
 - [`docs/PROJECT.md`](docs/PROJECT.md) — Stage 5 milestone specification and feature inventory.
 
 ---

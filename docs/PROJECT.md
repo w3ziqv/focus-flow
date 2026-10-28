@@ -1,5 +1,10 @@
 # Project: Focus Flow Stage 5 (Milestone v2.5) — Customization, Themes & Accessibility
 
+> Historical milestone specification. Claims below about universal AAA compliance,
+> zero external storage and the authoritative token file are not current evidence.
+> Use [the current design contract](DESIGN.md), [architecture](ARCHITECTURE.md)
+> and [2026-10-26 verification](modernization/2026-10-26.md).
+
 ## Architecture
 Focus Flow operates with 100% client-side data sovereignty, zero mandatory server dependencies, universal WCAG 2.2 AAA accessibility compliance, and sensory-friendly personalization.
 Stage 5 introduces:

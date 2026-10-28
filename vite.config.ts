@@ -29,7 +29,11 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
   const outDir = desktop ? 'dist-desktop' : 'dist'
   return {
     build: { outDir },
-    server: desktop ? { port: 1420, strictPort: true } : undefined,
+    server: {
+      ...(desktop ? { port: 1420, strictPort: true } : {}),
+      // The other build target and test evidence must not reload an active app.
+      watch: { ignored: ['**/dist/**', '**/dist-desktop/**', '**/src-tauri/target/**', '**/test-artifacts/**'] },
+    },
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
     },
@@ -88,6 +92,8 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
       }),
     ],
     test: {
+      // Keep local evidence and old acceptance scripts out of automatic discovery.
+      include: ['src/**/*.{test,spec}.{ts,tsx}'],
       environment: 'jsdom',
       setupFiles: ['src/test/setup.ts'],
       // Audio stress suites allocate large buffers; bound workers on many-core hosts.

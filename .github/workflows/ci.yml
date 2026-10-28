@@ -17,11 +17,13 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
+      - run: npm run design:check
+      - run: npm run test:ui-boundaries
       - run: npm run typecheck
       - run: node --test scripts/test-desktop-cloud-config.mjs
       - run: npm run test:run

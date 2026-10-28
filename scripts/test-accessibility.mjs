@@ -47,6 +47,19 @@ try {
   await page.evaluate(() => {document.documentElement.style.zoom = '2'})
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, '200% timer layout overflows')
   await audit('zoom-200-pl')
+  await page.evaluate(() => {document.documentElement.style.zoom = ''})
+  for (const theme of ['light', 'dark', 'obsidian', 'sage', 'eink']) {
+    await page.evaluate(theme => localStorage.setItem('ff2_theme', JSON.stringify(theme)), theme)
+    await page.reload()
+    await page.getByRole('heading', {name: /Focus Flow/}).waitFor()
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({width, height: 900})
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${theme} overflows at ${width}px`)
+      await audit(`${theme}-${width}`)
+    }
+  }
+  await page.setViewportSize({width: 320, height: 740})
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, '320px timer layout overflows')
   await writeFile(`${directory}/accessibility-results.json`, JSON.stringify(reports, null, 2))
   assert.deepEqual(reports.flatMap(report => report.violations), [], 'Automated accessibility violations; inspect accessibility-results.json')
   console.log('PASS: Polish timer/statistics/cloud, axe WCAG A/AA checks, modal keyboard trap/restore, 200% CSS zoom. Screen-reader acceptance remains manual.')

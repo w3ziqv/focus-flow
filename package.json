@@ -2,8 +2,11 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "3.0.0-rc.1",
+  "version": "3.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -11,8 +14,17 @@
     "typecheck": "tsc --noEmit",
     "typecheck:node": "npx --package=typescript@5.8 tsc --noEmit",
     "lint": "eslint .",
+    "design:tokens": "node scripts/design-tokens.mjs",
+    "design:check": "node scripts/design-tokens.mjs --check",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "vitest run --exclude \"**/*.emulator.test.ts\"",
+    "test:integration": "node scripts/test-integration.mjs",
+    "test:a11y": "node scripts/test-accessibility.mjs",
+    "measure:browser": "node scripts/measure-performance.mjs",
+    "measure:history": "node scripts/measure-history.mjs",
+    "measure:ui": "node scripts/measure-ui-renders.mjs",
+    "test:ui-boundaries": "node --test scripts/test-ui-boundaries.mjs",
+    "test:ui-interactions": "node scripts/test-ui-interactions.mjs",
     "dev:desktop": "vite --mode desktop",
     "build:desktop": "tsc --noEmit && vite build --mode desktop",
     "tauri": "tauri",
@@ -60,7 +72,7 @@
     "typescript-eslint": "^8.68.0",
     "vite": "^7.0.0",
     "vite-plugin-pwa": "^1.0.1",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "allowScripts": {
     "esbuild@0.28.2": true

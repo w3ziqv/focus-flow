@@ -24,6 +24,7 @@ import {
   loadSettings,
   loadSoundPreferences,
   loadStats,
+  loadTombstones,
   loadTheme,
   loadVolume,
   loadWebhookSettings,
@@ -64,18 +65,19 @@ export interface UserPreferences {
 /**
  * Unified Focus Flow State & Domain Store (Deep Repository Seam).
  *
- * Encapsulates multi-entity storage coordination, atomic stat tracking,
- * goal threshold detection, and milestone evaluation behind a cohesive, high-leverage interface.
+ * Encapsulates multi-entity storage coordination, statistics,
+ * goal threshold detection, and milestone evaluation behind a shared application boundary.
+ * Writes are coordinated, not a multi-key localStorage transaction.
  */
 export class FocusStore {
-  // --- Sessions & Atomic Domain Invariants ---
+  // --- Session coordination ---
 
   public static getSessions(): SessionLogEntryV2[] {
     return loadSessions()
   }
 
   /**
-   * Atomically records a completed focus session:
+   * Records a completed focus session once per visible session identity:
    * 1. Appends session to log with sanitized fields.
    * 2. Increments aggregate statistics and daily history.
    * 3. Checks if the session crossed the daily target goal threshold.
@@ -87,7 +89,7 @@ export class FocusStore {
     minutes: number
     task?: string | null
     checklist?: SessionLogEntryV2['checklist']
-  }): RecordSessionResult {
+  }, currentStats: StatsV2 = loadStats(), now: Date = new Date()): RecordSessionResult {
     const sessionId = entry.id || `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
     const date = entry.date || new Date().toISOString()
     const minutes = Math.max(1, Math.round(entry.minutes))
@@ -101,13 +103,18 @@ export class FocusStore {
       checklist: entry.checklist && entry.checklist.length > 0 ? [...entry.checklist] : undefined,
     }
 
+    const existing = loadSessions().find(session => session.id === sessionId)
+    if (existing) return {session: existing, stats: loadStats(), goalReached: false, milestones: loadMilestones()}
+    if (loadTombstones().some(tombstone => tombstone.id === sessionId)) {
+      return {session: sessionRecord, stats: loadStats(), goalReached: false, milestones: loadMilestones()}
+    }
+
     addSession(sessionRecord)
 
-    const currentStats = loadStats()
-    const todayKey = new Date().toDateString()
+    const todayKey = now.toDateString()
     const prevTodayMinutes = currentStats.history[todayKey] ?? 0
 
-    const updatedStats = recordFocusSession(currentStats, minutes)
+    const updatedStats = recordFocusSession(currentStats, minutes, new Date(date), now)
 
     // Check goal threshold crossing
     const goals = loadGoals()
@@ -126,14 +133,14 @@ export class FocusStore {
 
     return {
       session: sessionRecord,
-      stats: updatedStats,
+      stats: { ...updatedStats, milestones: updatedMilestones },
       goalReached,
       milestones: updatedMilestones,
     }
   }
 
   /**
-   * Atomically deletes a session record and adjusts aggregate statistics in a single transaction.
+   * Deletes a session record and adjusts aggregate statistics through the storage facade.
    */
   public static deleteSession(sessionId: string): {
     sessions: SessionLogEntryV2[]

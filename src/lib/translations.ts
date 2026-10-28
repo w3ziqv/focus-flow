@@ -1,5 +1,8 @@
 export const dict = {
   pl: {
+    'log.showMore': 'Pokaż kolejne sesje',
+    'log.shown': 'Wyświetlono {shown} z {total} sesji',
+    'common.loading': 'Wczytywanie…',
     "sync.memory": "Magazyn poświadczeń jest niedostępny. To połączenie działa tylko do zamknięcia aplikacji; po restarcie zaloguj się ponownie.",
     "sync.title": "Synchronizacja w chmurze",
     "sync.description": "Połącz konto Google, aby synchronizować ustawienia, cele i historię między urządzeniami. Timer działa niezależnie na każdym urządzeniu i pozostaje dostępny offline.",
@@ -385,6 +388,9 @@ export const dict = {
     'footer': '© {year} Focus Flow',
   },
   en: {
+    'log.showMore': 'Show more sessions',
+    'log.shown': 'Showing {shown} of {total} sessions',
+    'common.loading': 'Loading…',
     "sync.memory": "The system credential store is unavailable. This connection lasts until the app closes; sign in again after restarting.",
     "sync.title": "Cloud Synchronization",
     "sync.description": "Connect your Google account to synchronize settings, targets and history across devices. Each device has its own timer and works offline.",

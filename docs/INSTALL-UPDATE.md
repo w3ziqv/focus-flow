@@ -1,7 +1,8 @@
 # Installation, updates and rollback
 
-This release remains `3.0.0-alpha.2`. CI installers and the published alpha are
-test builds, not evidence of stable readiness. **Installers are unsigned**:
+Stable `3.0.0` is being prepared. The last published prerelease is `3.0.0-alpha.2`;
+the production-configured `3.0.0-rc.1` candidate is under acceptance. Use the
+metadata of the exact downloaded build to distinguish test and production cloud. **Installers are unsigned**:
 Windows may show SmartScreen, and macOS is not notarized and remains experimental.
 SHA-256 verifies downloaded file integrity; it does not establish publisher identity.
 
