@@ -65,7 +65,7 @@ mod tests {
     fn accepts_current_and_legacy_language_preferences() {
         for lang in ["pl", "en", "es", "zh"] {
             assert_eq!(stored_language(Some(&format!("\"{lang}\""))), lang);
-            assert_eq!(stored_language(Some(&lang.to_string())), lang);
+            assert_eq!(stored_language(Some(lang)), lang);
             for action in [
                 "toggle",
                 "skip",

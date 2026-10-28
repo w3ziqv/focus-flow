@@ -74,7 +74,12 @@ historyczne, nie opisują bieżącej bazy advisory.
 
 ## Wydanie
 
-PR do chronionego kandydata i jego dokładne wyniki CI należy dopisać po zakończeniu.
+[PR #9](https://github.com/w3ziqv/focus-flow/pull/9) otwarto dla `6d30348`.
+CI `40736918027` PASS; Firestore w Security `40736917837` PASS.
+Desktop `40736917826` zaliczył kompilację i testy Rust Linux/Windows, ale Clippy
+zatrzymał oba zadania na zbędnym `to_string()` w nowym teście menu. Ta próba nie
+zalicza instalatorów. Konwersję usunięto; cztery lokalne testy i izolowany Clippy
+z `-D warnings` PASS. Potrzebne są nowe pełne CI i natywne paczki poprawionego SHA.
 Main PR #7 pozostaje draftem. Nadal wymagane są fizyczne dwa urządzenia,
 produkcyjny desktop OAuth/restart/revocation/keyring i funkcje OS. Właściciel ma
 jedno konto testowe, więc rzeczywista izolacja dwóch kont Google pozostaje
