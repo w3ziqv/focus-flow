@@ -3,11 +3,19 @@
 Status: **oczekuje na wyniki właściciela**. Żaden punkt poniżej nie jest zaliczony
 samym przygotowaniem instrukcji ani automatycznym testem CI.
 
-Kandydat produkcyjny: `575f070997b7824ddcabaec28eb2bc1c102e1815`.
-Izolowany web testowy nadal używa `5143cd7198c458c132a6d12931e750832419ec55`;
-porównano komplet źródeł aplikacji/builda obu commitów — są identyczne. Różnią
-się dokumentacją i kontrolą zależności UI. Testowy Firebase to
-`focus-flow-v3-test-20261010`, produkcyjny to `focus-flow-70527`.
+Kandydat produkcyjny: `e146fe3e29e75826951302f8a44a7167389a572a`.
+Izolowany web testowy: `d7b4d64e377e11206535cc3c4c9fb7963d7d4b3f`; porównano
+pełne drzewa z kandydatem — są identyczne. Zawierają cztery języki i 27
+zredagowanych poradników. Testowy Firebase: `focus-flow-v3-test-20261010`,
+produkcyjny: `focus-flow-70527`.
+
+Logowanie Google po poprzednich próbach na dwóch originach, odtworzenie konta po
+reload oraz online edycja/usunięcie były zaliczone na wcześniejszym kodzie.
+To nie jest pełny restart przeglądarki ani fizyczny test dwóch urządzeń.
+Właściciel ma jedno konto testowe: próba dwóch rzeczywistych kont w punkcie 8
+pozostaje **niedostępna**, nie PASS. Nie trzeba ponownie odpowiadać na pytanie
+o drugie konto. Udostępnione agentowi narzędzie nie obsługuje natywnych okien
+ani drugiego fizycznego urządzenia; ich testy wymagają dostępu właściciela.
 
 ## Najpierw komputer i telefon
 
@@ -17,13 +25,20 @@ się dokumentacją i kontrolą zależności UI. Testowy Firebase to
    przeglądarkę bez usuwania danych. Incognito wystarcza do ponownego otwarcia
    karty, ale zamknięcie ostatniego prywatnego okna usuwa jego dane.
 2. Na obu urządzeniach otwórz
-   [izolowany web testowy](https://focus-flow-git-test-v30-cloud-w3ziqvs-projects.vercel.app).
+   [niezmienny web testowy](https://focus-flow-3r90tbnzf-w3ziqvs-projects.vercel.app).
    Jeśli pojawi się ochrona Vercel, zaloguj się swoim kontem Vercel. Następnie
    w aplikacji: **Aplikacja → Synchronizacja w chmurze → Zaloguj się przez Google**
    (EN: **App → Cloud Synchronization → Sign in with Google**).
+   Ten konkretny host jest wpisany do testowej allowlisty OAuth; pozostałe pola
+   Auth zachowano i odczytano po zmianie, z prywatnymi kopiami o unikalnych nazwach.
+   Faktyczne Google OAuth nowego hosta nadal nie jest zaliczone.
    Wybierz to samo, osobne konto Google przeznaczone do testów na obu urządzeniach.
    Osobny profil przeglądarki nie oddziela danych chmury tego samego konta Google.
-3. Wyłącznie na komputerze importuj syntetyczny plik
+3. Najpierw wykonaj pełny eksport aktualnego profilu. Używane wcześniej konto
+   ma obecnie 500 sesji / 12 500 minut, z zachowaniem pierwotnej sesji i usunięciem
+   jednej syntetycznej. **Nie importuj ponownie 500 sesji do tego konta.** Pobierz
+   aktualny stan z testowej chmury i zapisz liczby/ID jako punkt odniesienia.
+   Tylko w nowym pustym koncie/profilu na komputerze importuj syntetyczny plik
    `test-artifacts/ui-architecture/acceptance/TEST-500-sessions.json` przez
    **Aplikacja → Dane → Importuj JSON**. Plik ma 500 sesji / 12 500 minut,
    zadania zaczynają się od `TEST physical acceptance`. Import może przełączyć
@@ -53,10 +68,13 @@ Nie przesyłaj haseł, tokenów ani prywatnych zrzutów historii.
 ## Następnie desktop
 
 Instalatory kandydata produkcyjnego pochodzą wyłącznie z
-[Desktop 40710979304](https://github.com/w3ziqv/focus-flow/actions/runs/40710979304).
+[Desktop 40741243519](https://github.com/w3ziqv/focus-flow/actions/runs/40741243519).
 Przed uruchomieniem porównaj SHA-256 z manifestem i `desktop-build.json`:
-`mode=production`, `projectId=focus-flow-70527`, `commit=575f070997b7824ddcabaec28eb2bc1c102e1815`.
-Nie zastępuj ich paczkami offline z PR ani testowymi instalatorami `5143cd7`.
+`mode=production`, `projectId=focus-flow-70527`, `commit=e146fe3e29e75826951302f8a44a7167389a572a`.
+Nie zastępuj ich paczkami offline z PR ani wcześniejszymi instalatorami.
+Cztery paczki i manifest znajdują się lokalnie w ignorowanym
+`test-artifacts/ui-architecture/installers-production-e146fe3/release-payload/`;
+metadane i wszystkie SHA-256 sprawdzono po pobraniu.
 
 Przed aktualizacją wykonaj eksport JSON i pełną kopię katalogu danych zgodnie
 z [INSTALL-UPDATE](INSTALL-UPDATE.md). Zachowaj poprzedni instalator. Pierwszą
@@ -72,6 +90,9 @@ Na Linuxie i Windowsie trzeba odnotować:
 - Brak systemowego magazynu poświadczeń w oddzielnej VM/użytkowniku testowym:
   ostrzeżenie o połączeniu tylko do zamknięcia aplikacji; po restarcie ponowne
   logowanie i zachowane dane. Nie wyłączaj globalnego keyringu własnej sesji.
+- Zmiana PL/EN/ES/ZH: etykiety menu/tray i mini bez angielskich pozostałości,
+  treść narracji w wybranym języku, dostępność odpowiedniego głosu w OS.
+  Brak zainstalowanego głosu trzeba odnotować jako ograniczenie systemu.
 - Dźwięki, mini/tray, powiadomienie końca krótkiej sesji, autostart po ponownym
   zalogowaniu do OS, sleep/resume z aktywnym timerem i czytnik ekranu/klawiatura.
 - Aktualizacja poprzedniej wersji w tym samym zakresie instalacji: zachowane

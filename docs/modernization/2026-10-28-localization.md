@@ -93,3 +93,50 @@ Main PR #7 pozostaje draftem. Nadal wymagane są fizyczne dwa urządzenia,
 produkcyjny desktop OAuth/restart/revocation/keyring i funkcje OS. Właściciel ma
 jedno konto testowe, więc rzeczywista izolacja dwóch kont Google pozostaje
 niedostępna. Zmiany języka i poradników nie znoszą tych bramek publikacji.
+
+## Końcowa weryfikacja zamrożonych źródeł
+
+Head `d7b4d64e377e11206535cc3c4c9fb7963d7d4b3f`, czyste drzewo:
+pełna kontrola lokalizacji gotowego PWA PASS (108 poradników / 20 stanów axe,
+cztery języki, eksporty, timer/historia/reload, cztery manifesty i chiński tryb
+offline). Tym razem sprawdzono też tytuł dokumentu i rok w stopce. CI
+`40739473540`, Security `40739473221`, Desktop `40739473674` PASS, w tym natywne
+pakiety trzech systemów i uruchomienie zainstalowanego Linux/Windows.
+
+PR #9 scalono zwyczajnie jako `e146fe3e29e75826951302f8a44a7167389a572a`;
+pełne drzewa są identyczne. CI kandydata `40741239709` i Security `40741239721`
+PASS. Main pozostaje draftem. Produkcyjny Desktop literalnego commita:
+`40741243519` PASS: natywne trzy systemy, zainstalowany Linux/Windows i Windows
+upgrade/rollback. Cztery instalatory pobrano; strict metadata dla production,
+projektu/clienta i literalnego SHA oraz komplet SHA-256 PASS. Płaski manifest:
+`test-artifacts/ui-architecture/installers-production-e146fe3/release-payload/SHA256SUMS.txt`. Produkcyjny web tego SHA jest READY na stagingu
+`dpl_9ST8PwJs9kGve6UKAcrgnLUYc4o6`, bez domen własnych; świeży smoke nagłówków,
+metadanych/projektu, timera, manifestów i chińskiego poradnika offline PASS.
+Raport: `test-artifacts/ui-architecture/staged-e146fe3/verification.json`.
+
+Testowy `test/v3.0-cloud` zaktualizowano do `d7b4d64`. IAB potwierdził hiszpański
+ekran timera i chiński poradnik z bibliografią. Zrzuty:
+`test-artifacts/localization/preview-es-timer.png` i `preview-zh-guide.png`.
+Nie używano Google ani danych użytkownika na nowych hostach. Dodatkowy
+headless smoke testowego Preview zatrzymał się na ochronie Vercel (strona
+logowania); nie jest to zaliczona kontrola aplikacji ani OAuth. Nie wyłączano
+Deployment Protection i nie kopiowano cookies z przeglądarki użytkownika.
+
+Przez uwierzytelniony connector pobrano skompilowany chunk App testowego Preview:
+literalny `projectId` to `focus-flow-v3-test-20261010`. Metoda i publiczne dane
+kontroli: `test-artifacts/localization/preview-project.json`. W testowym Auth
+dodano wyłącznie ten konkretny niezmienny host, zachowując pozostałe domeny
+oraz pola i potwierdzając odczytem po zmianie. Kopie before/after mają timestamp,
+tryb wx/0600 i znajdują się prywatnie poza Git. Produkcyjnego Auth nie zmieniano.
+Nie jest to wynik rzeczywistego Google OAuth nowego hosta.
+
+Dokumentacja mapy komponentów, stanu i reprezentatywnych komponentów obejmuje
+teraz także cztery języki, import preferencji, metadane, ExportCardModal i
+ArticleView. Checkpoint dokumentacji na stable nie zmienia źródeł zweryfikowanych
+paczek `e146fe3`; nie należy utożsamiać jego późniejszego SHA z commitem instalatorów.
+
+Końcowy odczyt reguł: produkcja nadal ma `4c8bd509…`, test/source `d16c2a22…`.
+Kopie tego odczytu są nowe i nie nadpisują wcześniejszych. Obie publiczne domeny
+nadal wskazują poprzedni deployment; main to `a2f5f22`, PR #7 draft. Nie utworzono
+tagu ani publicznego wydania. Snapshot danych i restore trzeba odświeżyć dopiero
+bezpośrednio przed faktycznym rolloutem, po domknięciu otwartych bramek.

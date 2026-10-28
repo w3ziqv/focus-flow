@@ -1,6 +1,6 @@
 # Kontrakty reprezentatywnych komponentów
 
-27.10.2026. Źródłem geometrii i kolorów jest [DESIGN.md](DESIGN.md), a kierunku
+28.10.2026. Źródłem geometrii i kolorów jest [DESIGN.md](DESIGN.md), a kierunku
 zależności [UI-ARCHITECTURE.md](UI-ARCHITECTURE.md). Przykłady są TSX wewnątrz
 I18nProvider i roota z `accentStyle`. Kontrolki dziedziczą pięć motywów CSS:
 light/dark/obsidian/sage/eink; nie mają osobnych kopii stylu dla każdego motywu.
@@ -14,6 +14,8 @@ light/dark/obsidian/sage/eink; nie mają osobnych kopii stylu dla każdego motyw
 | `features/timer/TaskField` | phase draft/running/done, value, greeting, checklist i callbacks; tytuł pracy przed tarczą | nazwane input, zdarzenia edycji i add/toggle/remove; presety nieosiągalne, gdy zastępuje je wpisane zadanie | stan szkicu microstep pozostaje lokalny; aktywne zadanie/checklista należy do engine; limit 200 znaków zadania, 3 microsteps; offline działa lokalnie |
 | `features/timer/Dial` | mode, remainingMs, totalMs, running, round/rounds, opcjonalne cele/celebration; Fraunces, koncentryczny SVG i akcent fazy | onToggle; tekstowy stan timera i round; dźwięk/animacja są dodatkiem, nigdy jedynym sygnałem | brak własnego zegara/persystencji/network; koniec określa engine; reduced motion i eink; renderuje się podczas ticku, closed FocusOverlay nie montuje drugiej tarczy |
 | `features/sync/SyncStatusIndicator` | onClick, className; dyskretny tekst i ikona przy stopce | nazwany button, aria-live=polite; otwiera szczegóły, nie rozpoczyna automatycznie logowania | local-only / syncing / synced+pending / offline-error; navigator offline wpływa tylko na połączone konto; słucha zdarzeń stanu niezależnie od memo; brak surowych błędów |
+| `features/statistics/ExportCardModal` | open, onClose, cardData: WeeklyCardData; zapis i kopiowanie PNG | nazwany dialog, wspólny useDialogFocus; pobranie asynchroniczne | busy wyłącza akcję; Tab/Escape działają po utracie fokusu do body; lokalizowany błąd i status; nie modyfikuje historii |
+| `views/ArticleView` | topicId/articleId, onBack; tekst bieżącego języka i stałe źródła | h1/h2, numerowana lista kroków, linki do bibliografii; dostępna droga powrotu przy błędnej trasie | źródło natywne przyjmuje ID katalogu, nigdy URL od komponentu; błąd otwarcia lokalizowany; trasa nie zależy od tłumaczenia |
 
 ```tsx
 <PillButton variant="primary" disabled={busy} onClick={start}>
@@ -45,3 +47,12 @@ raporcie a11y. Pliki są ignorowane przez Git. Testy komponentów obejmują foku
 i usunięcie rodzica, klawiaturę tabs, TaskField oraz statusy sync; browser pokrywa
 rzeczywiste fokusowanie, zachowanie szkicu przy resize i propagację preferencji.
 Automatyzacja Chromium nie potwierdza fizycznego telefonu, screen readera ani OS.
+
+Teksty przycisków, atrybuty dostępności i komunikaty obejmują PL/EN/ES/ZH-Hans.
+Długie hiszpańskie etykiety statystyk zawijają się; nie wolno wymuszać ich
+jednowierszowości na 320 px. Zmiana języka ani import preferencji nie resetuje
+aktywnej fazy i szkiców. Karta PNG dopasowuje tekst według pomiaru szerokości
+oraz granic grafemów, z uwzględnieniem chińskiego i emoji. Narracja wymaga głosu
+systemowego dla danego języka; samo wypełnienie słownika nie dowodzi dostępności
+głosów i czytnika na fizycznym urządzeniu. Testy i ograniczenia:
+[LOCALIZATION](LOCALIZATION.md).

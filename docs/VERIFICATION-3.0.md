@@ -5,6 +5,48 @@ sections preserve historical results. Initial local baseline: 2026-10-03,
 base `a2f5f22`, branch `feature/v3-desktop`. The stable tag remains blocked by
 the acceptance gates below.
 
+## 2026-10-28 four-language candidate
+
+Protected candidate `e146fe3e29e75826951302f8a44a7167389a572a` merged through
+[PR #9](https://github.com/w3ziqv/focus-flow/pull/9). The complete tree equals
+`d7b4d64`, whose application CI `40739473540`, Security `40739473221` and full
+Desktop `40739473674` PASS: 872 unit tests/68 files, emulator/adapter, Rust,
+all native packages, installed Linux/Windows and browser. Exact clean-head
+prebuilt PWA localization PASS: four locales, 108 guide views, 20 axe states,
+exports, preserved timer/history, responsive layouts and localized offline.
+
+Candidate CI `40741239709` and Security `40741239721` PASS. Their PR #7 synthetic
+merge `ec7b62c90be244acdc8fceb48cb7c98d3bf1c13d` has the same complete tree;
+Desktop `40741240044` also PASS. Production-mode Desktop of the literal
+candidate is [40741243519](https://github.com/w3ziqv/focus-flow/actions/runs/40741243519),
+PASS: native Linux/Windows/macOS, installed Linux/Windows, and Windows
+alpha.2 upgrade / pre-update backup rollback. All four downloaded installers
+passed SHA-256 and strict production/project/client/commit metadata verification.
+The local flat payload is in ignored
+`test-artifacts/ui-architecture/installers-production-e146fe3/release-payload/`.
+This is CI runtime evidence, not physical acceptance or Google OAuth.
+
+Production web staging `dpl_9ST8PwJs9kGve6UKAcrgnLUYc4o6` is READY with literal
+candidate source and production project `focus-flow-70527`. Fresh smoke PASS:
+six exact headers, timer/task/ID after reload, configured Google UI without
+sign-in, project read-back, four localized manifests, Chinese guide after
+offline reload, localized title, 390px/no overflow and no page errors. No custom
+domains are assigned. Both domains still point to the previous deployment.
+
+PL/EN/ES/Simplified ZH and all 27 reviewed guides are documented in
+[LOCALIZATION](LOCALIZATION.md), [the guide review](GUIDES-REVIEW-2026-10-28.md)
+and [the implementation report](modernization/2026-10-28-localization.md).
+The full npm dev audit now has four low entries from one unpatched deepmerge
+advisory; the high threshold passes and the runtime audit is zero.
+
+Main #7 remains draft. Real two-device/network-cut, two-account isolation,
+production native OAuth/revocation/credential store and current physical OS /
+upgrade / rollback acceptance remain open. Only one Google test account is
+available. Current browser checks do not close those gates. Production rules,
+public domains and stable installers have not been published. Refresh private
+snapshots/restore immediately before the eventual rollout, then verify the
+literal final main SHA and its new production packages before publication.
+
 ## 2026-10-28 UI candidate
 
 This is the pre-localization baseline. PR #8 subsequently merged as `cb3e238`;

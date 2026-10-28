@@ -2,31 +2,75 @@
 
 ## Kontynuacja 28.10.2026 — aktualny kandydat i otwarte bramki
 
-### Lokalizacja i poradniki — implementacja 28.10
+### Aktualny kandydat po lokalizacji i przeglądzie treści
 
-Wdrożono PL/EN/ES/ZH-Hans w UI, recovery, narracji, eksportach, metadanych
-PWA i menu desktopu oraz pełną redakcję 27 poradników z 28 źródłami. Kontrakty:
-[LOCALIZATION](../LOCALIZATION.md), [przegląd wszystkich poradników](../GUIDES-REVIEW-2026-10-28.md).
-Raport implementacji, znalezionych regresji i lokalnych kontroli:
-[2026-10-28-localization](2026-10-28-localization.md). 872 unit / 68 plików PASS; 108 otwarć
-poradników w czterech językach i 20 stanów axe PASS na roboczym web buildzie.
-Wynik ten nie zastępuje CI dokładnego commita po zamrożeniu źródeł. Test natywny
-lokalnie wymaga brakującego javascriptcoregtk-4.1; cztery izolowane testy menu/
-katalogu i fmt PASS. Dodatkowy commit `b70f732` naprawia klawiaturę dialogu po
-utracie fokusu przez oczekującą akcję oraz uwzględnia aktywne IME.
+**Chroniony kandydat:** `e146fe3e29e75826951302f8a44a7167389a572a`, zwykły merge
+[PR #9](https://github.com/w3ziqv/focus-flow/pull/9), bez obejścia ochrony.
+Pełne drzewo jest identyczne z head PR `d7b4d64`. Na tym czystym headzie lokalny
+build web zaliczył cztery języki, 108 widoków poradników, 20 stanów axe,
+eksporty Markdown/PNG, timer/historię/reload, szerokości 320/390/1440 px oraz
+chiński start/poradniki i cztery manifesty offline. Raport:
+`test-artifacts/localization/verification.json` (ignorowany).
 
-Po inspekcji Preview dodano też tłumaczenie tytułu karty/opisów dokumentu (w tym
-mini timera) i poprawiono rok stopki bez separatora tysięcy. Słowniki: 439 kluczy.
-PR #9 jest otwarty; wcześniejsze `6d30348` CI/Security PASS, Desktop FAILED na
-Clippy w jednym teście. `d725d8c` usuwa tę konwersję; nowe CI w toku. Końcowe SHA
-metadanych dokumentu wymaga własnych pełnych kontroli.
+- PR #9: CI `40739473540`, Security `40739473221`, Desktop `40739473674` — **PASS**.
+  872 unit / 68 plików, Firestore/emulator, Rust audit, natywne Linux/Windows/macOS,
+  uruchomienie zainstalowanego Linux/Windows i przeglądarka. Wcześniejsza porażka
+  Clippy w `6d30348` była naprawiona przez `d725d8c`, bez obniżenia wymagań.
+- Kandydat przez draft main PR #7: CI `40741239709` i Security `40741239721` PASS.
+  Syntetyczny merge `ec7b62c90be244acdc8fceb48cb7c98d3bf1c13d` ma identyczne
+  pełne drzewo z `e146fe3` (pusty diff). Desktop `40741240044` również PASS.
+- Produkcyjny Desktop **literalnego** `e146fe3`: `40741243519` — **PASS**: natywne trzy systemy, zainstalowany Linux/Windows,
+  Windows upgrade alpha.2 → kandydat i rollback z kopii. Cztery pobrane paczki,
+  ścisłe metadane production/projekt/client/commit i wszystkie SHA-256 PASS.
+  Płaski manifest i instalatory:
+  `test-artifacts/ui-architecture/installers-production-e146fe3/release-payload/`.
+  Nie publikować starszych paczek `cb3e238` jako nowej wersji językowej.
+- Staging web `dpl_9ST8PwJs9kGve6UKAcrgnLUYc4o6`, target=production, READY,
+  literalny `e146fe3`, produkcyjny Firebase. Świeży smoke PASS: sześć nagłówków
+  zgodnych z `vercel.json`, timer i ID po reload, skonfigurowany Google UI bez
+  logowania, odczyt projektu produkcyjnego, cztery manifesty, chiński poradnik
+  offline, tytuł karty, 390 px i brak page errors. Bez domen własnych.
+  Raport: `test-artifacts/ui-architecture/staged-e146fe3/verification.json`.
+- Testowy Preview `dpl_7FxnaZqZsrHC7k4xs3bbxQNrtVF8` / `d7b4d64`:
+  https://focus-flow-3r90tbnzf-w3ziqvs-projects.vercel.app (konto Vercel).
+  Alias `test/v3.0-cloud` jest już zaktualizowany; wcześniejsze zapisy o jego
+  `5143cd7` są historyczne. IAB potwierdził hiszpański timer, chiński poradnik,
+  tłumaczenie tytułu i rok 2026. Nie logowano Google i nie zmieniano danych chmury.
+  W skompilowanym chunku App odczytano publiczny `projectId` testowej chmury.
+  Do testowego Auth dodano tylko ten niezmienny host, z unikalnymi kopiami
+  before/after (wx, 0600) i odczytem zachowania pozostałych pól. Produkcyjnego
+  Auth nie zmieniano. Nowy host nie ma zaliczonego Google OAuth; nie dziedziczy
+  go ze starych hostów. Dodatkowy headless smoke zatrzymała ochrona Vercel;
+  dostęp IAB i pobranie zasobów przez connector działały, bez wyłączania ochrony.
 
-Świeży npm audit: cztery low w dev z jednego niezałatanego advisory deepmerge;
-próg high przechodzi, runtime audit 0. Nie pisać „pełny audit 0”. Nowy PR/CI,
-chroniony kandydat i instalatory wymagają odczytu po ukończeniu. Main #7 nadal
-draft, produkcyjne domeny/reguły nadal stare, bez publikacji.
+Wdrożono PL/EN/ES/ZH-Hans w UI, narracji, recovery, eksportach, metadanych PWA,
+menu desktopu i instalatorze Windows. Wszystkie 27 poradników ma cztery wersje
+oraz przypisanie do 28 źródeł; nowych tematów nie dodano. Kontrakty:
+[LOCALIZATION](../LOCALIZATION.md), [przegląd poradników](../GUIDES-REVIEW-2026-10-28.md),
+[raport](2026-10-28-localization.md). Słowniki: po 439 kluczy.
 
-### Rozszerzenie zakresu po testach przeglądarkowych
+Pełny npm audit: cztery low w dev z jednego niezałatanego advisory deepmerge;
+próg high PASS, runtime audit 0. Nie pisać „pełny audit 0”.
+Lokalna pełna kompilacja Rust jest zablokowana przez brak `javascriptcoregtk-4.1`;
+cztery izolowane testy i Clippy/fmt PASS, a właściwe natywne próby są w CI.
+
+**Main PR #7 pozostaje draftem; produkcji nie opublikowano.** Odczyt obu domen
+po utworzeniu stagingu nadal wskazał `dpl_7kbjGztvYdG7HrryQyMG3boTXZMJ`.
+`autoAssignCustomDomains=false` zachowano. Świeży odczyt reguł po tej pracy:
+produkcja nadal `4c8bd509…`, test/source `d16c2a22…`; raport ignorowany
+`test-artifacts/ui-architecture/rules-readback-localization-2026-10-28.json`.
+Kopie odczytu zapisano z timestampem i wx/0600. Nie wykonywano migracji danych
+ani deploy reguł produkcji.
+Nadal wymagane: dwa fizyczne urządzenia z realnym odcięciem sieci/reconnect,
+izolacja dwóch rzeczywistych kont Google (właściciel ma jedno testowe),
+produkcyjny desktop OAuth/restart/revocation/keyring oraz bieżąca akceptacja
+funkcji OS i upgrade/rollback. Instrukcja: [testy](../TESTING-UI-RELEASE-2026-10-28.md).
+Udostępnione narzędzie UI obsługuje IAB, bez natywnych okien i drugiego urządzenia.
+Nie zastępować tych bramek emulatorem lub dwoma profilami tego samego komputera.
+Po ich zaliczeniu odświeżyć prywatny snapshot i test restore tuż przed rolloutem,
+a po merge do main zbudować i sprawdzić **nowy literalny końcowy SHA**.
+
+### Historia rozszerzenia zakresu po testach przeglądarkowych
 
 Właściciel zlecił następnie audyt tłumaczeń całej aplikacji, dodanie hiszpańskiego
 i chińskiego (przyjęto uproszczony), sprawdzenie wszystkich 27 przewodników na

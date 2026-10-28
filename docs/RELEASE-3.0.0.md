@@ -1,66 +1,73 @@
 # Focus Flow 3.0.0 — draft release notes
 
-Publication is pending. This document and version metadata prepare the final
-release; final CI, production installation/OAuth acceptance, rollout and exact
-artifact checks must be recorded before publishing `v3.0.0`.
+Publication is pending. The protected candidate is `e146fe3`; main remains a
+draft PR. Complete the physical/account acceptance, refresh the private
+snapshot/restore check, then verify the literal final main commit and its
+production artifacts before publishing `v3.0.0`.
 
-## Reliable history across devices
+## History and synchronization
 
 History, statistics, settings and goals synchronize through the same Google
-account. Active timers and custom audio files remain device-local. Synchronization
-uses bounded batches, a durable retry queue, daily-history records and retained
-migration/account-switch backups. Deletion and title/checklist masking also cover
-history outside the visible 1000-session list. Account/project changes require an
-explicit local-data merge or replacement decision.
+account. Active timers and custom audio files remain local to each device.
+Bounded batches, a durable retry queue and daily history retain older totals;
+deletion and title/checklist masking cover records beyond the visible 1000-session
+cloud log. Account/project changes require a local-data merge or replacement
+decision, with backups retained.
 
-## UI and local reliability
+History renders in batches of 50. Search, totals and export cover the complete
+stored history. Session completion and wake recovery share date and identity
+rules; deletion records and pending writes survive restarts.
 
-The timer, settings and history share accessible controls and five semantic
-themes. Nested dialogs preserve their parent forms and keyboard focus; zoom
-remains available. History renders in batches of 50 while search, totals and
-export cover the complete stored history. Timer ticks no longer re-render the
-navigation, task field, sync indicator or open settings/audio unnecessarily.
+## Interface and four languages
 
-Session completion and wake recovery use the same date and identity rules.
-Permanent deletion records and pending synchronization writes are retained.
-PWA loading/recovery preserves local data. UI boundaries and state ownership
-are documented in [the architecture map](UI-ARCHITECTURE.md) and
-[component contracts](UI-COMPONENTS.md).
+Polish and English have been revised, with Spanish and Simplified Chinese added.
+Language selection covers the timer, settings, sounds, statistics, synchronization,
+onboarding, narration, recovery, exports, document/PWA metadata, desktop menus
+and the Windows installer. Changing the language preserves a running timer and
+saved history. User task names and other custom labels retain their original text.
 
-## Desktop
+All 27 guides have been rewritten in four languages. Each distinguishes the
+available evidence, a practical example and its limits, and links to reviewed
+primary or institutional sources. The existing seven categories and routes remain.
+
+Five semantic themes and shared controls cover timer, settings and history.
+Nested dialogs retain parent drafts and keyboard focus. Timer ticks no longer
+re-render navigation, task fields, the sync indicator or open settings/audio
+unnecessarily. Component and state contracts are documented in
+[the architecture map](UI-ARCHITECTURE.md) and [component guide](UI-COMPONENTS.md).
+
+## Desktop and updates
 
 Linux and Windows include system-browser Google sign-in with PKCE/loopback,
 OS credential storage, tray controls, a floating timer and offline recordings.
-The production build connects to `focus-flow-70527`, the same backend as
-focusflow.ink. Earlier alpha.2 installers use the separate test cloud; those cloud
-histories are not automatically copied to production.
+Production builds use `focus-flow-70527`, the same backend as focusflow.ink.
+Earlier alpha.2 installers use a separate test cloud; those histories are not
+automatically copied to production.
 
 Installers remain unsigned. macOS and P2P remain experimental. Preserve a full
-JSON export, the entire native data directory and the previous installer before
-updating. Follow [installation and rollback](INSTALL-UPDATE.md).
+JSON export, the native data directory and the previous installer before updating.
+Use [installation and rollback](INSTALL-UPDATE.md). An older client supporting
+only Polish/English may reject a new JSON backup containing `es` or `zh`; restore
+that backup with a version supporting those languages.
 
-## Validation evidence and remaining acceptance
+## Validation and remaining acceptance
 
-The preceding source passed 817 application tests, desktop configuration/metadata
-regressions, Firestore authorization/emulator checks, npm/Rust audits, browser,
-automated accessibility and installed Linux/Windows runtime CI. A private older
-production snapshot passed application migration/export/restore in the emulator.
-Real test-cloud acceptance passed with two independent SDK clients and 1105
-sessions, including conflicts, deletion, full-page masking and simulated transport
-failure/retry. Synthetic test data/account and temporary IAM access were removed.
+The localization PR passed 872 unit tests in 68 files, type/lint/token/boundary
+checks, Firestore emulator/adapter tests, Rust audit, native packaging for three
+systems, installed Linux/Windows runtime, browser and accessibility checks.
+The exact clean source also passed 108 guide views in four languages, exports,
+timer/history persistence, responsive layouts and localized PWA offline checks.
 
-The owner accepted preceding Linux/Windows Google login/sync/restart and the
-explicitly listed notifications, autostart, sleep/resume, tray/mini and screen-reader
-checks. Revocation, account switch, unavailable credential-store fallback and Linux
-backup rollback were subsequently reported as not yet tested. Production Windows
-upgrade/backup rollback, physical Windows audio and production OAuth acceptance
-remain pending. Exact final
-source CI, production rollout and installer checksums must replace pending status
-before this draft becomes the published release description.
+Production candidate web staging passed header, project, persistence, localized
+manifest/guide, offline and mobile smoke checks without custom-domain assignment.
+Production installer results, hashes and literal source metadata are recorded in
+[verification](VERIFICATION-3.0.md). These are preparation results, not publication.
+The runtime npm audit is zero; the full development audit has four low entries
+from one unpatched deepmerge advisory, with the existing high threshold unchanged.
 
-See [verification](VERIFICATION-3.0.md) and [production rollout](PRODUCTION-ROLLOUT-3.0.md).
-
-The current UI-stage evidence is [recorded separately](modernization/2026-10-27-ui.md).
-Its 844 application tests, fresh emulator/private restore checks, staged web
-smoke and CI results supplement the historical evidence above. New physical
-acceptance and production installer metadata still determine publication.
+Physical two-device/network-cut acceptance, real two-account isolation,
+production desktop OAuth/revocation/credential-store behavior and current
+physical OS/upgrade/rollback checks remain open. Earlier owner results cover
+preceding installers and do not certify this production build. Only one Google
+test account is available. See [the test procedure](TESTING-UI-RELEASE-2026-10-28.md)
+and [production rollout](PRODUCTION-ROLLOUT-3.0.md) for the remaining gates.

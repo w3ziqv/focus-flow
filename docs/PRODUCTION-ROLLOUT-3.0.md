@@ -7,6 +7,21 @@ Do not promote the test Preview into production.
 
 ## Current candidate (2026-10-28)
 
+The current protected candidate is `e146fe3e29e75826951302f8a44a7167389a572a`,
+a normal merge of PR #9. Four-language UI and all 27 reviewed guides are now
+implemented. Required PR #9 CI/Security/Desktop PASS; candidate CI and Security
+also PASS. Production-mode literal-candidate Desktop `40741243519` PASS: three native
+platforms, installed Linux/Windows and Windows upgrade/backup rollback. The
+four downloaded installer hashes and strict production source metadata PASS.
+Web staging `dpl_9ST8PwJs9kGve6UKAcrgnLUYc4o6` uses this source and production
+variables; fresh header/PWA/localized/offline/mobile/persistence smoke PASS.
+It has no custom domains. Read [verification](VERIFICATION-3.0.md) for actual
+installer results and the still-open physical/account acceptance gates.
+Main PR #7 stays draft. Neither production rules nor public installers/domains
+have been promoted. A later main merge must produce a fresh literal-main build.
+
+### Earlier baseline, retained for rollback context
+
 The subsequent test-infrastructure repair PR #8 merged as `cb3e238`, with all
 required checks PASS. Literal production build run: `40720464290`. Before
 publication, the owner added full localization (PL/EN audit, ES, Simplified ZH)

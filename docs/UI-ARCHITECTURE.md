@@ -1,6 +1,6 @@
 # Architektura UI Focus Flow
 
-Stan kontraktu: 27.10.2026. Uzupełnia [ADR-0010](adr/0010-evidence-based-modular-modernization.md)
+Stan kontraktu: 28.10.2026. Uzupełnia [ADR-0010](adr/0010-evidence-based-modular-modernization.md)
 i [system designu](DESIGN.md). Mapa dotyczy rzeczywistego kodu, nie planowanego
 przepisania silnika. Warunki publikacji pozostają w [rollout](PRODUCTION-ROLLOUT-3.0.md).
 
@@ -8,7 +8,11 @@ przepisania silnika. Warunki publikacji pozostają w [rollout](PRODUCTION-ROLLOU
 
 ```mermaid
 flowchart TD
-  App[App / I18nProvider] --> Shell
+  App[App] --> I18n[I18nProvider]
+  I18n -->|context| Shell
+  I18n --> Metadata[documentLanguage / manifest]
+  LocaleStorage[ff2_lang / import / storage event] --> I18n
+  GuideScreens --> Catalog[guides catalog / cztery wersje / źródła]
   Shell --> NavPill
   Shell --> TimerView
   Shell --> StatsView
@@ -60,9 +64,11 @@ src/
     sync/                     CloudSyncModal, SyncStatusIndicator
     desktop/                  DesktopSettings, MiniDial
     guides/                   TipsAccordion
-  domain/                     czyste reguły kalendarza i statystyk
+  domain/                     czyste reguły kalendarza, statystyk i języka
   lib/                        istniejące adaptery timera, zapisu, audio, sync,
                               desktopu, i18n i treści; bez zależności od UI
+    locales/                  cztery pełne słowniki UI
+    guides/                   katalog tras, źródeł i cztery wersje 27 poradników
   design/                     autorskie tokens.json, generowany tokens.css
 ```
 
@@ -84,7 +90,7 @@ komponentów i zrzuty aplikacji pokrywają aktualną skalę bez dodatkowego runt
 | Filtry, limit 50, edytowany tekst historii | StatsView | pamięć zamontowanego ekranu | lista i agregaty pełnego zbioru | search/filter/show more/save/cancel; szkic nie modyfikuje historii przed save/blur |
 | Głośność, tekstura, binaural i pliki | audioSubsystem | preferencje; pliki IndexedDB/native | `useAudioControls` jako snapshot, TimerView i dialog audio | polecenia subsystemu, import, remote preferences; audio nie jest stanem Dial |
 | Motyw | Shell + lokalny zapis preferencji | lokalny | root CSS, ustawienia, eksport | onTheme/import; pięć motywów korzysta ze wspólnych ról |
-| Język | I18nProvider | lokalny | wszystkie `useI18n`, także memo | setLang; zmiana context odświeża memo |
+| Język | I18nProvider + walidowany `domain/language` | lokalny `ff2_lang` | `useI18n`, metadane/manifest, narracja/eksport i bridge | setLang/import/zdarzenie pamięci; PL/EN/ES/ZH; context odświeża memo bez remountu engine |
 | Interfejs, skróty, maskowanie | fasada storage; Shell jako bieżąca projekcja | lokalny, wybrane ustawienia synchronizowane | Shell, dialogi, audio/narracja | patch/import/storage event; nie przechowywać niezależnych autorytatywnych kopii |
 | Otwarte dialogi | useDialogStack w Shell | pamięć | AppDialogs; manager fokusu wyprowadza najwyższą warstwę DOM | push bez duplikatów/pop; rodzic pozostaje zamontowany |
 | Szkic długości i celu | TimerSettingsModal | pamięć instancji, dopiero Save przekazuje do engine | lokalny formularz | edit/save/cancel; resize ani tick nie resetuje szkicu |
@@ -129,6 +135,10 @@ Stos app → shortcuts/cloud zachowuje szkic rodzica. Tylko najwyższy dialog
 obsługuje Escape/Tab; pozostała strona jest inert. `useDialogFocus` przelicza
 inertność z aktualnego stosu, odtwarza pierwotny stan elementów oraz overflow
 body. Obsługuje również usunięcie rodzica przed dzieckiem i lazy placeholder.
+Jeżeli oczekująca akcja wyłączy przycisk i fokus trafi do body, obsługa na
+poziomie dokumentu odzyskuje Tab/Escape dla najwyższego dialogu. Respektuje
+`defaultPrevented` i nie zamyka okna podczas składania tekstu przez IME.
+Okno eksportu PNG korzysta z tego samego managera.
 Po zamknięciu wraca do przycisku otwierającego; gdy ten zniknął, do rodzica lub
 aktywnego przycisku nawigacji. Loading dialog ma nazwę i działające zamknięcie.
 
@@ -156,3 +166,13 @@ dozwolony; 320 px, dotyk i 200% są oddzielnymi scenariuszami weryfikacji.
    CPU, baterii ani pamięci. Produkcyjne pomiary mają osobne skrypty.
 7. Uruchom lint, typecheck, testy odpowiedzialności i scenariusz użytkownika.
    Kontrakty przykładów: [UI-COMPONENTS.md](UI-COMPONENTS.md).
+
+## Lokalizacja i treści
+
+Czyste reguły języka, cztery słowniki, formatowanie i źródła treści pozostają
+poza komponentami. Import preferencji aktualizuje provider przez zdarzenie
+fasady pamięci; nie tworzy nowej instancji timera. Katalog treści zachowuje
+stabilne ID tras. Web renderuje tekst Reacta i odnośniki HTTPS, desktop przyjmuje
+wyłącznie ID skompilowanego katalogu źródeł z okna main. Mini nie ma uprawnienia
+do otwierania źródeł. Szczegółowe kontrakty i zgodność kopii:
+[LOCALIZATION](LOCALIZATION.md), [przegląd poradników](GUIDES-REVIEW-2026-10-28.md).
