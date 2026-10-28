@@ -1,3 +1,10 @@
+import { trackCloudWrite } from './sync/outbox'
+import { canonical, setReplicaValue, type ReplicaDocument } from './desktop/crdt'
+import { getPersistence } from './desktop/runtime'
+import { isLang, languageFromLocales, parseStoredLanguage } from '../domain/language'
+import { translate } from './translations'
+export { weekStartOf } from '../domain/calendar'
+import { weekStartOf } from '../domain/calendar'
 import {
   DEFAULT_NARRATION,
   DEFAULT_SHORTCUTS,
@@ -63,11 +70,12 @@ const KEYS = {
   tombstones: `${PREFIX}session_tombstones`,
   cloudSync: `${PREFIX}cloud_sync`,
   lastSyncedUid: `${PREFIX}last_synced_uid`,
+  lastSyncedProjectId: `${PREFIX}last_synced_project_id`,
 } as const
 
 function read<T>(key: string, validate: (value: unknown) => T | null): T | null {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = getPersistence().getItem(key)
     if (raw === null) return null
     return validate(JSON.parse(raw))
   } catch {
@@ -75,9 +83,13 @@ function read<T>(key: string, validate: (value: unknown) => T | null): T | null 
   }
 }
 
-function write(key: string, value: unknown): boolean {
+function write(key: string, value: unknown, cloudValue: unknown = value): boolean {
   try {
-    localStorage.setItem(key, JSON.stringify(value))
+    const encoded = JSON.stringify(value)
+    if (getPersistence().getItem(key) === encoded) return true
+    trackCloudWrite(key, cloudValue)
+    getPersistence().setItem(key, encoded)
+    window.dispatchEvent(new CustomEvent('focus-flow:storage', { detail: key }))
     return true
   } catch {
     // Quota exceeded or storage unavailable — the caller decides what to tell the user.
@@ -87,7 +99,7 @@ function write(key: string, value: unknown): boolean {
 
 function readString(key: string): string | null {
   try {
-    return localStorage.getItem(key)
+    return getPersistence().getItem(key)
   } catch {
     return null
   }
@@ -109,13 +121,6 @@ export function isSettings(value: unknown): Settings | null {
     rounds: num(v.rounds, DEFAULT_SETTINGS.rounds, 1, 20),
     autoStart: typeof v.autoStart === 'boolean' ? v.autoStart : DEFAULT_SETTINGS.autoStart,
   }
-}
-
-export function weekStartOf(date: Date = new Date()): string {
-  const d = new Date(date)
-  const day = d.getDay()
-  d.setDate(d.getDate() - day + (day === 0 ? -6 : 1))
-  return d.toDateString()
 }
 
 export function isChecklistItem(value: unknown): ChecklistItem | null {
@@ -201,13 +206,14 @@ export function isStats(value: unknown): StatsV2 | null {
   const date = typeof v.date === 'string' ? v.date : today
   const weekStart = typeof v.weekStart === 'string' ? v.weekStart : ws
   // Roll day and week counters the way a fresh day demands.
-  const rolledToday = date === today ? Number(v.today) || 0 : 0
-  const rolledWeek = weekStart === ws ? Number(v.week) || 0 : 0
+  const finiteCounter = (value: unknown): number => { const n = Number(value); return Number.isFinite(n) && n >= 0 ? Math.min(n, 10_000_000) : 0 }
+  const rolledToday = date === today ? finiteCounter(v.today) : 0
+  const rolledWeek = weekStart === ws ? finiteCounter(v.week) : 0
   const stats: StatsV2 = {
     today: rolledToday,
     week: rolledWeek,
-    streak: Number(v.streak) || 0,
-    minutes: Number(v.minutes) || 0,
+    streak: finiteCounter(v.streak),
+    minutes: finiteCounter(v.minutes),
     date: today,
     weekStart: ws,
     lastDate: typeof v.lastDate === 'string' ? v.lastDate : null,
@@ -267,6 +273,7 @@ export function isSessionEntry(value: unknown): SessionLogEntryV2 | null {
     typeof v.task === 'string' && v.task.trim() !== '' ? v.task.trim().slice(0, MAX_TASK_LENGTH) : null
 
   const entry: SessionLogEntryV2 = { id, date, minutes, task }
+  if (typeof v.updatedLocallyAt === 'string' && v.updatedLocallyAt.length <= 40 && Number.isFinite(Date.parse(v.updatedLocallyAt))) entry.updatedLocallyAt = v.updatedLocallyAt
 
   if (Array.isArray(v.checklist)) {
     const checklist = isChecklist(v.checklist)
@@ -298,7 +305,7 @@ function migrateLegacy(): void {
   const legacyTheme = readString(`${LEGACY_PREFIX}theme`)
   if (legacyTheme === 'dark' || legacyTheme === 'light') write(KEYS.theme, legacyTheme)
   const legacyLang = readString(`${LEGACY_PREFIX}lang`)
-  if (legacyLang === 'pl' || legacyLang === 'en') write(KEYS.lang, legacyLang)
+  if (isLang(legacyLang)) write(KEYS.lang, legacyLang)
   write(KEYS.migrated, new Date().toISOString())
 }
 
@@ -362,13 +369,13 @@ export function saveSessions(sessions: SessionLogEntryV2[]): boolean {
   const sanitized: SessionLogEntryV2[] = sessions
     .map(isSessionEntry)
     .filter((e): e is SessionLogEntryV2 => e !== null)
-    .slice(0, MAX_SESSIONS)
-  return write(KEYS.sessions, sanitized)
+  return write(KEYS.sessions, sanitized.slice(0, MAX_SESSIONS), sanitized)
 }
 
 export function addSession(entry: SessionLogEntryV2): SessionLogEntryV2[] {
   const sanitized = isSessionEntry(entry)
   const existing = loadSessions()
+  if (sanitized && existing.some(session => session.id === sanitized.id)) return existing
   const updated = sanitized ? [sanitized, ...existing].slice(0, MAX_SESSIONS) : existing.slice(0, MAX_SESSIONS)
   saveSessions(updated)
   return updated
@@ -390,6 +397,7 @@ export function updateSessionTask(id: string, task: string | null): SessionLogEn
       return {
         ...entry,
         task: sanitizedTask,
+        updatedLocallyAt: new Date().toISOString(),
       }
     }
     return entry
@@ -451,31 +459,39 @@ export function saveTombstones(tombstones: SessionTombstone[]): void {
   const sanitized = tombstones
     .map(isSessionTombstone)
     .filter((item): item is SessionTombstone => item !== null)
+  // Once P2P has been used, keep deletions in its permanent causal metadata.
+  // Cloud tombstones may expire while this device remains disconnected.
+  const store = getPersistence()
+  const replica = store.getItem('ff3_replica')
+  const device = store.getItem('ff3_device')
   write(KEYS.tombstones, sanitized)
+  if (replica && device) {
+    try {
+      let document = JSON.parse(replica) as ReplicaDocument
+      for (const item of sanitized) document = setReplicaValue(document, `session:${item.id}`, null, device, true)
+      store.setItem('ff3_replica', canonical(document))
+    } catch (error) {
+      // Keep the ordinary deletion durable even if P2P metadata needs recovery.
+      window.dispatchEvent(new CustomEvent('focus-flow:persistence', { detail: String(error) }))
+    }
+  }
 }
 
 export function addTombstone(id: string, deletedAt: string = new Date().toISOString()): SessionTombstone[] {
   const existing = loadTombstones()
-  const now = Date.now()
   const active = existing.filter((t) => {
     const time = Date.parse(t.deletedAt)
-    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS && t.id !== id
+    return !Number.isNaN(time) && t.id !== id
   })
   const updated = [{ id, deletedAt }, ...active]
   saveTombstones(updated)
   return updated
 }
 
-export function pruneTombstones(now: number = Date.now()): SessionTombstone[] {
-  const existing = loadTombstones()
-  const active = existing.filter((t) => {
-    const time = Date.parse(t.deletedAt)
-    return !Number.isNaN(time) && now - time < THIRTY_DAYS_MS
-  })
-  if (active.length !== existing.length) {
-    saveTombstones(active)
-  }
-  return active
+export function pruneTombstones(_now: number = Date.now()): SessionTombstone[] {
+  void _now
+  // Valid deletion identities are permanent. Only explicit cloud/account erasure removes them.
+  return loadTombstones()
 }
 
 export function loadCloudSyncState(): CloudSyncState | null {
@@ -493,19 +509,21 @@ export function loadCloudSyncState(): CloudSyncState | null {
     }
     return {
       status: v.status,
+      firebaseProjectId: typeof v.firebaseProjectId === 'string' ? v.firebaseProjectId : undefined,
       uid: typeof v.uid === 'string' ? v.uid : null,
       email: typeof v.email === 'string' ? v.email : null,
       displayName: typeof v.displayName === 'string' ? v.displayName : null,
       photoURL: typeof v.photoURL === 'string' ? v.photoURL : null,
       lastSyncedAt: typeof v.lastSyncedAt === 'string' ? v.lastSyncedAt : null,
       error: typeof v.error === 'string' ? v.error : null,
+      pendingChanges: typeof v.pendingChanges === 'number' ? v.pendingChanges : 0,
     }
   })
 }
 
 export function saveCloudSyncState(state: CloudSyncState | null): void {
   if (state === null) {
-    localStorage.removeItem(KEYS.cloudSync)
+    getPersistence().removeItem(KEYS.cloudSync)
   } else {
     write(KEYS.cloudSync, state)
   }
@@ -520,10 +538,19 @@ export function loadLastSyncedUid(): string | null {
 
 export function saveLastSyncedUid(uid: string | null): void {
   if (uid === null) {
-    localStorage.removeItem(KEYS.lastSyncedUid)
+    getPersistence().removeItem(KEYS.lastSyncedUid)
   } else {
-    localStorage.setItem(KEYS.lastSyncedUid, uid)
+    getPersistence().setItem(KEYS.lastSyncedUid, uid)
   }
+}
+
+export function loadLastSyncedProjectId(): string | null {
+  return readString(KEYS.lastSyncedProjectId)
+}
+
+export function saveLastSyncedProjectId(projectId: string | null): void {
+  if (projectId === null) getPersistence().removeItem(KEYS.lastSyncedProjectId)
+  else getPersistence().setItem(KEYS.lastSyncedProjectId, projectId)
 }
 
 export function loadGoals(): GoalSettings {
@@ -607,17 +634,14 @@ export function loadPresets(): TaskPreset[] {
     return val.map(isTaskPreset).filter((p): p is TaskPreset => p !== null).slice(0, 50)
   })
   if (stored && stored.length > 0) return stored
-  const lang = loadLang()
-  if (lang === 'pl') {
-    return [
-      { id: 'deep-work', label: 'Głęboka praca' },
-      { id: 'writing', label: 'Pisanie' },
-      { id: 'code-review', label: 'Przegląd kodu' },
-      { id: 'reading', label: 'Czytanie' },
-      { id: 'inbox-zero', label: 'Inbox Zero' },
-    ]
-  }
-  return [...DEFAULT_TASK_PRESETS]
+  const lang = loadLang() ?? systemLang()
+  return [
+    { id: 'deep-work', label: translate(lang, 'preset.deepWork') },
+    { id: 'writing', label: translate(lang, 'preset.writing') },
+    { id: 'code-review', label: translate(lang, 'preset.codeReview') },
+    { id: 'reading', label: translate(lang, 'preset.reading') },
+    { id: 'inbox-zero', label: translate(lang, 'preset.inboxZero') },
+  ]
 }
 
 export function savePresets(presets: TaskPreset[]): boolean {
@@ -632,14 +656,11 @@ export function savePresets(presets: TaskPreset[]): boolean {
 
 export function loadLang(): Lang | null {
   migrateLegacy()
-  const stored = read<Lang>(KEYS.lang, (v) => (v === 'pl' || v === 'en' ? v : null))
-  if (stored) return stored
-  const raw = readString(KEYS.lang)
-  return raw === 'en' ? 'en' : raw === 'pl' ? 'pl' : null
+  return parseStoredLanguage(readString(KEYS.lang))
 }
 
 export function saveLang(lang: Lang): void {
-  write(KEYS.lang, lang)
+  if (isLang(lang)) write(KEYS.lang, lang)
 }
 
 export function loadTheme(): Theme | null {
@@ -842,13 +863,12 @@ export function systemTheme(): Theme {
 
 /**
  * Detects default user language from device/browser settings.
- * Defaults to 'pl' if browser locale begins with Polish ('pl'), otherwise 'en' for global users.
+ * Uses the first supported browser language, falling back to English.
  */
 export function systemLang(): Lang {
   if (typeof navigator === 'undefined') return 'en'
   const nav = navigator as Navigator & { userLanguage?: string }
-  const navLang = (nav.language || nav.userLanguage || '').toLowerCase()
-  return navLang.startsWith('pl') ? 'pl' : 'en'
+  return languageFromLocales([nav.language || nav.userLanguage || '', ...(nav.languages ?? [])])
 }
 
 const SESSION_KEY = `${PREFIX}session`
@@ -866,6 +886,8 @@ function isSnapshot(value: unknown): SessionSnapshotV2 | null {
     task: typeof v.task === 'string' ? v.task.slice(0, 200) : '',
     taskDone: v.taskDone === true,
   }
+  if (typeof v.id === 'string' && v.id.trim() && v.id.length <= 64) snapshot.id = v.id
+  if (v.phaseSettings) snapshot.phaseSettings = isSettings(v.phaseSettings) ?? undefined
   if (Array.isArray(v.checklist)) {
     const items = isChecklist(v.checklist)
     if (items && items.length > 0) {

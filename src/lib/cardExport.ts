@@ -1,9 +1,13 @@
+import type { Lang } from '../domain/language'
+import { LANGUAGE_META, localeFor } from '../domain/language'
+import { formatNumber, translate } from './translations'
+
 /**
  * Renders a 1200x630 weekly summary card image via an offscreen HTML5 canvas.
  */
 
 export interface WeeklyCardData {
-  lang: 'pl' | 'en'
+  lang: Lang
   totalMinutes: number
   chartDays: Array<{ label: string; minutes: number; isToday: boolean }>
   topTasks: Array<{ name: string; minutes: number; percentage: number }>
@@ -14,6 +18,14 @@ export interface WeeklyCardData {
 const WIDTH = 1200
 const HEIGHT = 630
 const SCALE = 2 // 2400x1260 physical pixels for Retina crispness
+
+/** Fit by rendered width, preserving grapheme clusters (CJK, accents and joined emoji). */
+export function fitCanvasText(ctx: { measureText: (text: string) => { width: number } }, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text
+  const parts = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)].map(part => part.segment)
+  while (parts.length && ctx.measureText(parts.join('') + '…').width > maxWidth) parts.pop()
+  return parts.length ? parts.join('') + '…' : ''
+}
 
 /**
  * Procedurally generates a 128x128 film grain noise tile with ~3% alpha.
@@ -61,6 +73,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   }
 
   const canvas = document.createElement('canvas')
+  canvas.lang = LANGUAGE_META[data.lang].htmlLang
   canvas.width = WIDTH * SCALE
   canvas.height = HEIGHT * SCALE
   const ctx = canvas.getContext('2d')
@@ -90,7 +103,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   ctx.font = '600 13px "Instrument Sans Variable", system-ui, sans-serif'
   ctx.fillStyle = '#716F66'
   ctx.letterSpacing = '1px'
-  const headerText = data.lang === 'pl' ? 'FOCUS FLOW • PODSUMOWANIE TYGODNIA' : 'FOCUS FLOW • WEEKLY SUMMARY'
+  const headerText = translate(data.lang, 'card.header')
   ctx.fillText(headerText, 70, 85)
 
   // Date range
@@ -101,19 +114,16 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   }
 
   // Total focus time
-  const hours = (data.totalMinutes / 60).toFixed(1)
+  const hours = new Intl.NumberFormat(localeFor(data.lang), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(data.totalMinutes / 60)
   ctx.font = '500 76px "Fraunces Variable", Georgia, serif'
   ctx.fillStyle = '#141413'
   ctx.letterSpacing = '-1px'
-  ctx.fillText(hours + 'h', 70, 185)
+  ctx.fillText(hours + ' ' + translate(data.lang, 'unit.hourShort'), 70, 185)
 
   ctx.font = '500 15px "Instrument Sans Variable", system-ui, sans-serif'
   ctx.fillStyle = '#5E5D59'
   ctx.letterSpacing = '0px'
-  const subHero =
-    data.lang === 'pl'
-      ? 'Łącznie ' + data.totalMinutes + ' minut skupienia w ' + data.activeDaysCount + ' dniach'
-      : data.totalMinutes + ' total focus minutes across ' + data.activeDaysCount + ' active days'
+  const subHero = translate(data.lang, 'card.summary', { minutes: data.totalMinutes, days: data.activeDaysCount })
   ctx.fillText(subHero, 70, 220)
 
   // 7-day bar chart
@@ -159,13 +169,13 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
     ctx.font = '500 12px "Instrument Sans Variable", system-ui, sans-serif'
     ctx.fillStyle = day.isToday ? '#C96442' : '#716F66'
     ctx.textAlign = 'center'
-    ctx.fillText(day.label.slice(0, 3), x + barW / 2, chartY + chartH + 20)
+    ctx.fillText(fitCanvasText(ctx, day.label, barW), x + barW / 2, chartY + chartH + 20)
 
     // Minutes value above bar if > 0
     if (day.minutes > 0) {
       ctx.font = '500 11px "Instrument Sans Variable", system-ui, sans-serif'
       ctx.fillStyle = '#5E5D59'
-      ctx.fillText(day.minutes + 'm', x + barW / 2, y - 6)
+      ctx.fillText(formatNumber(data.lang, day.minutes) + ' ' + translate(data.lang, 'unit.minuteShort'), x + barW / 2, y - 6)
     }
   })
   ctx.textAlign = 'left'
@@ -185,7 +195,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   ctx.font = '600 13px "Instrument Sans Variable", system-ui, sans-serif'
   ctx.fillStyle = '#716F66'
   ctx.letterSpacing = '1px'
-  const intentionsTitle = data.lang === 'pl' ? 'GŁÓWNE ZADANIA' : 'PRIMARY INTENTIONS'
+  const intentionsTitle = translate(data.lang, 'card.tasks')
   ctx.fillText(intentionsTitle, taskX, taskY)
   ctx.letterSpacing = '0px'
 
@@ -195,7 +205,7 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
   if (topTasks.length === 0) {
     ctx.font = '400 15px "Instrument Sans Variable", system-ui, sans-serif'
     ctx.fillStyle = '#716F66'
-    const noTasksText = data.lang === 'pl' ? 'Brak zarejestrowanych intencji w tym tygodniu' : 'No recorded intentions this week'
+    const noTasksText = translate(data.lang, 'card.noTasks')
     ctx.fillText(noTasksText, taskX, taskY + 10)
   } else {
     for (const task of topTasks) {
@@ -208,33 +218,30 @@ export async function renderWeeklyCardCanvas(data: WeeklyCardData): Promise<HTML
       // Task name (clamped)
       ctx.font = '500 16px "Instrument Sans Variable", system-ui, sans-serif'
       ctx.fillStyle = '#141413'
-      const label = task.name.length > 32 ? task.name.slice(0, 30) + '...' : task.name
+      const label = fitCanvasText(ctx, task.name, 285)
       ctx.fillText(label, taskX + 18, taskY)
 
       // Minutes & percentage
       ctx.font = '400 14px "Instrument Sans Variable", system-ui, sans-serif'
       ctx.fillStyle = '#716F66'
       ctx.textAlign = 'right'
-      ctx.fillText(task.minutes + ' min (' + task.percentage + '%)', WIDTH - 70, taskY)
+      ctx.fillText(formatNumber(data.lang, task.minutes) + ' ' + translate(data.lang, 'unit.minuteShort') + ' (' + formatNumber(data.lang, task.percentage) + '%)', WIDTH - 70, taskY + 20)
       ctx.textAlign = 'left'
 
-      taskY += 42
+      taskY += 64
     }
   }
 
   // Footer
   ctx.font = 'italic 14px "Fraunces Variable", Georgia, serif'
   ctx.fillStyle = '#716F66'
-  const quote =
-    data.lang === 'pl'
-      ? 'Spokojna przestrzeń do uważnej, głębokiej pracy.'
-      : 'A quiet space for deliberate, unhurried work.'
+  const quote = translate(data.lang, 'card.footer')
   ctx.fillText(quote, 70, 545)
 
   ctx.font = '500 12px "Instrument Sans Variable", system-ui, sans-serif'
   ctx.textAlign = 'right'
   ctx.fillStyle = '#B0AEA5'
-  ctx.fillText('focus-flow.local', WIDTH - 70, 545)
+  ctx.fillText('focusflow.ink', WIDTH - 70, 545)
   ctx.textAlign = 'left'
 
   return canvas

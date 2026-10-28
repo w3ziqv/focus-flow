@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import type { Lang } from '../types'
 import { loadLang, saveLang, systemLang } from './storage'
-import { dict } from './translations'
+import { translate } from './translations'
 import type { TranslationKey } from './translations'
+import { applyDocumentLanguage } from './documentLanguage'
 
 
 export type I18nContextValue = {
@@ -18,8 +19,21 @@ export function I18nProvider({ children }: { children: ReactNode }): React.JSX.E
   const [lang, setLangState] = useState<Lang>(() => loadLang() ?? systemLang())
 
   useEffect(() => {
-    document.documentElement.lang = lang
+    applyDocumentLanguage(lang)
   }, [lang])
+
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      const key = event instanceof StorageEvent ? event.key : (event as CustomEvent<string>).detail
+      if (key === 'ff2_lang' || key === null) setLangState(loadLang() ?? systemLang())
+    }
+    window.addEventListener('focus-flow:storage', refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener('focus-flow:storage', refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [])
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next)
@@ -28,13 +42,7 @@ export function I18nProvider({ children }: { children: ReactNode }): React.JSX.E
 
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>) => {
-      let text: string = dict[lang][key]
-      if (vars) {
-        for (const [name, value] of Object.entries(vars)) {
-          text = text.replaceAll(`{${name}}`, String(value))
-        }
-      }
-      return text
+      return translate(lang, key, vars)
     },
     [lang],
   )

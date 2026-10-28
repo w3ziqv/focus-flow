@@ -1,4 +1,5 @@
-import type { SessionLogEntry } from '../types'
+import { localeFor } from '../domain/language'
+import type { Lang, SessionLogEntry } from '../types'
 import {
   addSession,
   loadSessions,
@@ -17,7 +18,7 @@ export interface LogDay {
 }
 
 /** Groups sessions by calendar day, newest first (sessions arrive newest first). */
-export function groupByDay(sessions: SessionLogEntry[], lang: 'pl' | 'en'): LogDay[] {
+export function groupByDay(sessions: SessionLogEntry[], lang: Lang): LogDay[] {
   const days: LogDay[] = []
   const byKey = new Map<string, LogDay>()
   for (const s of sessions) {
@@ -27,7 +28,7 @@ export function groupByDay(sessions: SessionLogEntry[], lang: 'pl' | 'en'): LogD
     if (!day) {
       day = {
         key,
-        label: d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', {
+        label: d.toLocaleDateString(localeFor(lang), {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
@@ -42,8 +43,8 @@ export function groupByDay(sessions: SessionLogEntry[], lang: 'pl' | 'en'): LogD
   return days
 }
 
-export function timeLabel(iso: string, lang: 'pl' | 'en'): string {
-  return new Date(iso).toLocaleTimeString(lang === 'pl' ? 'pl-PL' : 'en-GB', {
+export function timeLabel(iso: string, lang: Lang): string {
+  return new Date(iso).toLocaleTimeString(localeFor(lang), {
     hour: '2-digit',
     minute: '2-digit',
   })

@@ -121,7 +121,10 @@ export function reconcileSessionConflict(
   entryB: SessionLogEntryV2,
 ): SessionLogEntryV2 {
   // Task: prefer non-null, longer string, then alphabetical localeCompare
-  const rawTask = reconcileTask(entryA.task, entryB.task)
+  const editedA = Date.parse(entryA.updatedLocallyAt ?? entryA.date)
+  const editedB = Date.parse(entryB.updatedLocallyAt ?? entryB.date)
+  const hasRevision = !!entryA.updatedLocallyAt || !!entryB.updatedLocallyAt
+  const rawTask = hasRevision && editedA !== editedB ? (editedA > editedB ? entryA.task : entryB.task) : reconcileTask(entryA.task, entryB.task)
   const finalTask: string | null =
     rawTask && rawTask.trim() !== '' ? rawTask.trim().slice(0, MAX_TASK_LENGTH) : null
 
@@ -150,6 +153,8 @@ export function reconcileSessionConflict(
     minutes,
     task: finalTask,
   }
+
+  if (hasRevision) result.updatedLocallyAt = editedA >= editedB ? entryA.updatedLocallyAt ?? entryA.date : entryB.updatedLocallyAt ?? entryB.date
 
   if (checklist && checklist.length > 0) {
     result.checklist = checklist
@@ -214,6 +219,7 @@ export function mergeSessions(
   local?: readonly unknown[] | null,
   remote?: readonly unknown[] | null,
   tombstones?: readonly SessionTombstone[] | null,
+  maxSessions: number = MAX_SESSIONS,
 ): SessionLogEntryV2[] {
   const sanitizedLocal: SessionLogEntryV2[] = Array.isArray(local)
     ? local
@@ -232,15 +238,13 @@ export function mergeSessions(
     return []
   }
 
-  // Active tombstones map (within 30 days) to prevent zombie resurrection
+  // Permanent deletion identities prevent resurrection after long offline periods
   const tombstoneMap = new Map<string, string>()
   if (Array.isArray(tombstones)) {
-    const now = Date.now()
-    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
     for (const t of tombstones) {
       if (t && typeof t.id === 'string' && typeof t.deletedAt === 'string') {
         const deletedTime = Date.parse(t.deletedAt)
-        if (!Number.isNaN(deletedTime) && now - deletedTime < THIRTY_DAYS_MS) {
+        if (!Number.isNaN(deletedTime)) {
           tombstoneMap.set(t.id, t.deletedAt)
         }
       }
@@ -256,7 +260,7 @@ export function mergeSessions(
     if (deletedAt) {
       const candidateTime = Date.parse(candidate.date)
       const tombstoneTime = Date.parse(deletedAt)
-      if (!Number.isNaN(candidateTime) && candidateTime <= tombstoneTime) {
+      if (!Number.isNaN(candidateTime) && !Number.isNaN(tombstoneTime)) {
         continue // Skip deleted session to prevent resurrection
       }
     }
@@ -276,5 +280,5 @@ export function mergeSessions(
   })
 
   // Cap at MAX_SESSIONS (1,000)
-  return merged.slice(0, MAX_SESSIONS)
+  return merged.slice(0, maxSessions)
 }

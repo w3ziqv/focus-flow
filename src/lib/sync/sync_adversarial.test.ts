@@ -42,6 +42,8 @@ describe('Adversarial & Offline Sync Simulator (src/lib/sync/sync_adversarial.te
         path: pathSegments.join('/'),
       })) as unknown as FirebaseModules['collection'],
       query: vi.fn((col) => col) as unknown as FirebaseModules['query'],
+      documentId: vi.fn() as unknown as FirebaseModules['documentId'],
+      startAfter: vi.fn() as unknown as FirebaseModules['startAfter'],
       orderBy: vi.fn() as unknown as FirebaseModules['orderBy'],
       limit: vi.fn() as unknown as FirebaseModules['limit'],
       getDoc: vi.fn(() => {

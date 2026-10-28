@@ -1,8 +1,9 @@
 import type { LucideIcon } from 'lucide-react'
+import type { Lang } from './domain/language'
+export type { Lang } from './domain/language'
 
 export type Mode = 'focus' | 'short' | 'long'
 export type TimerMode = Mode
-export type Lang = 'pl' | 'en'
 export type Theme = 'light' | 'dark' | 'obsidian' | 'sage' | 'eink'
 export type ThemeId = Theme
 
@@ -99,6 +100,7 @@ export interface TaskPreset {
 }
 
 export interface SessionLogEntryV2 {
+  updatedLocallyAt?: string
   id: string
   /** ISO timestamp of completion */
   date: string
@@ -164,9 +166,8 @@ export interface Tip {
 export interface TipCategory {
   id: string
   icon: LucideIcon
-  titlePl: string
-  titleEn: string
-  tips: { pl: Tip; en: Tip }[]
+  titles: Record<Lang, string>
+  tips: Record<Lang, Tip>[]
 }
 
 /** Snapshot of a possibly-running timer, persisted so a reload keeps the countdown. */
@@ -181,6 +182,7 @@ export interface SessionSnapshot {
 }
 
 export interface SessionSnapshotV2 extends SessionSnapshot {
+  phaseSettings?: Settings
   id?: string
   checklist?: ChecklistItem[]
 }

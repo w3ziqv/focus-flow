@@ -1,3 +1,5 @@
+import type { TopicId } from '../types'
+import { articleCount } from '../lib/translations'
 import { X } from 'lucide-react'
 import { articlesForTopic, readMinutes, totalReadMinutesForTopic } from '../lib/articles'
 import { topicById } from '../lib/topics'
@@ -5,17 +7,17 @@ import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
 
 interface TopicViewProps {
-  topicId: string
+  topicId: TopicId
   onBack: () => void
   onOpenArticle: (articleId: string) => void
 }
 
 export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): React.JSX.Element {
   const { t, lang } = useI18n()
-  const topic = topicById(topicId as never)
+  const topic = topicById(topicId)
   const Icon = topic.icon
   const articles = articlesForTopic(topic.id)
-  const title = lang === 'pl' ? topic.titlePl : topic.titleEn
+  const title = topic.copy[lang].title
   const totalMinutes = totalReadMinutesForTopic(topic.id, lang)
 
   return (
@@ -38,7 +40,7 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): R
         </span>
         <h1 className="mt-5 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{title}</h1>
         <p className="mt-2 text-caption text-ink-3">
-          {t('topic.meta', { count: articles.length, minutes: totalMinutes })}
+          {t('topic.meta', { articles: articleCount(lang, articles.length), minutes: totalMinutes })}
         </p>
       </div>
 
@@ -52,7 +54,7 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): R
           >
             <span>
               <span className="block text-[15px] font-medium text-ink group-hover:text-[var(--ac-strong)]">
-                {lang === 'pl' ? article.titlePl : article.titleEn}
+                {article.content[lang].title}
               </span>
               <span className="mt-1 block text-caption text-ink-3">
                 {t('topic.read', { n: readMinutes(article, lang) })}

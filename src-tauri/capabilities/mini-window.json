@@ -1,0 +1,14 @@
+{
+  "identifier": "mini-window",
+  "description": "Read-only timer display and window dragging.",
+  "windows": [
+    "mini"
+  ],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:window:allow-start-dragging",
+    "allow-desktop-action",
+    "allow-timer-display"
+  ]
+}

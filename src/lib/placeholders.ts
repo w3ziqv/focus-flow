@@ -14,18 +14,26 @@ const GREETINGS: Record<Bucket, Record<Lang, string[]>> = {
   morning: {
     pl: ['Dzień dobry', 'Świeży poranek', 'Miłego poranka'],
     en: ['Good morning', 'A fresh morning', 'Morning focus'],
+    es: ['Buenos días', 'Una nueva mañana'],
+    zh: ['早上好', '新的一天'],
   },
   afternoon: {
     pl: ['Dobry dzień', 'Popołudniowy restart'],
     en: ['Good afternoon', 'Back at it'],
+    es: ['Buenas tardes', 'Es hora de continuar'],
+    zh: ['下午好', '继续专注'],
   },
   evening: {
     pl: ['Dobry wieczór', 'Cichy wieczór'],
     en: ['Good evening', 'A quiet evening'],
+    es: ['Buenas noches', 'Una tarde tranquila'],
+    zh: ['晚上好', '安静的夜晚'],
   },
   night: {
     pl: ['Nocna zmiana', 'Późna godzina'],
     en: ['Night shift', 'Late hours'],
+    es: ['Turno de noche', 'A estas horas'],
+    zh: ['夜间时段', '夜已深'],
   },
 }
 

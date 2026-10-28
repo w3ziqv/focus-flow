@@ -4,6 +4,7 @@ import type { SessionSnapshotV2, Settings, StatsV2, WebhookSettings } from '../t
 import {
   loadSessions,
   loadStats,
+  saveLang,
   saveSession,
   saveSettings,
   saveStats,
@@ -396,6 +397,7 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
       const sessionStart = 1_700_000_000_000
       const endTs = sessionStart + 25 * 60_000
       const wakeTime = endTs + oneHourMs // woke 1 hour after session ended
+      vi.setSystemTime(wakeTime)
 
       const snapshot: SessionSnapshotV2 = {
         mode: 'focus',
@@ -415,7 +417,8 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
       // Must credit strictly the 25 focus minutes, never the 1-hour sleep duration
       expect(result.elapsedMinutes).toBe(25)
       expect(result.newStats.minutes).toBe(25)
-      expect(result.newStats.today).toBe(1)
+      expect(result.newStats.today).toBe(new Date(endTs).toDateString() === new Date(wakeTime).toDateString() ? 1 : 0)
+      expect(result.newStats.history[new Date(endTs).toDateString()]).toBe(25)
 
       const sessions = loadSessions()
       expect(sessions).toHaveLength(1)
@@ -568,6 +571,7 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
   describe('2.4 Strict Idempotency Under Repeated Execution', () => {
     it('repeatedly reconciling the resulting state 10 consecutive times produces ZERO additional mutations', () => {
       const now = 1_700_000_000_000
+      vi.setSystemTime(now)
       const endTs = now - 5000
       const snapshot: SessionSnapshotV2 = {
         mode: 'focus',
@@ -667,6 +671,7 @@ describe('Area 2: Cold-Start Wake Reconciliation Adversarial Stress & Idempotenc
     })
 
     it('cold mount with expired session reconciles once and ignores immediate wake events', () => {
+      saveLang('en')
       const now = 1_700_000_000_000
       vi.setSystemTime(now)
 

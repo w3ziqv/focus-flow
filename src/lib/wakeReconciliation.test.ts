@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SessionSnapshotV2, Settings, StatsV2 } from '../types'
 import { reconcileExpiredSession } from './wakeReconciliation'
 import { loadSessions, loadStats } from './storage'
@@ -31,8 +31,11 @@ function makeStats(overrides?: Partial<StatsV2>): StatsV2 {
 
 describe('reconcileExpiredSession', () => {
   beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(1_700_000_000_000)
     localStorage.clear()
   })
+  afterEach(() => vi.useRealTimers())
 
   it('reconciles active focus session expired past endTs', () => {
     const now = 1_700_000_000_000

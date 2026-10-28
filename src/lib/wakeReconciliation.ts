@@ -1,10 +1,12 @@
+import { translate } from './translations'
 /**
  * Reconciles sessions that expired while the system was asleep or tab was suspended.
  */
 
 import type { Lang, Mode, SessionSnapshotV2, Settings, StatsV2, TimerMode } from '../types'
-import { addSession, loadSession, saveSession, saveStats } from './storage'
-import { recordFocusSession } from './stats'
+import { loadSession, saveSession } from './storage'
+import { FocusStore } from './store'
+import { calculateNextPhase } from './timerCore'
 
 export { loadSession as loadSessionSnapshot, saveSession as saveSessionSnapshot }
 
@@ -62,48 +64,27 @@ export function reconcileExpiredSession(
   let notice: string | null = null
 
   if (isFocus) {
-    elapsedMinutes = settings.focus
-    newStats = recordFocusSession(stats, elapsedMinutes)
-
-    const sessionId = snapshot.id || `s${endTs.toString(36)}${Math.random().toString(36).slice(2, 7)}`
-    addSession({
+    elapsedMinutes = snapshot.phaseSettings?.focus ?? settings.focus
+    // Legacy snapshots have no ID; the persisted deadline is a stable retry key.
+    const sessionId = snapshot.id || `wake_${endTs.toString(36)}`
+    newStats = FocusStore.recordSession({
       id: sessionId,
       date: new Date(endTs).toISOString(),
       minutes: elapsedMinutes,
       task: typeof snapshot.task === 'string' && snapshot.task.trim() !== '' ? snapshot.task.trim() : null,
       checklist: snapshot.checklist && snapshot.checklist.length > 0 ? [...snapshot.checklist] : undefined,
-    })
+    }, stats, new Date(now)).stats
 
-    saveStats(newStats)
-
-    notice =
-      lang === 'pl'
-        ? 'Sesja skupienia została ukończona podczas Twojej nieobecności.'
-        : 'Focus session completed while you were away.'
+    notice = translate(lang, 'wakeReconciled')
   }
 
   // Next mode and next round calculation
-  let newMode: TimerMode
-  let newRound: number
-
-  if (isFocus) {
-    const candidateRound = snapshot.round + 1
-    if (candidateRound >= settings.rounds) {
-      newRound = 0
-      newMode = 'long'
-    } else {
-      newRound = candidateRound
-      newMode = 'short'
-    }
-  } else {
-    // Break expired: advance to focus mode, no stats credited, no session logged, no notice needed
-    newMode = 'focus'
-    newRound = snapshot.round
-  }
+  const { nextMode: newMode, nextRound: newRound } = calculateNextPhase(snapshot.mode, snapshot.round, settings.rounds)
 
   const nextRemainingMs = durationOfMode(settings, newMode)
 
   const newSnapshot: SessionSnapshotV2 = {
+    ...(snapshot.phaseSettings ? {phaseSettings: settings} : {}),
     mode: newMode as Mode,
     round: newRound,
     running: false,

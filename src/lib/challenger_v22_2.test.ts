@@ -219,7 +219,7 @@ describe('Challenger 2: Transition Dynamics & Cancellation Stress', () => {
     try {
       engine.ensureContext()
 
-      const textures: ('pink' | 'brown' | 'rain' | 'waves')[] = ['pink', 'brown', 'rain', 'waves']
+      const textures: ('pink' | 'brown')[] = ['pink', 'brown']
 
       // Rapidly switch textures 20 times within 1 second
       for (let i = 0; i < 20; i++) {
@@ -527,7 +527,7 @@ describe('Challenger 2: Bilingual Symmetry & Content Parity', () => {
   })
 })
 
-describe('Challenger 2: 0 KB Static Audio Asset Footprint & PWA Precache Bounds', () => {
+describe('Challenger 2: Bundled Audio Asset Budget', () => {
   it('verifies 0 static .m4a files exist in public/sounds/', () => {
     const soundsDir = path.resolve(process.cwd(), 'public/sounds')
     const files = fs.readdirSync(soundsDir)
@@ -537,17 +537,27 @@ describe('Challenger 2: 0 KB Static Audio Asset Footprint & PWA Precache Bounds'
     expect(m4aFiles.length).toBe(0)
   })
 
-  it('verifies public/sounds/ only contains SOUNDS.md documentation', () => {
+  it('keeps the recording palette small, bounded and accompanied by provenance', () => {
     const soundsDir = path.resolve(process.cwd(), 'public/sounds')
     const files = fs.readdirSync(soundsDir)
-    expect(files).toEqual(['SOUNDS.md'])
+    expect(files.sort()).toEqual(['SOUNDS.md', 'moodist'])
+    const recordings = fs.readdirSync(path.join(soundsDir, 'moodist')).sort()
+    expect(recordings).toEqual(['NOTICE.txt', 'provenance.json', 'rain.mp3', 'waves.mp3'])
+    let total = 0
+    for (const sound of ['rain', 'waves']) {
+      const bytes = fs.statSync(path.join(soundsDir, 'moodist', `${sound}.mp3`)).size
+      expect(bytes).toBeGreaterThan(0)
+      expect(bytes).toBeLessThan(1024 * 1024)
+      total += bytes
+    }
+    expect(total).toBeLessThan(2 * 1024 * 1024)
   })
 
-  it('verifies vite.config.ts workbox precache glob excludes audio formats', () => {
+  it('precaches only the selected sound folder rather than every possible audio asset', () => {
     const viteConfigPath = path.resolve(process.cwd(), 'vite.config.ts')
     const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf-8')
 
-    expect(viteConfigContent).not.toMatch(/m4a|mp3|wav|ogg/i)
-    expect(viteConfigContent).toContain("globPatterns: ['**/*.{js,css,html,svg,woff2}']")
+    expect(viteConfigContent).toContain("'sounds/moodist/*.{mp3,txt,json}'")
+    expect(viteConfigContent).not.toContain('**/*.mp3')
   })
 })

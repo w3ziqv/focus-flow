@@ -1,5 +1,7 @@
+import { localeFor } from '../domain/language'
 import type { Lang, MilestoneRecord, SessionLogEntry, SessionLogEntryV2, Stats, StatsV2 } from '../types'
 import { deleteSession, loadStats, saveStats, weekStartOf } from './storage'
+import { creditFocusSession } from '../domain/sessionStatistics'
 
 export const ZEN_MILESTONES: readonly [
   'the_first_step',
@@ -22,40 +24,8 @@ function dayKey(date = new Date()): string {
 }
 
 /** Adds one completed focus session to the stats and persists them. */
-export function recordFocusSession(stats: StatsV2, minutes: number): StatsV2 {
-  const today = dayKey()
-  const currentWeekStart = weekStartOf()
-  const next: StatsV2 = {
-    ...stats,
-    history: { ...stats.history },
-  }
-
-  if (next.date !== today) {
-    next.today = 0
-    next.date = today
-  }
-  if (next.weekStart !== currentWeekStart) {
-    next.week = 0
-    next.weekStart = currentWeekStart
-  }
-
-  next.today += 1
-  next.week += 1
-  next.minutes += minutes
-  next.history[today] = (next.history[today] ?? 0) + minutes
-
-  if (next.lastDate) {
-    const diff = Math.round((new Date(today).getTime() - new Date(next.lastDate).getTime()) / 86_400_000)
-    if (diff === 1) next.streak += 1
-    else if (diff > 1) next.streak = 1
-    // diff === 0: second session today, streak unchanged
-  } else {
-    next.streak = 1
-  }
-  next.lastDate = today
-  next.date = today
-  next.weekStart = weekStartOf()
-
+export function recordFocusSession(stats: StatsV2, minutes: number, completedAt: Date = new Date(), now: Date = new Date()): StatsV2 {
+  const next = creditFocusSession(stats, minutes, completedAt, now)
   saveStats(next)
   return next
 }
@@ -246,8 +216,8 @@ export function lastNDays(stats: Stats, lang: Lang, daysCount: number): ChartDay
     const key = dayKey(d)
     const label =
       daysCount <= 7
-        ? d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { weekday: 'short' })
-        : d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', { day: 'numeric', month: 'numeric' })
+        ? d.toLocaleDateString(localeFor(lang), { weekday: 'short' })
+        : d.toLocaleDateString(localeFor(lang), { day: 'numeric', month: 'numeric' })
     out.push({
       label,
       minutes: Math.round(stats.history[key] ?? 0),
@@ -290,7 +260,7 @@ export function generateHeatmap(stats: Stats, lang: Lang, count = 30): HeatmapDa
 
     out.push({
       dateKey: key,
-      dateLabel: d.toLocaleDateString(lang === 'pl' ? 'pl-PL' : 'en-GB', {
+      dateLabel: d.toLocaleDateString(localeFor(lang), {
         weekday: 'short',
         day: 'numeric',
         month: 'short',

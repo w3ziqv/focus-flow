@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cloud-documents"
+description = "Enables the cloud_documents command without any pre-configured scope."
+commands.allow = ["cloud_documents"]
+
+[[permission]]
+identifier = "deny-cloud-documents"
+description = "Denies the cloud_documents command without any pre-configured scope."
+commands.deny = ["cloud_documents"]

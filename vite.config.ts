@@ -1,19 +1,21 @@
 /// <reference types="vitest/config" />
 import fs from 'node:fs'
-import { defineConfig, type Plugin, type UserConfig } from 'vite'
+import { LANGUAGE_CODES, isLang } from './src/domain/language'
+import { manifestForLanguage } from './src/lib/pwaManifest'
+import { defineConfig, type Plugin, type UserConfig, type UserConfigExport } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')) as { version: string }
 
-const fontPreload = (): Plugin => ({
+const fontPreload = (outDir: string): Plugin => ({
   name: 'font-preload',
   apply: 'build',
   closeBundle() {
-    const htmlPath = 'dist/index.html'
+    const htmlPath = `${outDir}/index.html`
     const fonts = fs
-      .readdirSync('dist/assets')
+      .readdirSync(`${outDir}/assets`)
       .filter((f) => f.endsWith('.woff2') && f.startsWith('fraunces-latin-wght'))
     if (fonts.length === 0) return
     const links = fonts
@@ -24,65 +26,62 @@ const fontPreload = (): Plugin => ({
   },
 })
 
-const config: UserConfig = defineConfig({
-  define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
+const localizedManifests = (): Plugin => ({
+  name: 'localized-manifests',
+  generateBundle() {
+    for (const lang of LANGUAGE_CODES) this.emitFile({ type: 'asset', fileName: `manifest-${lang}.webmanifest`, source: JSON.stringify(manifestForLanguage(lang)) })
   },
-  plugins: [
-    react(),
-    tailwindcss(),
-    fontPreload(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
-      manifest: {
-        name: 'Focus Flow',
-        short_name: 'Focus Flow',
-        description: 'A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.',
-        theme_color: '#f5f4ed',
-        background_color: '#f5f4ed',
-        display: 'standalone',
-        display_override: ['standalone', 'minimal-ui'],
-        start_url: '/',
-        id: '/',
-        lang: 'pl',
-        icons: [
-          { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-        screenshots: [
-          {
-            src: 'screenshots/desktop.png',
-            sizes: '1280x800',
-            type: 'image/png',
-            form_factor: 'wide',
-            label: 'The Focus Flow dial on desktop',
-          },
-          {
-            src: 'screenshots/mobile.png',
-            sizes: '390x844',
-            type: 'image/png',
-            form_factor: 'narrow',
-            label: 'The Focus Flow dial on a phone',
-          },
-        ],
-        shortcuts: [
-          { name: 'Start Focus', short_name: 'Focus', url: '/?start=focus', description: 'Start a focus session right away' },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        navigateFallback: '/index.html',
-      },
-    }),
-  ],
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['src/test/setup.ts'],
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const match = /^\/manifest-([a-z]+)\.webmanifest$/.exec(req.url ?? '')
+      if (!match || !isLang(match[1])) { next(); return }
+      res.setHeader('Content-Type', 'application/manifest+json')
+      res.end(JSON.stringify(manifestForLanguage(match[1])))
+    })
   },
 })
 
-export default config
+const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
+  const desktop = mode === 'desktop'
+  const outDir = desktop ? 'dist-desktop' : 'dist'
+  return {
+    build: { outDir },
+    server: {
+      ...(desktop ? { port: 1420, strictPort: true } : {}),
+      // The other build target and test evidence must not reload an active app.
+      watch: { ignored: ['**/dist/**', '**/dist-desktop/**', '**/src-tauri/target/**', '**/test-artifacts/**'] },
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
+    plugins: [
+      react(),
+      desktop && {
+        name: 'desktop-csp',
+        transformIndexHtml: (html: string) => html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, ''),
+      },
+      tailwindcss(),
+      fontPreload(outDir),
+      !desktop && localizedManifests(),
+      !desktop && VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
+        manifest: manifestForLanguage('en'),
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}', 'sounds/moodist/*.{mp3,txt,json}'],
+          navigateFallback: '/index.html',
+        },
+      }),
+    ],
+    test: {
+      // Keep local evidence and old acceptance scripts out of automatic discovery.
+      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      environment: 'jsdom',
+      setupFiles: ['src/test/setup.ts'],
+      // Audio stress suites allocate large buffers; bound workers on many-core hosts.
+      maxWorkers: 4,
+    },
+  }
+})
 
+export default config

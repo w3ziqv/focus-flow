@@ -1,3 +1,4 @@
+import { detectPlatform } from './platform'
 import type { CustomSound } from '../types'
 import { loadCustomSounds, saveCustomSounds } from './storage'
 
@@ -50,15 +51,32 @@ function withStore<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => 
 }
 
 export function putSound(id: string, name: string, blob: Blob): Promise<void> {
+  if (detectPlatform() === 'tauri') return import('./desktop/sounds').then(({ writeNativeSound }) => writeNativeSound(id, blob))
   return withStore('readwrite', (store) => store.put({ name, blob }, id)).then(() => undefined)
 }
 
 export async function getSoundBlob(id: string): Promise<Blob | null> {
+  if (detectPlatform() === 'tauri') {
+    const { readNativeSound, writeNativeSound } = await import('./desktop/sounds')
+    const existing = await readNativeSound(id)
+    if (existing) return existing
+    // Migrate each legacy IndexedDB blob only after the native write succeeds.
+    const legacy = typeof indexedDB === 'undefined' ? null : await withStore<StoredSound | undefined>('readonly', store => store.get(id))
+    if (legacy?.blob) { await writeNativeSound(id, legacy.blob); return legacy.blob }
+    return null
+  }
   const stored = await withStore<StoredSound | undefined>('readonly', (store) => store.get(id))
   return stored?.blob ?? null
 }
 
-export function deleteSound(id: string): Promise<void> {
+export async function deleteSound(id: string): Promise<void> {
+  if (detectPlatform() === 'tauri') {
+    // Remove the migration source first so a later read cannot resurrect it.
+    if (typeof indexedDB !== 'undefined') await withStore('readwrite', store => store.delete(id))
+    const { removeNativeSound } = await import('./desktop/sounds')
+    await removeNativeSound(id)
+    return
+  }
   return withStore('readwrite', (store) => store.delete(id)).then(() => undefined)
 }
 

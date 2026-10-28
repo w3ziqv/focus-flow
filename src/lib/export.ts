@@ -5,6 +5,9 @@
  * - GitHub-Flavored Markdown (.md) tables with summary blockquote
  */
 
+import { loadLang, systemLang } from './storage'
+import { formatNumber, translate } from './translations'
+import type { Lang } from '../domain/language'
 import type { SessionLogEntryV2 } from '../types'
 import { triggerDownload } from './download'
 
@@ -35,10 +38,16 @@ export function formatUtcDateTime(d: Date): string {
   return `${y}${m}${day}T${h}${min}${s}Z`
 }
 
-export function formatHoursAndMinutes(totalMinutes: number): string {
+export function formatHoursAndMinutes(totalMinutes: number, lang: Lang = 'en'): string {
   const hours = Math.floor(totalMinutes / 60)
   const mins = totalMinutes % 60
 
+  if (lang !== 'en') {
+    const parts = []
+    if (hours > 0) parts.push(`${formatNumber(lang, hours)} ${translate(lang, 'unit.hourShort')}`)
+    if (mins > 0 || hours === 0) parts.push(`${formatNumber(lang, mins)} ${translate(lang, 'unit.minuteShort')}`)
+    return parts.join(' ')
+  }
   if (hours > 0 && mins > 0) {
     const hWord = hours === 1 ? 'hour' : 'hours'
     const mWord = mins === 1 ? 'minute' : 'minutes'
@@ -138,7 +147,7 @@ export function foldIcsLine(line: string): string {
 /**
  * Serializes focus sessions into an RFC 5545 compliant VCALENDAR document.
  */
-export function serializeToICal(sessions: SessionLogEntryV2[], now: Date = new Date()): string {
+export function serializeToICal(sessions: SessionLogEntryV2[], now: Date = new Date(), lang: Lang = 'en'): string {
   const rawLines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -154,17 +163,17 @@ export function serializeToICal(sessions: SessionLogEntryV2[], now: Date = new D
     const validEndDate = isNaN(endDate.getTime()) ? now : endDate
     const startDate = new Date(validEndDate.getTime() - Math.max(0, session.minutes) * 60 * 1000)
 
-    const taskTitle = session.task?.trim() || 'Focus Session'
-    const summary = `Focus: ${taskTitle}`
+    const taskTitle = session.task?.trim() || translate(lang, 'export.untitled')
+    const summary = translate(lang, 'export.ics.summary', { task: taskTitle })
     const escapedSummary = escapeIcsText(summary)
 
     const descParts: string[] = [
-      `Task: ${taskTitle}`,
-      `Duration: ${session.minutes} minutes`,
+      translate(lang, 'export.ics.task', { task: taskTitle }),
+      translate(lang, 'export.ics.duration', { minutes: session.minutes }),
     ]
     if (session.checklist && session.checklist.length > 0) {
       const completed = session.checklist.filter((item) => item.completed).length
-      descParts.push(`Checklist: ${completed}/${session.checklist.length} completed`)
+      descParts.push(translate(lang, 'export.ics.checklist', { completed, total: session.checklist.length }))
     }
     const escapedDesc = escapeIcsText(descParts.join('\n'))
 
@@ -259,7 +268,7 @@ export function escapeMarkdownTableCell(val: string): string {
  * Serializes focus sessions into a GitHub-Flavored Markdown table
  * with an export metadata callout and daily summary blockquote.
  */
-export function serializeToMarkdown(sessions: SessionLogEntryV2[], now: Date = new Date()): string {
+export function serializeToMarkdown(sessions: SessionLogEntryV2[], now: Date = new Date(), lang: Lang = 'en'): string {
   const exportDateStr = `${formatLocalDate(now)} ${formatLocalTime(now)}`
   const sessionsCount = sessions.length
   const totalMinutes = sessions.reduce((acc, s) => acc + (s.minutes || 0), 0)
@@ -267,9 +276,9 @@ export function serializeToMarkdown(sessions: SessionLogEntryV2[], now: Date = n
   const sessionWord = sessionsCount === 1 ? 'session' : 'sessions'
   const minuteWord = totalMinutes === 1 ? 'minute' : 'minutes'
 
-  let out = `# Focus Flow — Session History\n`
-  out += `*Exported on ${exportDateStr} · ${sessionsCount} ${sessionWord} · ${totalMinutes} ${minuteWord}*\n\n`
-  out += `| Date | Time | Duration | Intention | Micro-Steps |\n`
+  let out = `# Focus Flow — ${translate(lang, 'export.md.title')}\n`
+  out += lang === 'en' ? `*Exported on ${exportDateStr} · ${sessionsCount} ${sessionWord} · ${totalMinutes} ${minuteWord}*\n\n` : `*${translate(lang, 'export.md.metadata', { date: exportDateStr, count: sessionsCount, minutes: totalMinutes })}*\n\n`
+  out += `| ${translate(lang, 'export.md.columns')} |\n`
   out += `|---|---|---|---|---|\n`
 
   for (const s of sessions) {
@@ -288,20 +297,20 @@ export function serializeToMarkdown(sessions: SessionLogEntryV2[], now: Date = n
       microStepsStr = `${completed}/${s.checklist.length}`
     }
 
-    out += `| ${dateStr} | ${timeStr} | ${s.minutes} min | ${intentionStr} | ${microStepsStr} |\n`
+    out += `| ${dateStr} | ${timeStr} | ${formatNumber(lang, s.minutes)} ${translate(lang, 'unit.minuteShort')} | ${intentionStr} | ${microStepsStr} |\n`
   }
 
-  out += `\n> **Daily Summary**: ${sessionsCount} ${sessionWord} completed · ${formatHoursAndMinutes(totalMinutes)} of deep focus.\n`
+  out += lang === 'en' ? `\n> **Summary**: ${sessionsCount} ${sessionWord} completed · ${formatHoursAndMinutes(totalMinutes)} of deep focus.\n` : `\n> **${translate(lang, 'export.md.summary')}**: ${translate(lang, 'export.md.totals', { count: sessionsCount, duration: formatHoursAndMinutes(totalMinutes, lang) })}\n`
 
   return out
 }
 
 
 
-export function downloadICal(sessions: SessionLogEntryV2[], filename?: string, now?: Date): void {
+export function downloadICal(sessions: SessionLogEntryV2[], filename?: string, now?: Date, lang: Lang = loadLang() ?? systemLang()): void {
   const defaultDate = formatLocalDate(now ?? new Date())
   const name = filename || `focus-flow-sessions-${defaultDate}.ics`
-  const content = serializeToICal(sessions, now)
+  const content = serializeToICal(sessions, now, lang)
   triggerDownload(name, content, 'text/calendar;charset=utf-8')
 }
 
@@ -312,9 +321,9 @@ export function downloadCsv(sessions: SessionLogEntryV2[], filename?: string): v
   triggerDownload(name, content, 'text/csv;charset=utf-8')
 }
 
-export function downloadMarkdown(sessions: SessionLogEntryV2[], filename?: string, now?: Date): void {
+export function downloadMarkdown(sessions: SessionLogEntryV2[], filename?: string, now?: Date, lang: Lang = loadLang() ?? systemLang()): void {
   const defaultDate = formatLocalDate(now ?? new Date())
   const name = filename || `focus-flow-sessions-${defaultDate}.md`
-  const content = serializeToMarkdown(sessions, now)
+  const content = serializeToMarkdown(sessions, now, lang)
   triggerDownload(name, content, 'text/markdown;charset=utf-8')
 }

@@ -2,11 +2,12 @@ export type Platform = 'tauri' | 'electron' | 'pwa' | 'browser'
 export type OS = 'ios' | 'android' | 'desktop'
 
 /**
- * Runtime capability seam (docs/ARCHITECTURE.md ADR-006).
+ * Runtime capability seam for platform-specific adapters.
  * Platform-specific adapters (file storage, native notifications, tray)
  * branch on this value instead of feature-detecting all over the codebase.
  */
 export function detectPlatform(): Platform {
+  if (typeof window === 'undefined') return 'browser'
   const w = window as Window & { __TAURI_INTERNALS__?: unknown; __TAURI__?: unknown }
   if ('__TAURI_INTERNALS__' in w || '__TAURI__' in w) return 'tauri'
   if (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron')) return 'electron'

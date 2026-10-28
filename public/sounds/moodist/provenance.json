@@ -1,0 +1,28 @@
+{
+  "upstreamCommit": "11c0be2200116a3635880d600fd6953899cc51a3",
+  "processing": "First 60 seconds; 2-second linear tail/head crossfade; body then seam, producing a 58-second loop; loudnorm I=-24 TP=-3 LRA=11; metadata removed.",
+  "recordings": [
+    {
+      "id": "rain",
+      "source": "https://github.com/remvze/moodist/blob/11c0be2200116a3635880d600fd6953899cc51a3/public/sounds/rain/light-rain.mp3",
+      "sourceSha256": "967eab5ddc2b84808a05fea757460d51461e9dc56e72a3d1490bbb58e7bc6578",
+      "asset": "rain.mp3",
+      "sha256": "f03edd5d53609998d5ec85815e973604c19c4377cf4784535f02c797df99557b",
+      "bytes": 929708,
+      "durationSeconds": 58,
+      "format": "MP3, 128 kbit/s, 32 kHz stereo",
+      "license": "Upstream identifies third-party recordings as CC0 or Pixabay Content License; no individual mapping supplied."
+    },
+    {
+      "id": "waves",
+      "source": "https://github.com/remvze/moodist/blob/11c0be2200116a3635880d600fd6953899cc51a3/public/sounds/nature/waves.mp3",
+      "sourceSha256": "40c670e678b5ee19ff67a8c322490b1f7d2d53124cf9e8b07efd329138aaa8f8",
+      "asset": "waves.mp3",
+      "sha256": "55f6e521b9b33fb562179b569853ff06928131e864903b09d2123f9b40384f0f",
+      "bytes": 929708,
+      "durationSeconds": 58,
+      "format": "MP3, 128 kbit/s, 32 kHz stereo",
+      "license": "Upstream identifies third-party recordings as CC0 or Pixabay Content License; no individual mapping supplied."
+    }
+  ]
+}

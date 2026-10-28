@@ -486,7 +486,7 @@ describe('Adversarial Challenge Area 3: GFM Markdown Tables (src/lib/export.ts)'
     })
   })
 
-  describe('Daily Summary Calculation Accuracy Across Multi-Day Groupings', () => {
+  describe('Summary Calculation Accuracy Across Multi-Day Groupings', () => {
     it('aggregates multi-day sessions accurately into summary totals and plural strings', () => {
       const multiDaySessions: SessionLogEntryV2[] = [
         // Day 1
@@ -504,7 +504,7 @@ describe('Adversarial Challenge Area 3: GFM Markdown Tables (src/lib/export.ts)'
       const md = serializeToMarkdown(multiDaySessions, fixedNow)
 
       expect(md).toContain(`*Exported on ${formatLocalDate(fixedNow)} ${formatLocalTime(fixedNow)} · 5 sessions · 280 minutes*`)
-      expect(md).toContain('> **Daily Summary**: 5 sessions completed · 4 hours 40 minutes of deep focus.')
+      expect(md).toContain('> **Summary**: 5 sessions completed · 4 hours 40 minutes of deep focus.')
     })
 
     it('handles exact hour boundaries and 1-minute singular boundaries without grammatical flaws', () => {
@@ -908,8 +908,8 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
       await testRejection((o) => { o.data = [1, 2, 3] }, /missing or malformed data payload/i)
 
       // Lang corrupted
-      await testRejection((o) => { (o.data as Record<string, unknown>).lang = 'de' }, /lang must be "pl" or "en"/i)
-      await testRejection((o) => { (o.data as Record<string, unknown>).lang = 123 }, /lang must be "pl" or "en"/i)
+      await testRejection((o) => { (o.data as Record<string, unknown>).lang = 'de' }, /unsupported language/i)
+      await testRejection((o) => { (o.data as Record<string, unknown>).lang = 123 }, /unsupported language/i)
 
       // Theme corrupted
       await testRejection((o) => { (o.data as Record<string, unknown>).theme = 'sepia' }, /theme must be "light" or "dark"/i)
@@ -1065,7 +1065,7 @@ describe('Adversarial Challenge Area 4: Schema v2 Backup & Restore (src/lib/data
 
       expect(elapsed).toBeLessThan(500)
       expect(md).toContain(`1000 sessions · ${totalExpectedMinutes} minutes`)
-      expect(md).toContain(`> **Daily Summary**: 1000 sessions completed · ${formatHoursAndMinutes(totalExpectedMinutes)} of deep focus.`)
+      expect(md).toContain(`> **Summary**: 1000 sessions completed · ${formatHoursAndMinutes(totalExpectedMinutes)} of deep focus.`)
     })
   })
 })

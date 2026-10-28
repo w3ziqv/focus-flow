@@ -15,12 +15,20 @@ import type {
   StatsV2,
 } from '../../types'
 import {
+  isStats,
+  sanitizeSessionEntry,
   DEFAULT_SETTINGS,
+  DEFAULT_INTERFACE,
+  DEFAULT_GOAL_SETTINGS,
+  saveGoals,
   DEFAULT_SOUND_PREFERENCES,
   loadCloudSyncState,
   loadInterface,
+  loadGoals,
   loadLastSyncedUid,
+  loadLastSyncedProjectId,
   loadSessions,
+  loadSession,
   loadSettings,
   loadSoundPreferences,
   loadStats,
@@ -28,23 +36,30 @@ import {
   saveCloudSyncState,
   saveInterface,
   saveLastSyncedUid,
+  saveLastSyncedProjectId,
   saveSessions,
+  saveSession,
   saveSettings,
   saveSoundPreferences,
   saveStats,
   saveTombstones,
+  weekStartOf,
 } from '../storage'
-import { initFirebase, type FirebaseContext } from './firebase'
+import { detectPlatform } from '../platform'
+import { getPersistence } from '../desktop/runtime'
+import { applyRemote, isRemoteWrite, readOutbox, acknowledgeOutbox, clearOutbox } from './outbox'
+import { historyDays, mergeDailyHistory } from './history'
+import { nativeInvoke } from '../desktop/runtime'
+import { getFirebaseConfig, initFirebase, LEGACY_FIREBASE_PROJECT_ID, type FirebaseContext } from './firebase'
 import { mergeSessions } from './merge'
+import { syncErrorCode } from './errors'
 import type {
   AccountSwitchChoice,
   AccountSwitchEvent,
   AuthState,
   CloudInterfaceDocument,
-  CloudSessionDocument,
   CloudSettingsDocument,
   CloudSoundPrefsDocument,
-  CloudStatsDocument,
   CloudSyncMetadataDocument,
   CloudSyncState,
   CloudUser,
@@ -56,6 +71,10 @@ import type {
 
 export const SCHEMA_VERSION: number = 2
 export const MAX_SYNC_SESSIONS: number = 1000
+// At most three rule document-access calls per session (deletion + privacy).
+// Six writes fit the 20-call batch limit without assuming a shared read cache.
+// Other write batches stay capped at 400.
+export const MAX_SESSION_BATCH_WRITES = 6
 
 function sanitizeFirestorePayload<T extends Record<string, unknown>>(data: T): T {
   const clean: Record<string, unknown> = {}
@@ -77,6 +96,12 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
   private readonly authListeners = new Set<(state: AuthState) => void>()
   private readonly stateListeners = new Set<(state: CloudSyncState) => void>()
 
+  private authEpoch = 0
+  private inFlight: Promise<void> | null = null
+  private syncDeadlineTouch: (() => void) | null = null
+  private backgroundCleanup: (() => void) | null = null
+  private remoteRevisions: Record<string, string> = {}
+
   private firebaseCtx: FirebaseContext | null = null
   private unsubscribeAuth: (() => void) | null = null
   private unsubscribeSessions: (() => void) | null = null
@@ -85,6 +110,14 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     // Restore cached sync state if available, but DO NOT fetch firebase yet (cold-boot invariant)
     const cached = loadCloudSyncState()
     if (cached?.uid) {
+      if ((cached.firebaseProjectId ?? LEGACY_FIREBASE_PROJECT_ID) !== getFirebaseConfig().projectId) {
+        // A Vercel backend change must not restore another project's identity/error.
+        // Keep history, settings, previous owner and the upload queue for consent.
+        saveCloudSyncState(null)
+        this.syncStatus = 'error'
+        this.syncError = 'cloud-backend-changed'
+        return
+      }
       this.lastSyncedAt = cached.lastSyncedAt
       this.authState = {
         status: 'authenticated',
@@ -96,7 +129,24 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
         },
       }
       this.syncStatus = cached.status === 'error' ? 'error' : 'synced'
+      this.syncError = cached.status === 'error' ? syncErrorCode(cached.error) : null
     }
+  }
+
+  async getAvailability(): Promise<{configured: boolean; persistent: boolean}> {
+    if (detectPlatform() === 'tauri') return nativeInvoke('cloud_status')
+    const config = getFirebaseConfig()
+    if (config.apiKey && config.appId && this.authState.status === 'authenticated') {
+      const epoch = this.authEpoch
+      const user = this.authState.user
+      try {
+        await this.validateRestoredAuth(await this.getFirebase(), epoch, user.uid)
+      } catch (failure) {
+        // Reconnection remains available when the cached login has expired.
+        if (!['unauthenticated', 'cloud-account-mismatch', 'cloud-account-changed'].includes(syncErrorCode(failure))) throw failure
+      }
+    }
+    return {configured: !!config.apiKey && !!config.appId, persistent: true}
   }
 
   // --- State Getters ---
@@ -127,12 +177,14 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
     return {
       status,
+      firebaseProjectId: getFirebaseConfig().projectId,
       uid: user?.uid ?? null,
       email: user?.email ?? null,
       displayName: user?.displayName ?? null,
       photoURL: user?.photoURL ?? null,
       lastSyncedAt: this.lastSyncedAt,
       error: this.syncError,
+      pendingChanges: Object.keys(readOutbox().changed).length,
     }
   }
 
@@ -157,9 +209,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     return () => this.stateListeners.delete(callback)
   }
 
-  private setSyncStatus(status: SyncStatus, error: string | null = null): void {
+  private setSyncStatus(status: SyncStatus, error: unknown = null): void {
     this.syncStatus = status
-    this.syncError = error
+    this.syncError = error === null ? null : syncErrorCode(error)
     this.notifySyncListeners()
   }
 
@@ -208,7 +260,7 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
   private async getFirebase(): Promise<FirebaseContext> {
     if (!this.firebaseCtx) {
-      this.firebaseCtx = await initFirebase()
+      this.firebaseCtx = detectPlatform() === 'tauri' ? await (await import('./nativeFirebase')).createNativeFirebaseContext() : await initFirebase()
     }
     return this.firebaseCtx
   }
@@ -218,6 +270,8 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
   async signInWithGoogle(
     consentResolver?: (event: AccountSwitchEvent) => Promise<AccountSwitchChoice>,
   ): Promise<CloudUser> {
+    this.authEpoch++
+    if (this.inFlight) await this.inFlight.catch(() => {})
     this.setAuthState({ status: 'authenticating' })
     this.setSyncStatus('syncing')
 
@@ -227,17 +281,36 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       const user = result.user
 
       const previousUid = loadLastSyncedUid()
-      if (previousUid && previousUid !== user.uid && loadSessions().length > 0) {
-        let choice: AccountSwitchChoice = 'merge'
+      const projectId = getFirebaseConfig().projectId
+      const previousProjectId = loadLastSyncedProjectId() ?? LEGACY_FIREBASE_PROJECT_ID
+      const ownerChanged = previousUid !== user.uid || previousProjectId !== projectId
+      if (previousUid && ownerChanged) {
+        if (!consentResolver) { await modules.signOut(auth); throw new Error('account-switch-consent-required') }
+        let choice: AccountSwitchChoice = 'replace-local'
         if (consentResolver) {
           choice = await consentResolver({ previousUid, newUid: user.uid })
         }
+        if (choice === 'cancel') { await modules.signOut(auth); throw new Error('account-switch-cancelled') }
+        const backupOwner = previousProjectId === projectId ? previousUid : `${encodeURIComponent(previousProjectId)}_${previousUid}`
+        getPersistence().setItem(`ff3_account_backup_${backupOwner}`, JSON.stringify({session: loadSession(), sessions: loadSessions(), tombstones: loadTombstones(), stats: loadStats(), settings: loadSettings(), sound: loadSoundPreferences(), interface: loadInterface(), outbox: readOutbox()}))
         if (choice === 'replace-local') {
+          clearOutbox()
+          applyRemote(() => {
+          saveSettings(DEFAULT_SETTINGS)
+          saveSoundPreferences(DEFAULT_SOUND_PREFERENCES)
+          saveInterface(DEFAULT_INTERFACE)
+          saveGoals(DEFAULT_GOAL_SETTINGS)
           saveSessions([])
           saveTombstones([])
+          saveStats({minutes: 0, today: 0, week: 0, streak: 0, history: {}, goals: DEFAULT_GOAL_SETTINGS, milestones: [], date: new Date().toDateString(), weekStart: '', lastDate: null})
+          const active = loadSession()
+          if (active) saveSession({...active, task: '', taskDone: false, checklist: []})
+          })
         }
       }
+      if (ownerChanged) this.lastSyncedAt = null
       saveLastSyncedUid(user.uid)
+      saveLastSyncedProjectId(projectId)
 
       const cloudUser: CloudUser = {
         uid: user.uid,
@@ -254,22 +327,27 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
       return cloudUser
     } catch (err) {
-      console.error('[Focus Flow Sync Error]', err)
-      const message = err instanceof Error ? err.message : 'Google authentication failed'
-      this.setAuthState({ status: 'error', error: message })
-      this.setSyncStatus('error', message)
+      const message = syncErrorCode(err)
+      if (this.authState.status !== 'authenticated') this.setAuthState({ status: 'error', error: message })
+      this.setSyncStatus('error', err)
       throw err
     }
   }
 
   async signOut(): Promise<void> {
+    this.authEpoch++
     try {
       if (this.firebaseCtx) {
         await this.firebaseCtx.modules.signOut(this.firebaseCtx.auth)
+      } else if (detectPlatform() === 'tauri') {
+        // A restored login can be disconnected before the lazy transport loads.
+        await nativeInvoke('cloud_sign_out')
       }
-    } catch {
-      // Disconnect locally regardless of remote failure
-    } finally {
+    } catch (failure) {
+      this.setSyncStatus('error', failure)
+      throw failure
+    }
+    {
       if (this.unsubscribeSessions) {
         this.unsubscribeSessions()
         this.unsubscribeSessions = null
@@ -300,52 +378,47 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
 
     const sessionsCol = modules.collection(db, 'users', user.uid, 'sessions')
     const q = modules.query(sessionsCol, modules.orderBy('date', 'desc'), modules.limit(MAX_SYNC_SESSIONS))
-    const snapshot = await modules.getDocs(q)
+    const snapshot = await this.cloudRequest(modules.getDocs(q))
 
     const remoteSessions: SessionLogEntryV2[] = []
     snapshot.forEach((docSnap) => {
-      // SAFETY: docSnap.data() conforms to CloudSessionDocument schema
-      const data = docSnap.data() as unknown as CloudSessionDocument
-      if (data && typeof data.id === 'string' && typeof data.date === 'string' && typeof data.minutes === 'number') {
-        remoteSessions.push({
-          id: data.id,
-          date: data.date,
-          minutes: data.minutes,
-          task: data.task ?? null,
-          checklist: data.checklist,
-        })
-      }
+      const validated = sanitizeSessionEntry(docSnap.data())
+      if (validated && validated.id === docSnap.id && validated.minutes <= 120) remoteSessions.push(validated)
     })
 
     return remoteSessions
   }
 
   async pushSessions(sessions: SessionLogEntryV2[]): Promise<void> {
+    const epoch = this.authEpoch
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const prefs = loadInterface()
     const maskTask = prefs.maskTaskTitlesInCloud === true
 
-    const batch = modules.writeBatch(db)
-    const nowIso = new Date().toISOString()
+    let batch = modules.writeBatch(db)
+    let batchSize = 0
 
-    for (const session of sessions.slice(0, MAX_SYNC_SESSIONS)) {
+    for (const session of sessions) {
+      this.assertAccount(epoch, user.uid)
       const docRef = modules.doc(db, 'users', user.uid, 'sessions', session.id)
       const rawDoc: Record<string, unknown> = {
         id: session.id,
         date: session.date,
         minutes: session.minutes,
         task: maskTask ? null : session.task ?? null,
-        updatedLocallyAt: nowIso,
+        updatedLocallyAt: session.updatedLocallyAt ?? session.date,
         schemaVersion: SCHEMA_VERSION,
       }
+      rawDoc.checklist = maskTask ? [] : session.checklist ?? []
       if (!maskTask && Array.isArray(session.checklist) && session.checklist.length > 0) {
         rawDoc.checklist = session.checklist
       }
-      batch.set(docRef, sanitizeFirestorePayload(rawDoc), { merge: true })
+      batch.set(docRef, sanitizeFirestorePayload(rawDoc))
+      if (++batchSize === MAX_SESSION_BATCH_WRITES) { await this.cloudRequest(batch.commit()); batch = modules.writeBatch(db); batchSize = 0 }
     }
 
-    await batch.commit()
+    if (batchSize > 0) {this.assertAccount(epoch, user.uid); await this.cloudRequest(batch.commit())}
   }
 
   async pushSession(session: SessionLogEntryV2): Promise<void> {
@@ -360,36 +433,62 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       date: session.date,
       minutes: session.minutes,
       task: maskTask ? null : session.task ?? null,
-      updatedLocallyAt: new Date().toISOString(),
+      updatedLocallyAt: session.updatedLocallyAt ?? session.date,
       schemaVersion: SCHEMA_VERSION,
     }
     if (!maskTask && Array.isArray(session.checklist) && session.checklist.length > 0) {
       rawDoc.checklist = session.checklist
     }
 
-    await modules.setDoc(docRef, sanitizeFirestorePayload(rawDoc), { merge: true })
+    rawDoc.checklist = maskTask ? [] : session.checklist ?? []
+    await this.cloudRequest(modules.setDoc(docRef, sanitizeFirestorePayload(rawDoc)))
+  }
+
+  private async pullCollection(name: string): Promise<Record<string, unknown>[]> {
+    const epoch = this.authEpoch
+    const user = this.ensureAuthenticatedUser()
+    const {db, modules} = await this.getFirebase()
+    const collection = modules.collection(db, 'users', user.uid, name)
+    const rows: Record<string, unknown>[] = []
+    let cursor: import('firebase/firestore').QueryDocumentSnapshot | undefined
+    while (true) {
+      const constraints: import('firebase/firestore').QueryConstraint[] = [modules.orderBy(modules.documentId()), modules.limit(400)]
+      if (cursor) constraints.push(modules.startAfter(cursor))
+      const page = await this.cloudRequest(modules.getDocs(modules.query(collection, ...constraints)))
+      this.assertAccount(epoch, user.uid)
+      rows.push(...page.docs.map(doc => ({...doc.data(), _documentId: doc.id})))
+      if (page.docs.length < 400) break
+      cursor = page.docs.at(-1)
+    }
+    return rows
+  }
+
+  async applyPrivacy(mask: boolean): Promise<void> {
+    const owner = this.ensureAuthenticatedUser().uid
+    const epoch = this.authEpoch
+    // Full replacements erase previously uploaded checklist fields, including older sessions.
+    const rows = await this.pullCollection('sessions')
+    this.assertAccount(epoch, owner)
+    const remote = rows.flatMap(row => { const session = sanitizeSessionEntry(row); return session ? [session] : [] })
+    const local = new Map(loadSessions().map(entry => [entry.id, entry]))
+    await this.pushSessions(remote.map(entry => mask ? {...entry, task: null, checklist: []} : local.get(entry.id) ?? entry))
   }
 
   async deleteRemoteSession(sessionId: string): Promise<void> {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'sessions', sessionId)
-    await modules.deleteDoc(docRef)
+    await this.cloudRequest(modules.deleteDoc(docRef))
   }
 
-  // --- Tombstones (30-day resurrection prevention) ---
+  // --- Permanent deletion records ---
 
   async pullTombstones(): Promise<SessionTombstone[]> {
-    const user = this.ensureAuthenticatedUser()
-    const { db, modules } = await this.getFirebase()
-
-    const col = modules.collection(db, 'users', user.uid, 'tombstones')
-    const snapshot = await modules.getDocs(col)
+    const rows = await this.pullCollection('tombstones')
 
     const remoteTombstones: SessionTombstone[] = []
-    snapshot.forEach((snap) => {
-      // SAFETY: data matches SessionTombstone
-      const data = snap.data() as unknown as SessionTombstone
+    rows.forEach((row) => {
+      const data = row as unknown as SessionTombstone
       if (data && typeof data.id === 'string' && typeof data.deletedAt === 'string') {
         remoteTombstones.push({ id: data.id, deletedAt: data.deletedAt })
       }
@@ -402,7 +501,10 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'tombstones', tombstone.id)
-    await modules.setDoc(docRef, tombstone)
+    const batch = modules.writeBatch(db)
+    batch.set(docRef, tombstone)
+    batch.delete(modules.doc(db, 'users', user.uid, 'sessions', tombstone.id))
+    await this.cloudRequest(batch.commit())
   }
 
   // --- Singleton Subcollections: Settings, Stats, Sound, Interface, Metadata ---
@@ -411,11 +513,12 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'settings', 'current')
-    const snap = await modules.getDoc(docRef)
+    const snap = await this.cloudRequest(modules.getDoc(docRef))
     if (!snap.exists()) return null
 
     // SAFETY: Document conforms to CloudSettingsDocument
     const d = snap.data() as unknown as CloudSettingsDocument
+    this.remoteRevisions.ff2_settings = d.updatedLocallyAt ?? ''
     return {
       focus: d.focus ?? DEFAULT_SETTINGS.focus,
       short: d.short ?? d.shortBreak ?? DEFAULT_SETTINGS.short,
@@ -435,36 +538,35 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       long: settings.long,
       rounds: settings.rounds,
       autoStart: settings.autoStart,
-      updatedLocallyAt: new Date().toISOString(),
+      updatedLocallyAt: readOutbox().changed.ff2_settings ?? new Date().toISOString(),
       schemaVersion: SCHEMA_VERSION,
     }
-    await modules.setDoc(docRef, cloudDoc)
+    await this.cloudRequest(modules.setDoc(docRef, cloudDoc))
   }
 
   async pullStats(): Promise<StatsV2 | null> {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'stats', 'summary')
-    const snap = await modules.getDoc(docRef)
+    const snap = await this.cloudRequest(modules.getDoc(docRef))
     if (!snap.exists()) return null
 
-    // SAFETY: Document conforms to CloudStatsDocument
-    const d = snap.data() as unknown as CloudStatsDocument
-    return {
-      minutes: d.minutes,
-      today: d.today,
-      week: d.week,
-      streak: d.streak,
-      date: d.date,
-      weekStart: d.weekStart,
-      lastDate: d.lastDate ?? null,
-      history: d.history ?? {},
-      milestones: d.milestones ?? [],
-      goals: d.goals,
-    }
+    const stats = isStats(snap.data())
+    if (!stats) return null
+    const daily = await this.pullCollection('daily_history')
+    const history = {...stats.history}
+    daily.forEach(day => {
+      const d = day as { date?: unknown; minutes?: unknown }
+      if (typeof d.date === 'string' && d.date === day._documentId && typeof d.minutes === 'number' && Number.isFinite(d.minutes) && d.minutes >= 0 && d.minutes <= 10_000_000 && historyDays({[d.date]: d.minutes}).length === 1) {
+        const [year, month, date] = d.date.split('-').map(Number)
+        history[new Date(year, month - 1, date).toDateString()] = d.minutes
+      }
+    })
+    return {...stats, history}
   }
 
   async pushStats(stats: StatsV2): Promise<void> {
+    const epoch = this.authEpoch
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'stats', 'summary')
@@ -476,7 +578,6 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       date: stats.date,
       weekStart: stats.weekStart,
       lastDate: stats.lastDate ?? null,
-      history: stats.history ?? {},
       milestones: stats.milestones ?? [],
       updatedLocallyAt: new Date().toISOString(),
       schemaVersion: SCHEMA_VERSION,
@@ -484,18 +585,39 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     if (stats.goals !== undefined) {
       rawDoc.goals = stats.goals
     }
-    await modules.setDoc(docRef, sanitizeFirestorePayload(rawDoc))
+    const original = await this.cloudRequest(modules.getDoc(docRef))
+    this.assertAccount(epoch, user.uid)
+    if (original.exists() && (original.data() as Record<string, unknown>).history) {
+      const key = `ff3_history_source_${user.uid}`
+      if (!getPersistence().getItem(key)) getPersistence().setItem(key, JSON.stringify(original.data()))
+    }
+    await this.pushDailyHistory(stats.history)
+    rawDoc.schemaVersion = 3
+    await this.cloudRequest(modules.setDoc(docRef, sanitizeFirestorePayload(rawDoc)))
+  }
+
+  private async pushDailyHistory(history: Record<string, number>): Promise<void> {
+    const user = this.ensureAuthenticatedUser()
+    const { db, modules } = await this.getFirebase()
+    let batch = modules.writeBatch(db)
+    let size = 0
+    for (const day of historyDays(history)) {
+      batch.set(modules.doc(db, 'users', user.uid, 'daily_history', day.date), day)
+      if (++size === 400) { await this.cloudRequest(batch.commit()); batch = modules.writeBatch(db); size = 0 }
+    }
+    if (size) await this.cloudRequest(batch.commit())
   }
 
   async pullSoundPrefs(): Promise<SoundPreferences | null> {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'sound_prefs', 'current')
-    const snap = await modules.getDoc(docRef)
+    const snap = await this.cloudRequest(modules.getDoc(docRef))
     if (!snap.exists()) return null
 
     // SAFETY: Document conforms to CloudSoundPrefsDocument
     const d = snap.data() as unknown as CloudSoundPrefsDocument
+    this.remoteRevisions.ff2_sound_prefs = d.updatedLocallyAt ?? ''
     return {
       baseTexture: (d.baseTexture as SoundPreferences['baseTexture']) ?? DEFAULT_SOUND_PREFERENCES.baseTexture,
       binauralMode: (d.binauralMode as SoundPreferences['binauralMode']) ?? DEFAULT_SOUND_PREFERENCES.binauralMode,
@@ -513,20 +635,21 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       binauralMode: prefs.binauralMode,
       toneWarmthCutoff: prefs.toneWarmthCutoff,
       volume: prefs.volume,
-      updatedLocallyAt: new Date().toISOString(),
+      updatedLocallyAt: readOutbox().changed.ff2_sound_prefs ?? new Date().toISOString(),
     }
-    await modules.setDoc(docRef, cloudDoc)
+    await this.cloudRequest(modules.setDoc(docRef, cloudDoc))
   }
 
   async pullInterface(): Promise<Partial<InterfacePrefs> | null> {
     const user = this.ensureAuthenticatedUser()
     const { db, modules } = await this.getFirebase()
     const docRef = modules.doc(db, 'users', user.uid, 'interface', 'current')
-    const snap = await modules.getDoc(docRef)
+    const snap = await this.cloudRequest(modules.getDoc(docRef))
     if (!snap.exists()) return null
 
     // SAFETY: Document conforms to CloudInterfaceDocument
     const d = snap.data() as unknown as CloudInterfaceDocument
+    this.remoteRevisions.ff2_interface = d.updatedLocallyAt ?? ''
     return {
       maskTaskTitlesInCloud: d.maskTaskTitlesInCloud,
     }
@@ -538,9 +661,9 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     const docRef = modules.doc(db, 'users', user.uid, 'interface', 'current')
     const cloudDoc: CloudInterfaceDocument = {
       maskTaskTitlesInCloud: prefs.maskTaskTitlesInCloud ?? false,
-      updatedLocallyAt: new Date().toISOString(),
+      updatedLocallyAt: readOutbox().changed.ff2_interface ?? new Date().toISOString(),
     }
-    await modules.setDoc(docRef, cloudDoc)
+    await this.cloudRequest(modules.setDoc(docRef, cloudDoc))
   }
 
   async pushSyncMetadata(): Promise<void> {
@@ -552,17 +675,19 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       schemaVersion: SCHEMA_VERSION,
       clientPlatform: typeof navigator !== 'undefined' ? navigator.userAgent : 'node',
     }
-    await modules.setDoc(docRef, cloudDoc)
+    await this.cloudRequest(modules.setDoc(docRef, cloudDoc))
   }
 
   // --- Reconciliation & Full Sync ---
 
-  async reconcileSessions(localSessions: SessionLogEntryV2[]): Promise<SessionLogEntryV2[]> {
+  async reconcileSessions(localSessions: SessionLogEntryV2[], epoch: number = this.authEpoch): Promise<SessionLogEntryV2[]> {
+    const owner = this.ensureAuthenticatedUser().uid
     const [remoteSessions, remoteTombstones] = await Promise.all([
-      this.pullSessions(),
+      this.pullCollection('sessions').then(rows => rows.flatMap(row => {const session = sanitizeSessionEntry(row); return session && session.id === row._documentId && session.minutes <= 120 ? [session] : []})),
       this.pullTombstones(),
     ])
 
+    this.assertAccount(epoch, owner)
     const localTombstones = loadTombstones()
     // Unify tombstones
     const tombstoneMap = new Map<string, SessionTombstone>()
@@ -570,75 +695,141 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       tombstoneMap.set(t.id, t)
     }
     const allTombstones = Array.from(tombstoneMap.values())
-    saveTombstones(allTombstones)
+    applyRemote(() => saveTombstones(allTombstones))
 
+    this.assertAccount(epoch, owner)
     // Push local tombstones not yet in remote
     for (const t of localTombstones) {
       if (!remoteTombstones.some((rt) => rt.id === t.id)) {
+        this.assertAccount(epoch, owner)
         await this.pushTombstone(t)
       }
     }
 
+    const remoteStats = await this.pullStats()
+    this.assertAccount(epoch, owner)
+    const oldStats = loadStats()
+    const effectiveLocal = mergeSessions(localSessions, mergeSessions(loadSessions(), Object.values(readOutbox().sessions), [], Infinity), [], Infinity)
+    const preservedHistory = mergeDailyHistory(oldStats.history, remoteStats?.history ?? {}, effectiveLocal, remoteSessions)
+
     // Merge sessions deterministically with tombstone filtration
-    const merged = mergeSessions(localSessions, remoteSessions, allTombstones)
+    let merged = mergeSessions(effectiveLocal, remoteSessions, allTombstones, Infinity)
+    if (loadInterface().maskTaskTitlesInCloud) {
+      const privateContent = new Map(effectiveLocal.map(session => [session.id, session]))
+      merged = merged.map(session => {
+        const local = privateContent.get(session.id)
+        return local ? {...session, task: local.task, checklist: local.checklist} : session
+      })
+    }
 
     // Save unified sessions locally
-    saveSessions(merged)
+    applyRemote(() => saveSessions(merged))
 
     // Push local-only sessions to remote
-    const remoteIdSet = new Set(remoteSessions.map((s) => s.id))
-    const sessionsToPush = merged.filter((s) => !remoteIdSet.has(s.id))
+    const remoteById = new Map(remoteSessions.map(s => [s.id, s]))
+    const masked = loadInterface().maskTaskTitlesInCloud === true
+    const comparable = (s: SessionLogEntryV2, outgoing: boolean) => JSON.stringify([s.id, s.date, s.minutes, outgoing && masked ? null : s.task ?? null, outgoing && masked ? [] : s.checklist ?? [], s.updatedLocallyAt ?? s.date])
+    const sessionsToPush = merged.filter(s => {const remote = remoteById.get(s.id); return !remote || comparable(s, true) !== comparable(remote, false)})
     if (sessionsToPush.length > 0) {
       await this.pushSessions(sessionsToPush)
     }
 
-    // Recompute stats to avoid counter drift
-    this.recalculateStatsFromSessions(merged)
+    this.assertAccount(epoch, owner)
+    if (remoteStats?.goals && !readOutbox().changed.ff2_goals) {
+      applyRemote(() => {saveStats({...loadStats(), goals: remoteStats.goals}); saveGoals(remoteStats.goals!)})
+    }
+    if (remoteStats?.milestones) {
+      const milestones = new Map((loadStats().milestones ?? []).map(record => [record.id, record]))
+      for (const record of remoteStats.milestones) {
+        const local = milestones.get(record.id)
+        milestones.set(record.id, local ? {...record, unlockedAt: local.unlockedAt < record.unlockedAt ? local.unlockedAt : record.unlockedAt, seen: local.seen || record.seen} : record)
+      }
+      applyRemote(() => saveStats({...loadStats(), milestones: [...milestones.values()]}))
+    }
 
-    return merged
+    // Recompute stats to avoid counter drift
+    this.recalculateStatsFromSessions(merged, preservedHistory)
+    await this.pushStats(loadStats())
+
+    return merged.slice(0, MAX_SYNC_SESSIONS)
   }
 
-  async syncAll(): Promise<void> {
+  syncAll(): Promise<void> {
+    if (this.inFlight) return this.inFlight
+    const epoch = this.authEpoch
+    let timeout: ReturnType<typeof setTimeout>
+    const deadline = new Promise<never>((_, reject) => {
+      this.syncDeadlineTouch = () => {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => {
+          if (this.authEpoch === epoch) {this.authEpoch++; this.setSyncStatus('error', 'cloud-timeout')}
+          reject(new Error('cloud-timeout'))
+        }, 60_000)
+      }
+      this.syncDeadlineTouch()
+    })
+    this.inFlight = Promise.race([this.performSyncAll(epoch), deadline]).finally(() => {clearTimeout(timeout); this.syncDeadlineTouch = null; this.inFlight = null})
+    return this.inFlight
+  }
+
+  private async performSyncAll(epoch: number): Promise<void> {
     this.setSyncStatus('syncing')
     try {
-      const localSessions = loadSessions()
-      await this.reconcileSessions(localSessions)
+      const user = this.ensureAuthenticatedUser()
+      const context = await this.getFirebase()
+      await this.validateRestoredAuth(context, epoch, user.uid)
+      this.assertAccount(epoch, user.uid)
+      if (!navigator.onLine) throw new Error('cloud-offline')
+      const outbox = readOutbox()
+      const settingsAtStart = loadSettings()
+      const soundAtStart = loadSoundPreferences()
+      const interfaceAtStart = loadInterface()
+      const remoteInterface = await this.pullInterface()
+      this.assertAccount(epoch, user.uid)
+      if (remoteInterface?.maskTaskTitlesInCloud !== undefined && (outbox.changed.ff2_interface ?? '') <= (this.remoteRevisions.ff2_interface ?? '')) {
+        interfaceAtStart.maskTaskTitlesInCloud = remoteInterface.maskTaskTitlesInCloud
+        if (readOutbox().changed.ff2_interface === outbox.changed.ff2_interface) applyRemote(() => saveInterface(interfaceAtStart))
+      } else {
+        await this.pushInterface(interfaceAtStart)
+      }
+      const localSessions = mergeSessions(loadSessions(), Object.values(outbox.sessions), [], Infinity)
+      await this.reconcileSessions(localSessions, epoch)
+      this.assertAccount(epoch, user.uid)
 
       // Sync settings
-      const localSettings = loadSettings()
+      const localSettings = settingsAtStart
       const remoteSettings = await this.pullSettings()
-      if (!remoteSettings) {
+      this.assertAccount(epoch, user.uid)
+      if (!remoteSettings || (outbox.changed.ff2_settings ?? '') > (this.remoteRevisions.ff2_settings ?? '')) {
         await this.pushSettings(localSettings)
       } else {
-        saveSettings(remoteSettings)
+        if (readOutbox().changed.ff2_settings === outbox.changed.ff2_settings) applyRemote(() => saveSettings(remoteSettings))
       }
 
       // Sync sound preferences
-      const localSound = loadSoundPreferences()
+      const localSound = soundAtStart
       const remoteSound = await this.pullSoundPrefs()
-      if (!remoteSound) {
+      this.assertAccount(epoch, user.uid)
+      if (!remoteSound || (outbox.changed.ff2_sound_prefs ?? '') > (this.remoteRevisions.ff2_sound_prefs ?? '')) {
         await this.pushSoundPrefs(localSound)
       } else {
-        saveSoundPreferences(remoteSound)
-      }
-
-      // Sync interface preferences (e.g. maskTaskTitlesInCloud)
-      const localInterface = loadInterface()
-      const remoteInterface = await this.pullInterface()
-      if (remoteInterface?.maskTaskTitlesInCloud !== undefined) {
-        saveInterface({ ...localInterface, maskTaskTitlesInCloud: remoteInterface.maskTaskTitlesInCloud })
-      } else {
-        await this.pushInterface(localInterface)
+        if (readOutbox().changed.ff2_sound_prefs === outbox.changed.ff2_sound_prefs) applyRemote(() => saveSoundPreferences(remoteSound))
       }
 
       // Update sync metadata
-      await this.pushSyncMetadata()
+      if (Object.keys(outbox.changed).length || !this.lastSyncedAt) await this.pushSyncMetadata()
 
+      const maskKey = `ff3_mask_verified_${this.ensureAuthenticatedUser().uid}`
+      if (interfaceAtStart.maskTaskTitlesInCloud && (outbox.changed.ff2_interface || !getPersistence().getItem(maskKey))) {
+        await this.applyPrivacy(true)
+        getPersistence().setItem(maskKey, '3')
+      } else if (!interfaceAtStart.maskTaskTitlesInCloud) getPersistence().removeItem(maskKey)
+      this.assertAccount(epoch, user.uid)
+      acknowledgeOutbox(outbox.revision)
       this.lastSyncedAt = new Date().toISOString()
       this.setSyncStatus('synced')
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Sync failed'
-      this.setSyncStatus('error', msg)
+      if (epoch === this.authEpoch) this.setSyncStatus('error', err)
       throw err
     }
   }
@@ -646,24 +837,29 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
   // --- GDPR Art. 17 Complete Erasure ---
 
   async purgeCloudData(): Promise<void> {
+    const epoch = this.authEpoch
     const user = this.ensureAuthenticatedUser()
     const { db, auth, modules } = await this.getFirebase()
 
     this.setSyncStatus('syncing')
 
     try {
-      const subcollections = ['sessions', 'tombstones', 'settings', 'stats', 'sound_prefs', 'interface', 'metadata']
+      const subcollections = ['sessions', 'tombstones', 'settings', 'stats', 'sound_prefs', 'interface', 'metadata', 'daily_history']
 
       for (const sub of subcollections) {
         const colRef = modules.collection(db, 'users', user.uid, sub)
-        const snap = await modules.getDocs(colRef)
-        const batch = modules.writeBatch(db)
-        snap.forEach((docSnap) => {
-          batch.delete(docSnap.ref)
-        })
-        await batch.commit()
+        // Bound reads to the security rules and writes below Firestore's 500-operation limit.
+        while (true) {
+          const snap = await this.cloudRequest(modules.getDocs(modules.query(colRef, modules.limit(400))))
+          this.assertAccount(epoch, user.uid)
+          if (snap.docs.length === 0) break
+          const batch = modules.writeBatch(db)
+          snap.forEach((docSnap) => { batch.delete(docSnap.ref) })
+          await this.cloudRequest(batch.commit())
+        }
       }
 
+      this.assertAccount(epoch, user.uid)
       // Attempt to delete user identity if current auth matches
       if (auth.currentUser && auth.currentUser.uid === user.uid) {
         try {
@@ -675,15 +871,40 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
       }
 
       saveLastSyncedUid(null)
+      saveLastSyncedProjectId(null)
       await this.signOut()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Purge cloud data failed'
-      this.setSyncStatus('error', msg)
+      this.setSyncStatus('error', err)
       throw err
     }
   }
 
   // --- Internal Helpers ---
+
+  private async validateRestoredAuth(context: FirebaseContext, epoch: number, uid: string): Promise<void> {
+    if (typeof context.auth.authStateReady === 'function') await context.auth.authStateReady()
+    this.assertAccount(epoch, uid)
+    if (context.auth.currentUser?.uid === uid) return
+    const code = context.auth.currentUser ? 'cloud-account-mismatch' : 'unauthenticated'
+    // Reject the cache before issuing any Firestore request. Preserve local data.
+    this.authEpoch++
+    this.setAuthState({status: 'unauthenticated'})
+    this.setSyncStatus('error', code)
+    throw new Error(code)
+  }
+
+  private async cloudRequest<T>(operation: Promise<T>): Promise<T> {
+    const epoch = this.authEpoch
+    const result = await operation
+    if (epoch !== this.authEpoch) throw new Error('cloud-account-changed')
+    // A large history can take longer than a minute while still making progress.
+    this.syncDeadlineTouch?.()
+    return result
+  }
+
+  private assertAccount(epoch: number, uid: string): void {
+    if (epoch !== this.authEpoch || this.authState.status !== 'authenticated' || this.authState.user.uid !== uid) throw new Error('cloud-account-changed')
+  }
 
   private ensureAuthenticatedUser(): CloudUser {
     if (this.authState.status !== 'authenticated' || !this.authState.user) {
@@ -692,42 +913,94 @@ export class CloudSyncAdapterImpl implements SyncStorageAdapter {
     return this.authState.user
   }
 
-  private recalculateStatsFromSessions(sessions: SessionLogEntryV2[]): void {
+  private recalculateStatsFromSessions(sessions: SessionLogEntryV2[], archivedHistory: Record<string, number> = {}): void {
     const currentStats = loadStats()
     const todayStr = new Date().toDateString()
 
     let allMinutes = 0
-    let todayMinutes = 0
-    const historyMap: Record<string, number> = {}
+    let todaySessions = 0
+    let weekSessions = 0
+    const historyMap: Record<string, number> = {...archivedHistory}
 
     for (const s of sessions) {
       const sessionDate = new Date(s.date)
       const dayKey = !Number.isNaN(sessionDate.getTime()) ? sessionDate.toDateString() : s.date
       const mins = s.minutes
 
+      if (weekStartOf(sessionDate) === weekStartOf()) weekSessions += 1
       allMinutes += mins
       historyMap[dayKey] = (historyMap[dayKey] ?? 0) + mins
 
       if (dayKey === todayStr) {
-        todayMinutes += mins
+        todaySessions += 1
       }
     }
 
+    const activeDays = new Set(Object.entries(historyMap).filter(([, minutes]) => minutes > 0).map(([day]) => day))
+    const lastDate = [...activeDays].sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null
+    const day = new Date()
+    if (!activeDays.has(day.toDateString())) day.setDate(day.getDate() - 1)
+    let streak = 0
+    while (activeDays.has(day.toDateString())) {streak++; day.setDate(day.getDate() - 1)}
+
     const updatedStats: StatsV2 = {
       ...currentStats,
-      minutes: allMinutes,
-      today: todayMinutes,
+      goals: loadGoals(),
+      minutes: Math.max(allMinutes, Object.values(historyMap).reduce((sum, n) => sum + n, 0)),
+      today: todaySessions,
+      week: weekSessions,
+      streak,
+      lastDate,
+      date: todayStr,
+      weekStart: weekStartOf(),
       history: historyMap,
     }
 
-    saveStats(updatedStats)
-    // Async push recomputed stats
-    this.pushStats(updatedStats).catch(() => {
-      // Background non-fatal
-    })
+    applyRemote(() => saveStats(updatedStats))
+
+  }
+
+  startBackground(): () => void {
+    if (this.backgroundCleanup) return this.backgroundCleanup
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const schedule = () => {
+      this.persistCurrentState()
+      if (this.authState.status !== 'authenticated' || !navigator.onLine) return
+      clearTimeout(timer)
+      timer = setTimeout(() => {void this.syncAll().then(() => {if (Object.keys(readOutbox().changed).length) schedule()}).catch(() => {})}, 750)
+    }
+    const changed = (event: Event) => {
+      if (isRemoteWrite()) return
+      if (Object.keys(readOutbox().changed).includes(String((event as CustomEvent).detail))) schedule()
+    }
+    window.addEventListener('focus-flow:storage', changed)
+    window.addEventListener('online', schedule)
+    const poll = setInterval(() => {
+      if (this.authState.status !== 'authenticated' || !navigator.onLine || document.hidden || this.inFlight) return
+      const user = this.authState.user
+      const epoch = this.authEpoch
+      void this.getFirebase().then(async (context) => {
+        await this.validateRestoredAuth(context, epoch, user.uid)
+        const {db, modules} = context
+        const snapshot = await this.cloudRequest(modules.getDoc(modules.doc(db, 'users', user.uid, 'metadata', 'sync')))
+        const timestamp = snapshot.exists() ? snapshot.data().lastSyncedAt : null
+        if (typeof timestamp === 'string' && timestamp > (this.lastSyncedAt ?? '')) schedule()
+      }).catch(error => {if (epoch === this.authEpoch) this.setSyncStatus('error', error)})
+    }, 60_000)
+    // Restore only an explicitly connected account; anonymous startup stays offline.
+    if (this.authState.status === 'authenticated') schedule()
+    this.backgroundCleanup = () => {
+      clearTimeout(timer)
+      clearInterval(poll)
+      window.removeEventListener('focus-flow:storage', changed)
+      window.removeEventListener('online', schedule)
+      this.backgroundCleanup = null
+    }
+    return this.backgroundCleanup
   }
 
   dispose(): void {
+    this.backgroundCleanup?.()
     if (this.unsubscribeAuth) {
       this.unsubscribeAuth()
       this.unsubscribeAuth = null

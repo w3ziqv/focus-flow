@@ -1,8 +1,10 @@
-import { useMemo, useState, useRef, useEffect } from 'react'
+import { formatNumber } from '../lib/translations'
+import { memo, useMemo, useState, useRef, useEffect } from 'react'
 import { Edit2, Trash2, Check, X, Share2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
-import type { StatsV2, SessionLogEntryV2 } from '../types'
+import type { Lang, StatsV2, SessionLogEntryV2 } from '../types'
 import { groupByDay, loadSessions, timeLabel } from '../lib/sessions'
+import { isRemoteWrite } from '../lib/sync/outbox'
 import { updateSessionTask } from '../lib/storage'
 import {
   aggregateTaskBreakdown,
@@ -13,29 +15,31 @@ import {
   sumMinutes,
   deleteSessionWithStats,
 } from '../lib/stats'
-import { StatCard } from '../components/StatCard'
-import { WeekChart } from '../components/WeekChart'
-import { ActivityHeatmap } from '../components/ActivityHeatmap'
-import { TaskBreakdown } from '../components/TaskBreakdown'
-import { ProductivityInsights } from '../components/ProductivityInsights'
-import { SegmentedTabs } from '../components/SegmentedTabs'
-import { ZenMilestones } from '../components/ZenMilestones'
-import { SearchFilterWell } from '../components/SearchFilterWell'
-import { ExportCardModal } from '../components/ExportCardModal'
-import { PillButton } from '../components/PillButton'
+import { StatCard } from '../features/statistics/StatCard'
+import { WeekChart } from '../features/statistics/WeekChart'
+import { ActivityHeatmap } from '../features/statistics/ActivityHeatmap'
+import { TaskBreakdown } from '../features/statistics/TaskBreakdown'
+import { ProductivityInsights } from '../features/statistics/ProductivityInsights'
+import { SegmentedTabs } from '../ui/SegmentedTabs'
+import { ZenMilestones } from '../features/statistics/ZenMilestones'
+import { SearchFilterWell } from '../features/statistics/SearchFilterWell'
+import { ExportCardModal } from '../features/statistics/ExportCardModal'
+import { PillButton } from '../ui/PillButton'
 import type { WeeklyCardData } from '../lib/cardExport'
 
 interface StatsViewProps {
   stats: StatsV2
-  lang: 'pl' | 'en'
+  lang: Lang
   chartDays?: ReturnType<typeof last7Days>
   totalMinutes?: number
+  onStartSession?: () => void
   onStatsChange?: (next: StatsV2) => void
 }
 
 type Range = '7' | '30'
+const SESSION_PAGE_SIZE = 50
 
-export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewProps): React.JSX.Element {
+export function StatsView({ stats: propStats, lang, onStatsChange, onStartSession }: StatsViewProps): React.JSX.Element {
   const { t } = useI18n()
   const [deletedStatsOverride, setDeletedStatsOverride] = useState<StatsV2 | null>(null)
   const stats = deletedStatsOverride ?? propStats
@@ -43,9 +47,18 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
   const [range, setRange] = useState<Range>('7')
   const [exportModalOpen, setExportModalOpen] = useState(false)
 
+  useEffect(() => {
+    const changed = (event: Event) => {
+      if (isRemoteWrite() && (event as CustomEvent).detail === 'ff2_sessions') {setSessions(loadSessions()); setDeletedStatsOverride(null)}
+    }
+    window.addEventListener('focus-flow:storage', changed)
+    return () => window.removeEventListener('focus-flow:storage', changed)
+  }, [])
+
   // Search and date filters
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const [visibleCount, setVisibleCount] = useState(SESSION_PAGE_SIZE)
 
   // Inline editing state
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -78,7 +91,8 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
     return result
   }, [sessions, searchQuery, dateFilter])
 
-  const days = useMemo(() => groupByDay(filteredSessions, lang), [filteredSessions, lang])
+  const visibleSessions = useMemo(() => filteredSessions.slice(0, visibleCount), [filteredSessions, visibleCount])
+  const days = useMemo(() => groupByDay(visibleSessions, lang), [visibleSessions, lang])
 
   const heatmapDays = useMemo(() => generateHeatmap(stats, lang, 30), [stats, lang])
   const heatmapTotalMinutes = useMemo(
@@ -121,7 +135,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
     setEditTaskText('')
   }
 
-  // Deletion with atomic stats decrement
+  // Deletion with coordinated statistics updates
   const handleDeleteSession = (id: string) => {
     if (window.confirm(t('log.deleteConfirm'))) {
       const result = deleteSessionWithStats(id)
@@ -153,7 +167,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
   return (
     <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24 space-y-10">
       <div>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-overline text-ink-3">{t('app.name')}</p>
             <h1 className="mt-2 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{t('stats.view')}</h1>
@@ -169,14 +183,14 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
-          <StatCard value={stats.today} label={t('stat.today')} emphasized />
-          <StatCard value={stats.week} label={t('stat.week')} />
-          <StatCard value={stats.streak} label={t('stat.streak')} />
-          <StatCard value={stats.minutes} label={t('stat.minutes')} />
+          <StatCard value={formatNumber(lang, stats.today)} label={t('stat.today')} emphasized />
+          <StatCard value={formatNumber(lang, stats.week)} label={t('stat.week')} />
+          <StatCard value={formatNumber(lang, stats.streak)} label={t('stat.streak')} />
+          <StatCard value={formatNumber(lang, stats.minutes)} label={t('stat.minutes')} />
         </div>
       </div>
 
-      <ZenMilestones stats={stats} sessions={sessions} />
+      {stats.minutes === 0 && onStartSession && <PillButton onClick={onStartSession}>{t('stats.begin')}</PillButton>}
 
       <ActivityHeatmap days={heatmapDays} totalMinutes={heatmapTotalMinutes} />
 
@@ -205,16 +219,16 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
 
         <SearchFilterWell
           query={searchQuery}
-          onQueryChange={setSearchQuery}
+          onQueryChange={query => { setSearchQuery(query); setVisibleCount(SESSION_PAGE_SIZE) }}
           dateFilter={dateFilter}
-          onDateFilterChange={setDateFilter}
+          onDateFilterChange={date => { setDateFilter(date); setVisibleCount(SESSION_PAGE_SIZE) }}
           totalCount={sessions.length}
           filteredCount={filteredSessions.length}
         />
 
         {days.length === 0 ? (
           <p className="mt-4 rounded-2xl border border-line bg-card p-5 text-[14px] leading-relaxed text-ink-2">
-            {sessions.length === 0 ? t('log.empty') : t('stats.tasksEmpty')}
+            {sessions.length === 0 ? t('log.empty') : t('log.noMatches')}
           </p>
         ) : (
           <div className="mt-4 space-y-6">
@@ -232,13 +246,14 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
                         key={entry.id}
                         className="group flex flex-col gap-2 rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-subtle"
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className={isEditing ? 'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3' : 'flex items-start justify-between gap-3'}>
                           <div className="min-w-0 flex-1">
                             {isEditing ? (
                               <div className="flex items-center gap-2">
                                 <input
                                   ref={editInputRef}
                                   type="text"
+                                  aria-label={t('log.editTask')}
                                   value={editTaskText}
                                   maxLength={200}
                                   onChange={(e) => setEditTaskText(e.target.value)}
@@ -246,21 +261,26 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
                                     if (e.key === 'Enter') handleSaveEdit(entry.id)
                                     if (e.key === 'Escape') handleCancelEdit()
                                   }}
-                                  onBlur={() => handleSaveEdit(entry.id)}
-                                  className="w-full rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink focus:outline-none"
+                                  onBlur={(event) => {
+                                    // Save/Cancel own their action; focus moving to them must not commit first.
+                                    if (event.relatedTarget instanceof Node && event.currentTarget.parentElement?.contains(event.relatedTarget)) return
+                                    handleSaveEdit(entry.id)
+                                  }}
+                                  className="min-h-target min-w-0 flex-1 rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleSaveEdit(entry.id)}
-                                  className="p-1 text-[var(--ac-strong)] hover:bg-sunken rounded"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-[var(--ac-strong)] hover:bg-sunken"
                                   aria-label={t('log.saveTask')}
                                 >
                                   <Check className="size-4" />
                                 </button>
                                 <button
                                   type="button"
+                                  onMouseDown={event => event.preventDefault()}
                                   onClick={handleCancelEdit}
-                                  className="p-1 text-ink-3 hover:bg-sunken rounded"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken"
                                   aria-label={t('log.cancelEdit')}
                                 >
                                   <X className="size-4" />
@@ -274,7 +294,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
                                 <button
                                   type="button"
                                   onClick={() => handleStartEdit(entry)}
-                                  className="opacity-0 group-hover:opacity-100 p-1 text-ink-3 hover:text-ink transition-opacity rounded focus-visible:opacity-100"
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-ink"
                                   aria-label={t('log.editTask')}
                                 >
                                   <Edit2 className="size-3.5" />
@@ -317,14 +337,14 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className={`flex items-center gap-2 shrink-0 ${isEditing ? 'self-end sm:self-auto' : ''}`}>
                             <span className="tnum text-[14px] font-medium text-[var(--ac-strong)]">
-                              {entry.minutes} min
+                              {formatNumber(lang, entry.minutes)} {t('unit.minuteShort')}
                             </span>
                             <button
                               type="button"
                               onClick={() => handleDeleteSession(entry.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-ink-3 hover:text-red-500 transition-opacity rounded focus-visible:opacity-100"
+                              className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-danger"
                               aria-label={t('log.deleteSession')}
                             >
                               <Trash2 className="size-4" />
@@ -339,7 +359,13 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
             ))}
           </div>
         )}
+        {filteredSessions.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
+          <p role="status" className="text-caption text-ink-2">{t('log.shown', { shown: visibleSessions.length, total: filteredSessions.length })}</p>
+          {visibleSessions.length < filteredSessions.length && <PillButton onClick={() => setVisibleCount(count => count + SESSION_PAGE_SIZE)}>{t('log.showMore')}</PillButton>}
+        </div>}
       </div>
+
+      <ZenMilestones stats={stats} sessions={sessions} />
 
       <ExportCardModal
         open={exportModalOpen}
@@ -350,4 +376,5 @@ export function StatsView({ stats: propStats, lang, onStatsChange }: StatsViewPr
   )
 }
 
-export default StatsView
+const MemoizedStatsView: React.NamedExoticComponent<StatsViewProps> = memo(StatsView)
+export default MemoizedStatsView

@@ -1,0 +1,114 @@
+{
+  "retrieval": {
+    "label": "Roediger & Karpicke (2006) · Psychological Science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/16507066/"
+  },
+  "spacing": {
+    "label": "Cepeda et al. (2008) · Psychological Science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/19076480/"
+  },
+  "sleep": {
+    "label": "NHLBI · Healthy Sleep Habits",
+    "url": "https://www.nhlbi.nih.gov/health/sleep-deprivation/healthy-sleep-habits"
+  },
+  "breaks": {
+    "label": "Ariga & Lleras (2011) · Cognition",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0010027710002994"
+  },
+  "diet": {
+    "label": "WHO (2026) · Healthy diet",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/healthy-diet"
+  },
+  "residue": {
+    "label": "Leroy (2009) · Organizational Behavior and Human Decision Processes",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0749597809000399"
+  },
+  "breathing": {
+    "label": "Yilmaz Balban et al. (2023) · Cell Reports Medicine",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9873947/"
+  },
+  "loci": {
+    "label": "Dresler et al. (2017) · Neuron",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5439266/"
+  },
+  "memoryAthletes": {
+    "label": "Maguire et al. (2003) · Nature Neuroscience",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/12483214/"
+  },
+  "nature": {
+    "label": "Berman, Jonides & Kaplan (2008) · Psychological Science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/19121124/"
+  },
+  "caffeine": {
+    "label": "Drake et al. (2013) · Journal of Clinical Sleep Medicine",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/24235903/"
+  },
+  "caffeineDose": {
+    "label": "Gardiner et al. (2025) · Sleep",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39377163/"
+  },
+  "water": {
+    "label": "NHS · Water, drinks and hydration",
+    "url": "https://www.nhs.uk/live-well/eat-well/food-guidelines-and-food-labels/water-drinks-nutrition/"
+  },
+  "dehydration": {
+    "label": "Ganio et al. (2011) · British Journal of Nutrition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/21736786/"
+  },
+  "compassion": {
+    "label": "Breines & Chen (2012) · Personality and Social Psychology Bulletin",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/22645164/"
+  },
+  "mindfulness": {
+    "label": "Zeidan et al. (2010) · Consciousness and Cognition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/20363650/"
+  },
+  "interleaving": {
+    "label": "Rohrer & Taylor (2007) · Instructional Science",
+    "url": "https://link.springer.com/article/10.1007/s11251-007-9015-8"
+  },
+  "dualCoding": {
+    "label": "Clark & Paivio (1991) · Educational Psychology Review",
+    "url": "https://link.springer.com/article/10.1007/BF01320076"
+  },
+  "rest": {
+    "label": "Dewar et al. (2012) · Psychological Science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/22829465/"
+  },
+  "greenRoof": {
+    "label": "Lee et al. (2015) · Journal of Environmental Psychology",
+    "url": "https://www.sciencedirect.com/science/article/abs/pii/S0272494415000328"
+  },
+  "light": {
+    "label": "Chang et al. (2015) · PNAS",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/25535358/"
+  },
+  "postmeal": {
+    "label": "DiPietro et al. (2013) · Diabetes Care",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/23761134/"
+  },
+  "magnesium": {
+    "label": "NIH Office of Dietary Supplements · Magnesium",
+    "url": "https://ods.od.nih.gov/factsheets/Magnesium-Consumer/"
+  },
+  "omega3": {
+    "label": "NIH Office of Dietary Supplements · Omega-3 Fatty Acids",
+    "url": "https://ods.od.nih.gov/factsheets/Omega3FattyAcids-Consumer/"
+  },
+  "plans": {
+    "label": "Webb & Sheeran (2007) · Journal of Experimental Social Psychology",
+    "url": "https://www.sciencedirect.com/science/article/pii/S002210310600028X"
+  },
+  "reappraisal": {
+    "label": "Jamieson, Nock & Mendes (2012) · Journal of Experimental Psychology: General",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/21942377/"
+  },
+  "monitoring": {
+    "label": "Colzato, Ozturk & Hommel (2012) · Frontiers in Psychology",
+    "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2012.00116/full"
+  },
+  "bodyScan": {
+    "label": "Mirams et al. (2013) · Consciousness and Cognition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/22889642/"
+  }
+}

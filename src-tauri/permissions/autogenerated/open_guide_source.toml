@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-guide-source"
+description = "Enables the open_guide_source command without any pre-configured scope."
+commands.allow = ["open_guide_source"]
+
+[[permission]]
+identifier = "deny-open-guide-source"
+description = "Denies the open_guide_source command without any pre-configured scope."
+commands.deny = ["open_guide_source"]

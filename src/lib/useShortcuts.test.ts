@@ -37,6 +37,16 @@ describe('useShortcuts', () => {
     expect(handlers.toggle).not.toHaveBeenCalled()
   })
 
+  it('does not change the timer behind an open modal', () => {
+    renderHook(() => useShortcuts(handlers))
+    const modal = document.createElement('section')
+    modal.setAttribute('role', 'dialog')
+    modal.setAttribute('aria-modal', 'true')
+    document.body.appendChild(modal)
+    for (const key of ['r', 'f', ' ', 'Escape']) window.dispatchEvent(new KeyboardEvent('keydown', {key}))
+    for (const handler of Object.values(handlers)) expect(handler).not.toHaveBeenCalled()
+  })
+
   it('still wires R and F outside of interactive elements', () => {
     renderHook(() => useShortcuts(handlers))
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }))

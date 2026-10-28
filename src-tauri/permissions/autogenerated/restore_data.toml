@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-restore-data"
+description = "Enables the restore_data command without any pre-configured scope."
+commands.allow = ["restore_data"]
+
+[[permission]]
+identifier = "deny-restore-data"
+description = "Denies the restore_data command without any pre-configured scope."
+commands.deny = ["restore_data"]

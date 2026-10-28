@@ -11,6 +11,7 @@ import type {
   TaskPreset,
 } from '../types'
 import {
+  MAX_SOUND_SIZE,
   isInterface,
   isSettings,
   isStats,
@@ -18,6 +19,7 @@ import {
   loadCustomSounds,
   loadInterface,
   loadLang,
+  systemLang,
   loadPresets,
   loadSessions,
   loadSettings,
@@ -36,6 +38,7 @@ import {
   saveVolume,
 } from './storage'
 import { getSoundBlob, isAudioUpload, probeAudio, putSound } from './soundStore'
+import { isLang } from '../domain/language'
 
 export type {
   BackupSound,
@@ -85,7 +88,7 @@ export async function exportData(): Promise<BackupFileV2> {
       sessions: loadSessions(),
       presets: loadPresets(),
       sounds,
-      lang: loadLang() ?? 'pl',
+      lang: loadLang() ?? systemLang(),
       theme: loadTheme() ?? 'light',
       volume: loadVolume(),
       interface: loadInterface(),
@@ -120,7 +123,7 @@ export function isBackupFile(val: unknown): val is BackupFileAny {
     if (typeof data.settings !== 'object' || data.settings === null) return false
     if (typeof data.stats !== 'object' || data.stats === null) return false
     if (data.sounds !== undefined && !Array.isArray(data.sounds)) return false
-    if (data.lang !== undefined && data.lang !== 'pl' && data.lang !== 'en') return false
+    if (data.lang !== undefined && !isLang(data.lang)) return false
     if (
       data.theme !== undefined &&
       data.theme !== 'light' &&
@@ -140,7 +143,7 @@ export function isBackupFile(val: unknown): val is BackupFileAny {
     if (!Array.isArray(data.sessions)) return false
     if (!Array.isArray(data.presets)) return false
     if (!Array.isArray(data.sounds)) return false
-    if (data.lang !== 'pl' && data.lang !== 'en') return false
+    if (!isLang(data.lang)) return false
     if (
       data.theme !== 'light' &&
       data.theme !== 'dark' &&
@@ -162,12 +165,13 @@ async function restoreSounds(sounds: unknown[]): Promise<void> {
   for (const entry of sounds) {
     if (typeof entry !== 'object' || entry === null) continue
     const v = entry as Record<string, unknown>
-    if (typeof v.id !== 'string' || typeof v.name !== 'string') continue
+    if (typeof v.id !== 'string' || !v.id.trim() || v.id.length > 64 || typeof v.name !== 'string' || v.name.length > 200) continue
     const audio = typeof v.audio === 'string' ? v.audio : typeof v.dataUrl === 'string' ? v.dataUrl : null
-    if (audio !== null && audio.startsWith('data:')) {
+    if (audio !== null && !audio.startsWith('data:audio/')) continue
+    if (audio !== null) {
       try {
         const blob = await (await fetch(audio)).blob()
-        if (!isAudioUpload({ type: blob.type, name: v.name })) continue
+        if (blob.size > MAX_SOUND_SIZE || !isAudioUpload({ type: blob.type, name: v.name })) continue
         if (!(await probeAudio(blob))) continue
         await putSound(v.id, v.name, blob)
       } catch {
@@ -192,7 +196,7 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
   }
 
   // Guard against massive JSON files crashing the thread (max 250 MB)
-  if (raw.length > maxSizeBytes) {
+  if (raw.length > maxSizeBytes || new Blob([raw]).size > maxSizeBytes) {
     return { success: false, error: 'Backup file exceeds maximum allowed size (250 MB)' }
   }
 
@@ -259,7 +263,7 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
       await restoreSounds(data.sounds)
     }
 
-    if (data.lang === 'pl' || data.lang === 'en') {
+    if (isLang(data.lang)) {
       saveLang(data.lang)
     }
 
@@ -332,8 +336,8 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
   if (!Array.isArray(data.sounds)) {
     return { success: false, error: 'Invalid backup file: sounds must be an array' }
   }
-  if (data.lang !== 'pl' && data.lang !== 'en') {
-    return { success: false, error: 'Invalid backup file: lang must be "pl" or "en"' }
+  if (!isLang(data.lang)) {
+    return { success: false, error: 'Invalid backup file: unsupported language' }
   }
 
   if (

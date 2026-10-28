@@ -1,10 +1,10 @@
 import { randomBreakTip } from '../lib/breakTips'
 import { taskGreeting } from '../lib/placeholders'
 import { useI18n } from '../lib/i18n'
-import { Dial } from '../components/Dial'
-import { SegmentedTabs } from '../components/SegmentedTabs'
-import { TaskField } from '../components/TaskField'
-import { PillButton } from '../components/PillButton'
+import { Dial } from '../features/timer/Dial'
+import { SegmentedTabs } from '../ui/SegmentedTabs'
+import { TaskField } from '../features/timer/TaskField'
+import { PillButton } from '../ui/PillButton'
 import type { AmbientSound, BinauralMode, Mode } from '../types'
 import type { TimerEngine } from '../lib/timer'
 import { useMemo } from 'react'
@@ -47,10 +47,8 @@ export function TimerView({
   const isSoundActive = ambient !== 'none' || (binaural && binaural !== 'off')
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 md:min-h-0 md:justify-start md:pt-24 md:pb-16">
-      <p aria-hidden="true" className="mb-3 text-center text-overline text-ink-3 max-sm:block sm:hidden">
-        FOCUS FLOW
-      </p>
+    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 md:min-h-0 md:justify-start md:pt-20 md:pb-16">
+      <h1 className="mb-2 text-center font-serif text-lg font-medium md:sr-only md:mb-0">{t('app.name')}<span className="sr-only"> — {t('nav.timer')}</span></h1>
 
       <div className="fade-up shrink-0" style={{ animationDelay: '0ms' }}>
         <TaskField
@@ -71,7 +69,7 @@ export function TimerView({
       </div>
 
       <div className="fade-up my-auto py-1 sm:my-0 sm:mt-6 sm:py-0" style={{ animationDelay: '80ms' }}>
-        <div className="mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px] md:max-w-[380px]">
+        <div className="mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px]">
           <Dial
             mode={engine.mode}
             remainingMs={engine.remainingMs}
@@ -108,7 +106,7 @@ export function TimerView({
             type="button"
             onClick={onOpenSoundSettings}
             aria-label={t('sound.settings')}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex min-h-target items-center gap-1.5 rounded-control border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
           >
             <Volume2 size={15} aria-hidden="true" />
             <span>{t('sound.settings')}</span>
@@ -121,7 +119,7 @@ export function TimerView({
             type="button"
             onClick={onEnterFocus}
             aria-label={t('focus.enter')}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 shadow-halo transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex min-h-target items-center gap-1.5 rounded-control border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
           >
             <Maximize2 size={14} aria-hidden="true" />
             <span>{t('focus.enter')}</span>
@@ -132,7 +130,7 @@ export function TimerView({
             onClick={onOpenSettings}
             aria-label={t('settings.timer')}
             title={t('settings.timer')}
-            className="size-10 rounded-full border border-line bg-card shadow-halo"
+            className="size-target rounded-control border border-line bg-card"
           >
             <Settings2 size={16} aria-hidden="true" />
           </PillButton>
@@ -145,10 +143,10 @@ export function TimerView({
         <div className="fade-up mt-4 shrink-0 rounded-2xl border border-line bg-card p-4 text-center sm:mt-8 sm:p-5">
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
           <p className="mt-1 font-serif text-[1.125rem] font-[500] text-ink">
-            {lang === 'pl' ? breakTip.titlePl : breakTip.titleEn}
+            {breakTip.title[lang]}
           </p>
           <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
-            {lang === 'pl' ? breakTip.descPl : breakTip.descEn}
+            {breakTip.description[lang]}
           </p>
         </div>
       )}
