@@ -1,0 +1,13 @@
+{
+  "history": 1000,
+  "startPauseCycles": 40,
+  "viewCycles": 30,
+  "audioChanges": 30,
+  "quotaRollback": true,
+  "errors": [],
+  "resources": {
+    "contexts": 1,
+    "activeSources": 0,
+    "liveObjectUrls": 0
+  }
+}

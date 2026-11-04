@@ -36,7 +36,9 @@
     "test:rules": "node scripts/test-firestore-rules.mjs",
     "test:migration": "node scripts/test-migration.mjs",
     "test:localization": "node scripts/test-localization.mjs",
-    "test:responsive": "node scripts/test-responsive.mjs"
+    "test:responsive": "node scripts/test-responsive.mjs",
+    "test:security": "vitest run src/lib/security.test.ts src/lib/security_stress.test.ts src/lib/import_atomicity.test.ts src/lib/export_security.test.ts src/lib/desktop/peer_transfer.test.ts",
+    "test:stress": "node scripts/test-security-browser.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",

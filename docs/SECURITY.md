@@ -66,9 +66,17 @@ JSON/audio imports enforce size limits and schemas and reject prototype keys.
 Imported data is rendered as text rather than HTML. Very large allowed imports
 can still put pressure on a low-memory device.
 
+The 3.1 candidate reports failed import writes and attempts to restore core
+fields/outbox before notifying the current page. This is a synchronous,
+best-effort rollback, not a cross-tab or crash-safe transaction; media blobs
+remain separate. CSV string values beginning with spreadsheet formula markers,
+including leading whitespace/control characters, receive an apostrophe prefix.
+
 Peer sync requires manual identity-fingerprint exchange and private LAN candidates.
 Pair only devices you trust. Frame limits, timeouts and validation reject malformed
 input; authentication does not make a paired device's data truthful.
+Wire limits account for JSON escaping while decoded chunk/transfer limits
+remain bounded; callbacks from disconnected channels are ignored.
 
 Optional webhooks disclose data to the configured receiver. Requests omit browser
 credentials/referrers and reject redirects. Do not place secrets in URLs. The web
@@ -107,3 +115,8 @@ behavior, current physical OS integration and physical upgrade/rollback were not
 completed. Publication with these checks unexecuted was explicitly accepted by
 the owner. These results remain unverified; earlier physical acceptance applies
 to preceding installers.
+
+The [3.1 security/stress review](SECURITY-REVIEW-3.1.md) records newly executed
+emulator, core-native and browser tests and the checks still outstanding.
+The candidate Firestore rules use the post-batch preference/deletion state;
+these changes require a separate reviewed rules deployment to take effect.

@@ -83,15 +83,62 @@ function read<T>(key: string, validate: (value: unknown) => T | null): T | null 
   }
 }
 
+interface StorageWriteTransaction {
+  before: Map<string, string | null>
+  changed: Set<string>
+  failed: boolean
+}
+let storageTransaction: StorageWriteTransaction | null = null
+
+/** Synchronous import boundary; current-page notifications follow a complete commit. */
+export function withStorageTransaction(work: () => void): boolean {
+  if (storageTransaction) throw new Error('Nested storage transactions are unsupported')
+  const transaction: StorageWriteTransaction = { before: new Map(), changed: new Set(), failed: false }
+  const storage = getPersistence()
+  storageTransaction = transaction
+  try {
+    work()
+    if (transaction.failed) throw new Error('Storage write failed')
+  } catch {
+    // Free newly created keys, then restore shrinking values before growing
+    // values. Never delete existing user data to make room for rollback.
+    for (const [key, value] of transaction.before) {
+      if (value === null) { try { storage.removeItem(key) } catch { /* Storage may remain unavailable. */ } }
+    }
+    const previous = [...transaction.before].filter((entry): entry is [string, string] => entry[1] !== null)
+      .map(([key, value]) => {
+        let delta = 0
+        try { delta = value.length - (storage.getItem(key)?.length ?? 0) } catch { /* Attempt restoration below. */ }
+        return { key, value, delta }
+      }).sort((a, b) => a.delta - b.delta)
+    for (const { key, value } of previous) {
+      try { if (storage.getItem(key) !== value) storage.setItem(key, value) } catch { /* Retain the current value if restoration is blocked. */ }
+    }
+    return false
+  } finally {
+    storageTransaction = null
+  }
+  for (const key of transaction.changed) window.dispatchEvent(new CustomEvent('focus-flow:storage', { detail: key }))
+  return true
+}
+
 function write(key: string, value: unknown, cloudValue: unknown = value): boolean {
+  if (storageTransaction?.failed) return false
   try {
     const encoded = JSON.stringify(value)
     if (getPersistence().getItem(key) === encoded) return true
+    if (storageTransaction) {
+      for (const changed of [key, 'ff3_cloud_outbox']) {
+        if (!storageTransaction.before.has(changed)) storageTransaction.before.set(changed, getPersistence().getItem(changed))
+      }
+    }
     trackCloudWrite(key, cloudValue)
     getPersistence().setItem(key, encoded)
-    window.dispatchEvent(new CustomEvent('focus-flow:storage', { detail: key }))
+    if (storageTransaction) storageTransaction.changed.add(key)
+    else window.dispatchEvent(new CustomEvent('focus-flow:storage', { detail: key }))
     return true
   } catch {
+    if (storageTransaction) storageTransaction.failed = true
     // Quota exceeded or storage unavailable — the caller decides what to tell the user.
     return false
   }
@@ -206,7 +253,11 @@ export function isStats(value: unknown): StatsV2 | null {
   const date = typeof v.date === 'string' ? v.date : today
   const weekStart = typeof v.weekStart === 'string' ? v.weekStart : ws
   // Roll day and week counters the way a fresh day demands.
-  const finiteCounter = (value: unknown): number => { const n = Number(value); return Number.isFinite(n) && n >= 0 ? Math.min(n, 10_000_000) : 0 }
+  const finiteCounter = (value: unknown): number => {
+    if (typeof value !== 'number' && typeof value !== 'string') return 0
+    const n = Number(value)
+    return Number.isFinite(n) && n >= 0 ? Math.min(n, 10_000_000) : 0
+  }
   const rolledToday = date === today ? finiteCounter(v.today) : 0
   const rolledWeek = weekStart === ws ? finiteCounter(v.week) : 0
   const stats: StatsV2 = {

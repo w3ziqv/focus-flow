@@ -1,5 +1,9 @@
 # Focus Flow 3.1 — interface update
 
+Follow-up: the [security and stress review](SECURITY-REVIEW-3.1.md) adds import,
+CSV, peer-protocol and batch-aware Firestore corrections plus completed emulator
+tests. Its results supersede the initial validation limitations recorded below.
+
 This change implements the shared 3.1 interface for the web, installed PWA and
 Tauri frontend. Physical-device and voluntary-user acceptance remain open;
 this is a release candidate, not a claim that those checks have passed.
@@ -49,8 +53,8 @@ Statistics refresh stored sessions without remounting the editor on timer ticks.
 Updated Firestore's transitive `re2js` dependency from 2.8.6 to 2.9.1 to address
 GHSA-gg6h-894w-4m9c (high-severity quadratic matching denial of service).
 Production dependency audit passes. Remaining low/moderate build-tool advisories
-are not hidden by a forced incompatible dependency downgrade. Firebase rules and
-production data were not changed.
+are not hidden by a forced incompatible dependency downgrade. The follow-up
+changes candidate Firebase rules; production rules/data were not changed.
 
 ## Design source
 

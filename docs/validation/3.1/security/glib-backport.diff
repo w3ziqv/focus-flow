@@ -1,0 +1,18 @@
+--- /tmp/focus-flow-security-tools/glib-upstream/glib-0.18.5/src/variant_iter.rs	2006-07-24 01:21:28.000000000 +0000
++++ src-tauri/vendor/glib/src/variant_iter.rs	2026-11-04 20:29:40.887928725 +0000
+@@ -117,13 +117,13 @@
+ 
+     fn impl_get(&self, i: usize) -> &'a str {
+         unsafe {
+-            let p: *mut libc::c_char = std::ptr::null_mut();
++            let mut p: *mut libc::c_char = std::ptr::null_mut();
+             let s = b"&s\0";
+             ffi::g_variant_get_child(
+                 self.variant.to_glib_none().0,
+                 i,
+                 s as *const u8 as *const _,
+-                &p,
++                &mut p,
+                 std::ptr::null::<i8>(),
+             );
+             let p = std::ffi::CStr::from_ptr(p);

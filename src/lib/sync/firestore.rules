@@ -3,9 +3,20 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // =========================================================================
-    // Focus Flow — Hardened Cloud Firestore Security Rules (Stage 6 / v2.6)
+    // Focus Flow — Cloud Firestore Security Rules (3.1 candidate)
     // Architecture: ADR-005 (Local-First) & ADR-009 (Opt-in Cloud Sync)
     // Invariant: 100% user-isolated subcollections with explicit default deny.
+    // Data model: owner-only /users/{uid} subcollections; parent is not a profile.
+    // settings/current: bounded timer numbers, autoStart bool, revision metadata.
+    // stats/summary: bounded counters, validated goals and up to 12 milestones.
+    // sound_prefs/current: bounded sound ID, mode, volume and cutoff.
+    // interface/current: bounded daily target, masking bool, bounded update string.
+    // metadata/sync: bounded sync time/platform and supported schema version.
+    // sessions/{id}: matching immutable path ID, bounded date/minutes/title,
+    //   up to 3 validated checklist items, optional deletion/revision metadata.
+    // daily_history/{YYYY-MM-DD}: matching real date, bounded integer minutes, v3.
+    // tombstones/{id}: matching path ID and bounded deletion date string.
+    // Date strings permit historical/offline data; they are not trusted clocks.
     // =========================================================================
 
     function isAuthenticated() {
@@ -191,8 +202,11 @@ service cloud.firestore {
       // Sessions subcollection: enforce query limit and path-body ID locking
       function allowsContent(data) {
         let prefs = /databases/$(database)/documents/users/$(userId)/interface/current;
-        return !exists(prefs) || get(prefs).data.get('maskTaskTitlesInCloud', false) != true ||
-          ((!('task' in data) || data.task == null) && (!('checklist' in data) || data.checklist.size() == 0));
+        let after = getAfter(prefs);
+        // Evaluate the committed preference, including a change in this batch.
+        return after == null || after.data.get('maskTaskTitlesInCloud', false) != true ||
+          ((!('task' in data) || data.task == null) &&
+           (!('checklist' in data) || data.checklist == null || data.checklist.size() == 0));
       }
 
       match /sessions/{sessionId} {
@@ -200,6 +214,7 @@ service cloud.firestore {
         allow list: if isOwner(userId) && request.query.limit <= 1000;
         allow create, update: if isOwner(userId) && isValidSession(request.resource.data, sessionId) &&
           !exists(/databases/$(database)/documents/users/$(userId)/tombstones/$(sessionId)) &&
+          getAfter(/databases/$(database)/documents/users/$(userId)/tombstones/$(sessionId)) == null &&
           allowsContent(request.resource.data);
         allow delete: if isOwner(userId);
       }

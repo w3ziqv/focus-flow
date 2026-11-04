@@ -87,9 +87,10 @@ export function AppSettingsModal({
 }: AppSettingsModalProps): JSX.Element | null {
   const { t, lang, setLang } = useI18n()
   const fileRef = useRef<HTMLInputElement>(null)
+  const importing = useRef(false)
   const [section, setSection] = useState<SettingsSection>(initialSection)
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
-  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error' | 'storage-error'>('idle')
   const [webhookSettings, setWebhookSettings] = useState<WebhookSettings>(() => loadWebhookSettings())
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [voiceTestStatus, setVoiceTestStatus] = useState<'idle' | 'testing' | 'success' | 'no-voices'>('idle')
@@ -145,7 +146,7 @@ export function AppSettingsModal({
   const handleImportFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (!file) return
+    if (!file || importing.current) return
 
     // Guard against massive JSON files crashing the thread (max 250 MB)
     if (file.size > 250 * 1024 * 1024) {
@@ -153,6 +154,8 @@ export function AppSettingsModal({
       return
     }
 
+    importing.current = true
+    setImportStatus('importing')
     const reader = new FileReader()
     reader.onload = async () => {
       try {
@@ -162,16 +165,22 @@ export function AppSettingsModal({
           setImportStatus('success')
           onImportSuccess?.()
         } else {
-          setImportStatus('error')
+          setImportStatus(result && !result.success && result.reason === 'storage' ? 'storage-error' : 'error')
         }
       } catch {
         setImportStatus('error')
+      } finally {
+        importing.current = false
       }
     }
     reader.onerror = () => {
+      importing.current = false
       setImportStatus('error')
     }
-    reader.readAsText(file)
+    try { reader.readAsText(file) } catch {
+      importing.current = false
+      setImportStatus('error')
+    }
   }
 
   const handleWebhookToggle = (enabled: boolean) => {
@@ -713,15 +722,18 @@ export function AppSettingsModal({
           <div className="pt-2">
             <button
               type="button"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-sunken/50 px-4 py-2 text-caption font-medium text-ink transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              disabled={importStatus === 'importing'}
+              aria-busy={importStatus === 'importing'}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-sunken/50 px-4 py-2 text-caption font-medium text-ink transition-colors duration-150 hover:bg-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => fileRef.current?.click()}
             >
               <Upload size={15} aria-hidden="true" />
-              {t('data.import')}
+              {t(importStatus === 'importing' ? 'common.loading' : 'data.import')}
             </button>
             <input
               ref={fileRef}
               type="file"
+              disabled={importStatus === 'importing'}
               accept=".json,application/json"
               className="sr-only"
               aria-hidden="true"
@@ -737,10 +749,10 @@ export function AppSettingsModal({
               <span>{t('importSuccess')}</span>
             </div>
           )}
-          {importStatus === 'error' && (
-            <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
+          {(importStatus === 'error' || importStatus === 'storage-error') && (
+            <div role="alert" className="inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
               <span aria-hidden="true" className="size-2 rounded-full bg-danger" />
-              <span>{t('importInvalid')}</span>
+              <span>{t(importStatus === 'storage-error' ? 'importStorageError' : 'importInvalid')}</span>
             </div>
           )}
         </div>
@@ -789,7 +801,7 @@ export function AppSettingsModal({
           )}
 
           {testStatus === 'error' && (
-            <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
+            <div role="alert" className="inline-flex items-center gap-1.5 self-start rounded-full bg-[rgba(181,51,51,0.12)] px-3 py-1 text-caption text-danger">
               <span aria-hidden="true" className="size-2 rounded-full bg-danger" />
               <span>{t('webhookError')}</span>
             </div>

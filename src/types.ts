@@ -233,6 +233,7 @@ export interface ImportSuccess {
 }
 
 export interface ImportError {
+  reason?: 'storage'
   success: false
   error: string
 }

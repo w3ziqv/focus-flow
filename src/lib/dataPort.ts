@@ -36,6 +36,7 @@ import {
   saveStats,
   saveTheme,
   saveVolume,
+  withStorageTransaction,
 } from './storage'
 import { getSoundBlob, isAudioUpload, probeAudio, putSound } from './soundStore'
 import { isLang } from '../domain/language'
@@ -160,7 +161,7 @@ export function isBackupFile(val: unknown): val is BackupFileAny {
   return false
 }
 
-async function restoreSounds(sounds: unknown[]): Promise<void> {
+async function restoreSounds(sounds: unknown[]): Promise<CustomSound[]> {
   const metas: CustomSound[] = []
   for (const entry of sounds) {
     if (typeof entry !== 'object' || entry === null) continue
@@ -180,7 +181,7 @@ async function restoreSounds(sounds: unknown[]): Promise<void> {
     }
     metas.push({ id: v.id, name: v.name })
   }
-  saveCustomSounds(metas)
+  return metas
 }
 
 export const MAX_BACKUP_SIZE_BYTES: number = 250 * 1024 * 1024
@@ -225,11 +226,12 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
   const file = parsed as Record<string, unknown>
 
   if (file.app !== 'focus-flow') {
-    return { success: false, error: `Unsupported application: expected 'focus-flow', received '${String(file.app)}'` }
+    return { success: false, error: "Unsupported application: expected 'focus-flow'" }
   }
 
   if (file.version !== 1 && file.version !== 2) {
-    return { success: false, error: `Unsupported backup version: ${String(file.version)}` }
+    const version = typeof file.version === 'number' || typeof file.version === 'string' ? String(file.version).slice(0, 80) : 'invalid'
+    return { success: false, error: `Unsupported backup version: ${version}` }
   }
 
   if (typeof file.exportedAt !== 'string' || Number.isNaN(Date.parse(file.exportedAt))) {
@@ -245,42 +247,42 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
   // Version 1: restores settings, stats, sounds, lang, theme, volume
   // Preserves existing sessions, presets, and interface without data loss or exceptions.
   if (file.version === 1) {
-    if (data.settings !== undefined) {
-      const sanitizedSettings = isSettings(data.settings)
-      if (sanitizedSettings) {
-        saveSettings(sanitizedSettings)
+    const sounds = Array.isArray(data.sounds) ? await restoreSounds(data.sounds) : null
+    const saved = withStorageTransaction(() => {
+      if (data.settings !== undefined) {
+        const sanitizedSettings = isSettings(data.settings)
+        if (sanitizedSettings) {
+          saveSettings(sanitizedSettings)
+        }
       }
-    }
 
-    if (data.stats !== undefined) {
-      const sanitizedStats = isStats(data.stats)
-      if (sanitizedStats) {
-        saveStats(sanitizedStats)
+      if (data.stats !== undefined) {
+        const sanitizedStats = isStats(data.stats)
+        if (sanitizedStats) {
+          saveStats(sanitizedStats)
+        }
       }
-    }
 
-    if (Array.isArray(data.sounds)) {
-      await restoreSounds(data.sounds)
-    }
+      if (isLang(data.lang)) {
+        saveLang(data.lang)
+      }
 
-    if (isLang(data.lang)) {
-      saveLang(data.lang)
-    }
+      if (
+        data.theme === 'dark' ||
+        data.theme === 'light' ||
+        data.theme === 'obsidian' ||
+        data.theme === 'sage' ||
+        data.theme === 'eink'
+      ) {
+        saveTheme(data.theme)
+      }
 
-    if (
-      data.theme === 'dark' ||
-      data.theme === 'light' ||
-      data.theme === 'obsidian' ||
-      data.theme === 'sage' ||
-      data.theme === 'eink'
-    ) {
-      saveTheme(data.theme)
-    }
-
-    if (typeof data.volume === 'number' && Number.isFinite(data.volume)) {
-      saveVolume(Math.min(1, Math.max(0, data.volume)))
-    }
-
+      if (typeof data.volume === 'number' && Number.isFinite(data.volume)) {
+        saveVolume(Math.min(1, Math.max(0, data.volume)))
+      }
+      if (sounds !== null) saveCustomSounds(sounds)
+    })
+    if (!saved) return { success: false, reason: 'storage', error: 'Backup could not be saved: storage is unavailable or full' }
     return { success: true, count: 0 }
   }
 
@@ -354,17 +356,22 @@ export async function importData(raw: string, maxSizeBytes: number = MAX_BACKUP_
     return { success: false, error: 'Invalid backup file: volume must be a number between 0 and 1' }
   }
 
-  // Persist valid v2 snapshot to storage
-  saveSettings(settings)
-  saveStats(stats)
-  saveSessions(sanitizedSessions)
-  savePresets(sanitizedPresets)
-  saveInterface(interfacePrefs)
-  saveLang(data.lang)
-  saveTheme(data.theme)
-  saveVolume(data.volume)
-
-  await restoreSounds(data.sounds)
+  // Commit core fields together, including the outbox. Failed writes must not
+  // publish a partially imported snapshot or report success.
+  const lang = data.lang, theme = data.theme, volume = data.volume
+  const sounds = await restoreSounds(data.sounds)
+  const saved = withStorageTransaction(() => {
+    saveSettings(settings)
+    saveStats(stats)
+    saveSessions(sanitizedSessions)
+    savePresets(sanitizedPresets)
+    saveInterface(interfacePrefs)
+    saveLang(lang)
+    saveTheme(theme)
+    saveVolume(volume)
+    saveCustomSounds(sounds)
+  })
+  if (!saved) return { success: false, reason: 'storage', error: 'Backup could not be saved: storage is unavailable or full' }
 
   return { success: true, count: sanitizedSessions.length }
 }

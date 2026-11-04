@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-04",
+  "score": 4,
+  "scoreScale": "1 (weak) to 5 (strong); qualitative source/rules review, not certification",
+  "summary": "Owner-only access and strict schemas passed local adversarial tests. Five finding groups corrected in the candidate. Production deployment and physical/native/network acceptance remain pending.",
+  "findings": [
+    {
+      "id": "FF31-IMPORT",
+      "severity": "medium",
+      "status": "fixed-in-candidate",
+      "title": "Partial import and false success on storage failure",
+      "verification": "15 unit cases and browser quota injection; best-effort rollback limitations documented"
+    },
+    {
+      "id": "FF31-CSV",
+      "severity": "medium",
+      "status": "fixed-in-candidate",
+      "title": "Spreadsheet formula prefixes bypassed incomplete neutralization",
+      "verification": "10 CSV tests and actual browser CSV download"
+    },
+    {
+      "id": "FF31-PEER",
+      "severity": "low",
+      "status": "fixed-in-candidate",
+      "title": "Escaped frame rejection and stale disconnected callback",
+      "verification": "3 deterministic protocol tests; real WebRTC transport unverified"
+    },
+    {
+      "id": "FF31-MASK",
+      "severity": "medium",
+      "status": "fixed-in-candidate",
+      "title": "Cloud masking evaluated pre-batch preference",
+      "verification": "Reproduced accepted write, then emulator regression denied it"
+    },
+    {
+      "id": "FF31-DELETE",
+      "severity": "low",
+      "status": "fixed-in-candidate",
+      "title": "Same-batch session and deletion marker accepted",
+      "verification": "Reproduced accepted write, then emulator regression denied it"
+    },
+    {
+      "id": "FF31-DEV-DEPS",
+      "severity": "moderate",
+      "status": "tracking",
+      "title": "15 npm development/build dependency-tree entries",
+      "verification": "Runtime audit zero; full audit 13 moderate, 2 low; no forced incompatible overrides"
+    },
+    {
+      "id": "FF31-RUST-MAINTENANCE",
+      "severity": "informational",
+      "status": "tracking",
+      "title": "Four unmaintained Rust dependency notices",
+      "verification": "578 dependencies audited, zero vulnerability advisories"
+    }
+  ],
+  "tests": {
+    "unitFiles": 72,
+    "unitTests": 906,
+    "firestoreAuthorizationChecks": 66,
+    "adapterIntegrationSessions": 1105,
+    "migrationFixture": "synthetic, two UIDs",
+    "nativeCoreTests": 12,
+    "nativeConcurrentWrites": 80,
+    "browserHistorySessions": 1000,
+    "browserStartPauseCycles": 40,
+    "browserViewCycles": 30,
+    "browserAudioChanges": 30
+  },
+  "rulesAttackReview": {
+    "publicList": "denied: anonymous list and get tests",
+    "foreignUserCRUD": "denied: get/list/create/delete tests; all writes require path UID owner",
+    "createUpdateValidation": "shared validators validate complete proposed documents; malformed create/update rejected",
+    "ownershipAndPrivilege": "path UID comes only from request.auth; unknown owner/admin fields rejected; no public profiles or client roles",
+    "nestedAndOversizedData": "checklist elements, goals, milestones, strings/counters and query limits checked",
+    "maskBatch": "fixed with post-batch preference; positive/negative cases passed",
+    "deletionBatch": "before and after checks; removal-plus-resurrection denied",
+    "timestamps": "bounded strings permit offline/historical data; not treated as authorization clocks",
+    "parentExistence": "user root intentionally denied/not required; subcollections independently UID-scoped",
+    "queryCompatibility": "real adapter migration, paginated reads, updates and deletion passed with actual rules",
+    "crossDocumentCounters": "no shared voting or entitlement counters; numeric totals belong exclusively to their owner",
+    "syntax": "actual rules compiled by Firestore emulator 1.22.0"
+  },
+  "limitations": [
+    "No production load or private account data tests",
+    "Physical iOS/Android PWA acceptance outstanding",
+    "Full native GUI/installers/OAuth/keyring and optimized GLib test unavailable",
+    "Actual two-device WebRTC transfer unverified after ICE timeout",
+    "Production App Check/Auth restrictions and deployed rules not inspected",
+    "Cross-tab/crash-safe rollback and audio blob atomicity not provided"
+  ]
+}

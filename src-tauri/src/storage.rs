@@ -175,4 +175,66 @@ mod tests {
         .validate()
         .is_err());
     }
+
+    #[test]
+    fn concurrent_writers_keep_valid_private_snapshots_and_backup() {
+        let store = std::sync::Arc::new(store());
+        let mut threads = Vec::new();
+        for writer in 0..8 {
+            let store = store.clone();
+            threads.push(std::thread::spawn(move || {
+                for value in 0..10 {
+                    store
+                        .save(&Snapshot {
+                            version: 3,
+                            values: BTreeMap::from([(
+                                "ff2_stress".into(),
+                                format!("{writer}-{value}"),
+                            )]),
+                        })
+                        .unwrap();
+                    store.load().unwrap().unwrap().validate().unwrap();
+                }
+            }));
+        }
+        for thread in threads {
+            thread.join().unwrap();
+        }
+        store.load().unwrap().unwrap().validate().unwrap();
+        assert!(store.path.with_extension("json.bak").exists());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            for path in [&store.path, &store.path.with_extension("json.bak")] {
+                assert_eq!(
+                    fs::metadata(path).unwrap().permissions().mode() & 0o777,
+                    0o600
+                );
+            }
+        }
+        fs::remove_dir_all(store.path.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn rejects_oversized_snapshot_before_replacing_valid_data() {
+        let store = store();
+        store
+            .save(&Snapshot {
+                version: 3,
+                values: BTreeMap::from([("ff2_theme".into(), "\"sage\"".into())]),
+            })
+            .unwrap();
+        let huge = Snapshot {
+            version: 3,
+            values: (0..3)
+                .map(|i| (format!("ff3_stress_{i}"), "x".repeat(6 * 1024 * 1024)))
+                .collect(),
+        };
+        assert!(store.save(&huge).is_err());
+        assert_eq!(
+            store.load().unwrap().unwrap().values["ff2_theme"],
+            "\"sage\""
+        );
+        fs::remove_dir_all(store.path.parent().unwrap()).unwrap();
+    }
 }

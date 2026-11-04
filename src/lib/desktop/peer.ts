@@ -3,6 +3,8 @@ export type PeerStatus = 'disconnected' | 'pairing' | 'connected' | 'syncing' | 
 interface PairingCode { app: 'focus-flow'; version: 3; description: RTCSessionDescriptionInit }
 const MAX_TRANSFER = 2 * 1024 * 1024
 const CHUNK = 12 * 1024
+// JSON escaping can expand one decoded character into six wire characters.
+const MAX_FRAME = CHUNK * 6 + 256
 
 export function parsePairingCode(code: string): PairingCode {
   if (code.length > 64 * 1024) throw Error('Pairing code too large')
@@ -60,15 +62,16 @@ export class LocalPeer {
       this.statusChanged('connected')
       const changed = () => {
         if (this.syncTimer) clearTimeout(this.syncTimer)
-        this.syncTimer = setTimeout(() => { void this.sync().catch(error => this.fail(error)) }, 300)
+        this.syncTimer = setTimeout(() => { void this.sync().catch(error => { if (channel === this.channel) this.fail(error) }) }, 300)
       }
       window.addEventListener('focus-flow:storage', changed)
       this.disposeStorage = () => window.removeEventListener('focus-flow:storage', changed)
-      void this.sync().catch(error => this.fail(error))
+      void this.sync().catch(error => { if (channel === this.channel) this.fail(error) })
     }
     channel.onmessage = event => {
+      if (channel !== this.channel) return
       try {
-        if (typeof event.data !== 'string' || event.data.length > CHUNK + 256) throw Error('Invalid peer frame')
+        if (typeof event.data !== 'string' || event.data.length > MAX_FRAME) throw Error('Invalid peer frame')
         const frame = JSON.parse(event.data) as {type: string; size?: number; data?: string}
         if (frame.type === 'begin') {
           if (this.expected || !Number.isSafeInteger(frame.size) || frame.size! <= 0 || frame.size! > MAX_TRANSFER) throw Error('Invalid peer transfer size')
@@ -90,7 +93,7 @@ export class LocalPeer {
       } catch (error) { this.fail(error); this.disconnect(false) }
     }
     channel.onclose = () => { if (channel === this.channel) this.disconnect() }
-    channel.onerror = () => this.fail('Peer data channel failed')
+    channel.onerror = () => { if (channel === this.channel) this.fail('Peer data channel failed') }
   }
   private async waitIce(connection: RTCPeerConnection): Promise<string> {
     if (connection.iceGatheringState !== 'complete') await new Promise<void>((resolve, reject) => {
@@ -148,7 +151,7 @@ export class LocalPeer {
     if (this.syncTimer) clearTimeout(this.syncTimer)
     this.transferTimer = null; this.syncTimer = null; this.expected = 0; this.received = ''
     const channel = this.channel; this.channel = null
-    if (channel) { channel.onclose = null; channel.close() }
+    if (channel) { channel.onclose = null; channel.onmessage = null; channel.onopen = null; channel.onerror = null; channel.close() }
     const connection = this.connection; this.connection = null
     connection?.close()
     if (resetStatus) this.statusChanged('disconnected')
