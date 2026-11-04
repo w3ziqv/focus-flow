@@ -19,13 +19,9 @@ export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function N
   return (
     <nav
       aria-label={t('app.name')}
-      className="nav-mobile-bottom fixed inset-x-0 top-3 z-40 flex justify-center"
+      className="app-nav"
     >
-      <div className="flex items-center gap-1 rounded-control border border-line-subtle bg-card px-2 py-1.5">
-        <span className="flex items-center gap-2 px-3 max-sm:hidden">
-          <span aria-hidden="true" className="size-2 rounded-full bg-[var(--ac)]" />
-          <span className="font-serif text-[15px] font-[500] text-ink">{t('app.name')}</span>
-        </span>
+      <div className="app-nav-controls">
         <button type="button" aria-current={view === 'timer' ? 'page' : undefined} onClick={() => onView('timer')} className={linkClass(view === 'timer')}>
           {t('nav.timer')}
         </button>

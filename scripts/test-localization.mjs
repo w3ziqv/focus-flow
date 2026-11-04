@@ -159,7 +159,9 @@ try {
           await page.screenshot({ path: `${output}/${lang}-guide.png`, fullPage: true })
         }
         report.guideViews++
-        await page.getByRole('button', { name: d['topic.backToTopic'], exact: true }).click()
+        // The persistent return control remains available above the reading
+        // position, including on installed phones with a bottom navigation dock.
+        await page.getByRole('button', { name: d['topic.back'], exact: true }).click()
       }
       await page.getByRole('button', { name: d['topic.back'], exact: true }).click()
     }

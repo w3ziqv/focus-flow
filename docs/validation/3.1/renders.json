@@ -1,0 +1,324 @@
+{
+  "url": "http://127.0.0.1:1431",
+  "chromium": "155.0.8059.79",
+  "node": "v24.22.1",
+  "sampleMs": 2000,
+  "mode": "development; StrictMode mount excluded; DevTools PerformedWork fibers per commit; not CPU or production timings",
+  "runs": [
+    {
+      "repetition": 0,
+      "scenario": "timer",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 0,
+      "scenario": "settings",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 0,
+      "scenario": "audio",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 0,
+      "scenario": "stats",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 0,
+      "scenario": "guides",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 1,
+      "scenario": "timer",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 1,
+      "scenario": "settings",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 1,
+      "scenario": "audio",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 1,
+      "scenario": "stats",
+      "commits": 9,
+      "renders": {
+        "Shell": 9,
+        "TimerView": 9,
+        "SegmentedTabs": 9,
+        "Dial": 9,
+        "PillButton": 27,
+        "Pause": 9,
+        "RotateCcw": 9,
+        "Volume2": 9,
+        "Maximize2": 9,
+        "Settings2": 9,
+        "Onboarding": 9,
+        "A11yLiveAnnouncer": 9,
+        "InstallPrompt": 9,
+        "FocusOverlay": 9
+      }
+    },
+    {
+      "repetition": 1,
+      "scenario": "guides",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 2,
+      "scenario": "timer",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 2,
+      "scenario": "settings",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 2,
+      "scenario": "audio",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 2,
+      "scenario": "stats",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    },
+    {
+      "repetition": 2,
+      "scenario": "guides",
+      "commits": 8,
+      "renders": {
+        "Shell": 8,
+        "TimerView": 8,
+        "SegmentedTabs": 8,
+        "Dial": 8,
+        "PillButton": 24,
+        "Pause": 8,
+        "RotateCcw": 8,
+        "Volume2": 8,
+        "Maximize2": 8,
+        "Settings2": 8,
+        "Onboarding": 8,
+        "A11yLiveAnnouncer": 8,
+        "InstallPrompt": 8,
+        "FocusOverlay": 8
+      }
+    }
+  ]
+}

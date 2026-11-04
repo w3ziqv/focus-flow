@@ -2,7 +2,7 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "engines": {
     "node": ">=24 <25"
@@ -35,7 +35,8 @@
     "test:web-offline": "node scripts/test-web-offline.mjs",
     "test:rules": "node scripts/test-firestore-rules.mjs",
     "test:migration": "node scripts/test-migration.mjs",
-    "test:localization": "node scripts/test-localization.mjs"
+    "test:localization": "node scripts/test-localization.mjs",
+    "test:responsive": "node scripts/test-responsive.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",

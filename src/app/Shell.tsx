@@ -22,8 +22,7 @@ import {
   systemTheme,
 } from '../lib/storage'
 import { captureInstallPrompt } from '../lib/installPrompt'
-import { NavPill } from '../app/NavPill'
-import { SyncStatusIndicator } from '../features/sync/SyncStatusIndicator'
+import { AppHeader } from './AppHeader'
 import { A11yLiveAnnouncer } from '../app/A11yLiveAnnouncer'
 import { ViewLoading } from '../ui/LoadingState'
 import { FocusOverlay } from '../features/timer/FocusOverlay'
@@ -44,7 +43,8 @@ export function Shell(): React.JSX.Element {
   const engine = useTimerEngine()
   const { t, lang } = useI18n()
   const [view, setView] = useState<View>('timer')
-  const [guidesVisit, setGuidesVisit] = useState(0)
+  const [visited, setVisited] = useState({ stats: false, tips: false })
+  const scrollPositions = useRef<Record<View, number>>({ timer: 0, stats: 0, tips: 0 })
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null)
   const [interfacePrefs, setInterfacePrefs] = useState(loadInterface)
@@ -98,7 +98,8 @@ export function Shell(): React.JSX.Element {
   useWakeLock(engine.running)
 
   useEffect(() => {
-    if (view === 'tips') window.scrollTo({ top: 0 })
+    const frame = requestAnimationFrame(() => window.scrollTo({ top: scrollPositions.current[view] }))
+    return () => cancelAnimationFrame(frame)
   }, [view])
 
   const setThemeAndPersist = useCallback((next: Theme) => {
@@ -107,9 +108,10 @@ export function Shell(): React.JSX.Element {
   }, [])
 
   const changeView = useCallback((next: View) => {
+    scrollPositions.current[view] = window.scrollY
+    setVisited(current => next === 'timer' || current[next] ? current : { ...current, [next]: true })
     setView(next)
-    if (next === 'tips') setGuidesVisit(visit => visit + 1)
-  }, [])
+  }, [view])
 
   const startFromStats = useCallback(() => {
     setView('timer')
@@ -179,8 +181,8 @@ export function Shell(): React.JSX.Element {
   )
 
   return (
-    <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="min-h-[100dvh]">
-      {desktopError && <div role="alert" className="fixed top-4 left-4 z-50 max-w-sm rounded-2xl border border-line bg-card p-4 text-body-sm text-ink">
+    <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="app-shell">
+      {desktopError && <div role="alert" className="safe-notice fixed left-4 z-50 max-w-sm rounded-2xl border border-line bg-card p-4 text-body-sm text-ink">
         <p>{t('desktop.error')}</p><p className="break-words text-caption">{desktopError}</p>
         <button className="min-h-11 rounded-full px-4 hover:bg-sunken" onClick={nativeError ? dismissNativeError : () => { void flushPersistence().catch(() => {}) }}>{t(nativeError ? 'desktop.dismiss' : 'desktop.retry')}</button>
       </div>}
@@ -188,7 +190,7 @@ export function Shell(): React.JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-line bg-card/95 px-4 py-3 text-caption text-ink shadow-elevated backdrop-blur-sm"
+          className="safe-notice fixed left-1/2 -translate-x-1/2 z-50 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-line bg-card/95 px-4 py-3 text-caption text-ink shadow-elevated backdrop-blur-sm"
         >
           <p className="text-[13px] leading-snug">{engine.wakeNotice}</p>
           <button
@@ -202,10 +204,10 @@ export function Shell(): React.JSX.Element {
         </div>
       )}
 
-      <NavPill view={view} onView={changeView} onOpenSettings={dialogs.openApp} />
+      <AppHeader view={view} onView={changeView} onOpenSettings={dialogs.openApp} onOpenCloud={dialogs.openCloud} onOpenData={dialogs.openData} />
 
       <main>
-        {view === 'timer' ? (
+        <div hidden={view !== 'timer'}>
           <TimerView
             engine={engine}
             ambient={audioControls.prefs.baseTexture}
@@ -215,17 +217,18 @@ export function Shell(): React.JSX.Element {
             onEnterFocus={() => setFocusOpen(true)}
             showGreeting={interfacePrefs.showGreeting}
           />
-        ) : view === 'stats' ? (
+        </div>
+        <div hidden={view !== 'stats'}>{visited.stats && (
           <Suspense fallback={<ViewLoading />}>
             <StatsView
               onStartSession={startFromStats}
-              key={engine.lastEvent?.at ?? 'stats'}
               stats={engine.stats}
               lang={lang}
               onStatsChange={engine.setStats}
             />
           </Suspense>
-        ) : <Suspense fallback={<ViewLoading />}><GuidesView key={guidesVisit} /></Suspense>}
+        )}</div>
+        <div hidden={view !== 'tips'}>{visited.tips && <Suspense fallback={<ViewLoading />}><GuidesView active={view === 'tips'} /></Suspense>}</div>
 
       </main>
 
@@ -234,9 +237,6 @@ export function Shell(): React.JSX.Element {
           view === 'timer' ? 'hidden sm:block' : ''
         }`}
       >
-        <div className="mb-2 flex items-center justify-center">
-          <SyncStatusIndicator onClick={dialogs.openCloud} />
-        </div>
         <div>{t('footer', { year: String(new Date().getFullYear()) })}</div>
       </footer>
 
@@ -247,7 +247,7 @@ export function Shell(): React.JSX.Element {
         onImportSuccess={afterImport} settings={engine.settings} goals={engine.goals} onSaveTimer={saveTimerSettings}
         onSyncComplete={afterSync} audio={audioControls} />
       <A11yLiveAnnouncer message={null} />
-      {syncToastMessage && <div role="status" className="fixed bottom-6 right-6 z-50 rounded-panel border border-line bg-card px-4 py-3 text-body-sm text-ink">{syncToastMessage}</div>}
+      {syncToastMessage && <div role="status" className="safe-toast fixed right-4 z-50 rounded-panel border border-line bg-card px-4 py-3 text-body-sm text-ink">{syncToastMessage}</div>}
 
       <InstallPrompt
         focusCompleted={engine.lastEvent?.kind === 'focus'}

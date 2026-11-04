@@ -275,7 +275,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
         aria-hidden={value.trim() !== ''}
         className={`flex flex-wrap items-center justify-center gap-1.5 overflow-hidden transition-all duration-200 [transition-timing-function:var(--ease-micro)] ${
           value.trim() === ''
-            ? 'mt-3 max-h-24 opacity-100 pointer-events-auto'
+            ? 'mt-3 max-h-[20rem] opacity-100 pointer-events-auto'
             : 'max-h-0 opacity-0 pointer-events-none mt-0'
         }`}
       >

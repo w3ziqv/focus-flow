@@ -4,7 +4,6 @@ import { Edit2, Trash2, Check, X, Share2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 import type { Lang, StatsV2, SessionLogEntryV2 } from '../types'
 import { groupByDay, loadSessions, timeLabel } from '../lib/sessions'
-import { isRemoteWrite } from '../lib/sync/outbox'
 import { updateSessionTask } from '../lib/storage'
 import {
   aggregateTaskBreakdown,
@@ -49,7 +48,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
 
   useEffect(() => {
     const changed = (event: Event) => {
-      if (isRemoteWrite() && (event as CustomEvent).detail === 'ff2_sessions') {setSessions(loadSessions()); setDeletedStatsOverride(null)}
+      if ((event as CustomEvent).detail === 'ff2_sessions') {setSessions(loadSessions()); setDeletedStatsOverride(null)}
     }
     window.addEventListener('focus-flow:storage', changed)
     return () => window.removeEventListener('focus-flow:storage', changed)
@@ -165,7 +164,7 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
   }, [stats, lang, taskBreakdown])
 
   return (
-    <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24 space-y-10">
+    <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-8 pb-12 md:pt-12 space-y-10">
       <div>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

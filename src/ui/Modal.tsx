@@ -20,7 +20,7 @@ export function Modal({ open, title, onClose, children }: ModalProps): React.JSX
   if (!open) return null
 
   return (
-    <div data-dialog-root className="fixed inset-0 z-50 grid place-items-center p-4">
+    <div data-dialog-root className="dialog-viewport fixed inset-0 z-50 grid place-items-center">
       <div aria-hidden="true" className="absolute inset-0 bg-page/70 backdrop-blur-sm modal-backdrop" onMouseDown={onClose} />
       <div
         ref={panelRef}

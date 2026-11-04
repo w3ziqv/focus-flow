@@ -7,18 +7,19 @@ const TopicView = lazy(() => import('./TopicView'))
 const ArticleView = lazy(() => import('./ArticleView'))
 interface Route { topicId: TopicId; articleId?: string }
 
-/** Guide navigation has no timer dependency. Unmounting the screen resets its route. */
-function GuidesView(): React.JSX.Element {
+/** Guide navigation has no timer dependency and survives switching app views. */
+function GuidesView({ active }: { active: boolean }): React.JSX.Element {
   const [stack, setStack] = useState<Route[]>([])
+  useEffect(() => { window.scrollTo({ top: 0 }) }, [stack])
   useEffect(() => {
     const back = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
+      if (active && event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
         setStack(current => current.slice(0, -1))
       }
     }
     window.addEventListener('keydown', back)
     return () => window.removeEventListener('keydown', back)
-  }, [])
+  }, [active])
   return <Suspense fallback={<ViewLoading />}>
     {stack.length === 0 ? <TopicsIndex onOpenTopic={topicId => setStack([{ topicId }])} />
       : stack.length === 1 ? <TopicView topicId={stack[0].topicId} onBack={() => setStack([])} onOpenArticle={articleId => setStack(current => [...current, { topicId: current[0].topicId, articleId }])} />
@@ -26,5 +27,5 @@ function GuidesView(): React.JSX.Element {
   </Suspense>
 }
 
-const MemoGuidesView: React.NamedExoticComponent = memo(GuidesView)
+const MemoGuidesView: React.NamedExoticComponent<{ active: boolean }> = memo(GuidesView)
 export default MemoGuidesView

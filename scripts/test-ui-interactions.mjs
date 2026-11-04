@@ -17,6 +17,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
   await context.addInitScript(() => { localStorage.setItem('ff2_onboardingDone', 'true'); localStorage.setItem('ff2_lang', 'en') })
   const page = await context.newPage()
+  page.setDefaultTimeout(15000)
   const errors = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(url)
@@ -65,6 +66,9 @@ try {
   await learning.click()
   await page.getByRole('heading', { name: 'Learning', exact: true }).waitFor()
   await page.getByRole('button', { name: 'Guides', exact: true }).click()
+  // Reselecting a view preserves the current reading route in 3.1.
+  await page.getByRole('heading', { name: 'Learning', exact: true }).waitFor()
+  await page.keyboard.press('Escape')
   await learning.waitFor()
   await page.getByRole('button', { name: 'Timer', exact: true }).click()
   await page.getByRole('button', { name: 'App', exact: true }).click()

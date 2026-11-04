@@ -22,17 +22,19 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): R
 
   return (
     <div
-      className="fade-up relative mx-auto w-full max-w-[760px] px-4 pt-12 pb-16 md:pt-24"
+      className="fade-up relative mx-auto w-full max-w-[760px] px-4 pt-8 pb-12 md:pt-12"
       style={accentStyle(topic.accent)}
     >
+      <div className="guide-return">
       <button
         type="button"
         onClick={onBack}
         aria-label={t('topic.back')}
-        className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink md:top-20"
+        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-card text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
       >
         <X size={20} aria-hidden="true" />
       </button>
+      </div>
 
       <div className="flex flex-col items-center pt-8 text-center">
         <span className="flex size-16 items-center justify-center rounded-full bg-[var(--ac-soft)]">
