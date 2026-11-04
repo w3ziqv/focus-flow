@@ -146,3 +146,18 @@ release at 393×852 with reduced motion. It measures input/click dispatch to two
 animation frames, **not field INP**. Typing medians were 25.3→26.8 ms; Start-click
 medians were 23.9→25.3 ms. The differences are below one 60 Hz frame and the sample
 ranges overlap. The raw file also retains that harness's startup observations.
+
+### Desktop header follow-up
+
+A visual review found the navigation center at x=604.95 on a 1440 px viewport,
+115.05 px left of the timer/window center. Equal-width side columns now keep the
+navigation centered regardless of the brand and utility widths. All navigation
+controls have the same 44 px minimum height. At 768–1279 px the navigation gets
+its own centered row so translated controls can stay on one line.
+
+Browser geometry checks passed 36 cases: four languages at 320, 393, 768, 1024,
+1199, 1200, 1280, 1440 and 1920 px. No horizontal overflow or header overlap;
+the corrected 1440 px center is x=719.99. Raw bounds are in
+[header-layout.json](validation/3.1/header-layout.json). The frontend build passed.
+The performance samples above predate this CSS-only alignment follow-up; they
+were not repeated for this layout correction.

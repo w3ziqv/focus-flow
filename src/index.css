@@ -81,6 +81,7 @@ main :is(button, input, a, select) {
 }
 .app-brand { white-space: nowrap; }
 .app-utilities { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.app-utilities > * { max-width: 100%; }
 .app-nav-controls {
   display: flex;
   align-items: center;
@@ -89,6 +90,28 @@ main :is(button, input, a, select) {
   border-radius: var(--radius-control);
   background: var(--color-card);
   padding: .375rem .5rem;
+}
+.app-nav-controls > button { min-height: var(--spacing-target); }
+.app-nav-controls > button:last-child { flex-shrink: 0; }
+
+/* Equal side columns keep navigation on the timer's center line even when
+   translated account/export controls take more space than the brand. */
+@media (min-width: 768px) {
+  .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .app-brand { justify-self: start; }
+  .app-nav { justify-self: center; }
+  .app-utilities { min-width: 0; max-width: 100%; justify-self: end; justify-content: flex-end; }
+  .app-utilities button { overflow-wrap: anywhere; }
+}
+/* Give the navigation its own centered row before the side controls can crowd it. */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+  .app-header { grid-template-columns: minmax(0, 1fr) auto; }
+  .app-brand { grid-column: 1; grid-row: 1; }
+  .app-utilities { grid-column: 2; grid-row: 1; }
+  .app-nav { grid-column: 1 / -1; grid-row: 2; }
 }
 .timer-workspace { padding-top: 2.5rem; padding-bottom: 3rem; }
 main { overflow-wrap: anywhere; }
@@ -114,7 +137,6 @@ main { overflow-wrap: anywhere; }
 @media (max-width: 767.98px) {
   .app-header { padding: 1rem; gap: .5rem; }
   .app-utilities { justify-content: flex-end; gap: .25rem; }
-  .app-utilities > * { max-width: 100%; }
   .app-nav {
     position: fixed;
     left: calc(var(--safe-left) + .5rem);
