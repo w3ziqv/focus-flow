@@ -1,12 +1,39 @@
 # Focus Flow 3.1 — interface update
 
+## Publication follow-up — 2026-11-05
+
+The owner requested publication of 3.1 to the production website and GitHub
+Releases after the complete update passed local checks and pull request CI.
+The original three bundle commits are preserved, with an additional correction
+that rejects delayed P2P data channels after their connection is disconnected.
+
+Repeated local validation passed 907 application tests, 66 Firestore rule checks,
+the real synchronization adapter with 1,105 sessions, responsive and accessibility
+checks, browser stress, offline recovery, four-language traversal and real WebRTC
+pairing between two browser contexts. Native CI passed Linux, Windows and macOS
+builds, Rust tests and Clippy, the optimized Linux GLib regression, and installed
+application checks on Linux and Windows. Production installers must be built
+separately using the protected production cloud configuration.
+
+Physical iPhone/PWA acceptance, real two-device P2P, interactive macOS acceptance,
+screen-reader/volunteer acceptance and current real-account OAuth/device scenarios
+remain unverified. Publication does not turn these into passing checks. Installers
+remain unsigned and macOS remains experimental. Preserve a full backup before
+updating; see [installation and rollback](INSTALL-UPDATE.md).
+
+See [pull request #27](https://github.com/w3ziqv/focus-flow/pull/27) for the latest
+source and CI results and [release 3.1.0](https://github.com/w3ziqv/focus-flow/releases/tag/v3.1.0)
+for published installers and their checksums. Earlier candidate status, local
+toolchain limitations and GitHub HTTP 403 notes below describe the November 4
+validation and are superseded by this publication follow-up.
+
 Follow-up: the [security and stress review](SECURITY-REVIEW-3.1.md) adds import,
 CSV, peer-protocol and batch-aware Firestore corrections plus completed emulator
 tests. Its results supersede the initial validation limitations recorded below.
 
 This change implements the shared 3.1 interface for the web, installed PWA and
 Tauri frontend. Physical-device and voluntary-user acceptance remain open;
-this is a release candidate, not a claim that those checks have passed.
+publication does not establish that those checks have passed.
 
 ## Everyday journeys
 

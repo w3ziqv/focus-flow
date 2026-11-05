@@ -1,6 +1,6 @@
 # Security
 
-Security fixes target the 3.0 release line; 3.1 is a locally tested candidate.
+Security fixes target the latest published release, including the 3.1 update.
 See the [3.1 review and remaining checks](docs/SECURITY-REVIEW-3.1.md).
 Older versions and prereleases may
 use different cloud schemas or test projects; their reports do not establish
@@ -24,7 +24,7 @@ coordinate a fix and disclosure; reporter credit can be agreed before publicatio
 | Version | Security maintenance |
 | --- | --- |
 | Latest 3.0.x | Supported |
-| 3.1 candidate | Corrections included; publication and physical/native acceptance pending |
+| Latest 3.1.x | Supported; physical-device acceptance limits are documented in the release notes |
 | Earlier 3.0 prereleases and 2.x | Upgrade; fixes are not backported by default |
 
 A published dependency advisory is reviewed against actual exposure. Security
