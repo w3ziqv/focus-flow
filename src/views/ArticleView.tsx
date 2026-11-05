@@ -26,11 +26,13 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
   const headingClass = 'font-serif text-[1.25rem] font-[500] text-ink'
   const bodyClass = 'mt-2 text-[15px] leading-relaxed text-ink-2'
   return (
-    <article className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-12 pb-16 md:pt-24" style={accentStyle(topic.accent)}>
+    <article className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-8 pb-12 md:pt-12" style={accentStyle(topic.accent)}>
+      <div className="guide-return">
       <button type="button" onClick={onBack} aria-label={t('topic.back')}
-        className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink md:top-20">
+        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-card text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink">
         <X size={20} aria-hidden="true" />
       </button>
+      </div>
       <p className="text-overline text-ink-3">{topic.copy[lang].title}</p>
       <h1 className="mt-2 font-serif text-[1.75rem] font-[500] leading-snug tracking-[-0.01em] text-ink">{copy.title}</h1>
       <p className="mt-2 text-caption text-ink-3">{t('topic.read', { n: readMinutes(article, lang) })}</p>

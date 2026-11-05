@@ -47,8 +47,8 @@ export function TimerView({
   const isSoundActive = ambient !== 'none' || (binaural && binaural !== 'off')
 
   return (
-    <div className="mx-auto flex min-h-[calc(100dvh-5.5rem)] w-full max-w-[560px] flex-col justify-center px-4 pt-2 pb-24 md:min-h-0 md:justify-start md:pt-20 md:pb-16">
-      <h1 className="mb-2 text-center font-serif text-lg font-medium md:sr-only md:mb-0">{t('app.name')}<span className="sr-only"> — {t('nav.timer')}</span></h1>
+    <div className="timer-workspace mx-auto flex w-full max-w-[560px] flex-col px-4">
+      <h1 className="sr-only">{t('app.name')} — {t('nav.timer')}</h1>
 
       <div className="fade-up shrink-0" style={{ animationDelay: '0ms' }}>
         <TaskField
@@ -69,7 +69,7 @@ export function TimerView({
       </div>
 
       <div className="fade-up my-auto py-1 sm:my-0 sm:mt-6 sm:py-0" style={{ animationDelay: '80ms' }}>
-        <div className="mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px]">
+        <div className="timer-dial mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px]">
           <Dial
             mode={engine.mode}
             remainingMs={engine.remainingMs}
@@ -89,7 +89,7 @@ export function TimerView({
       {/* Unified Command Dock */}
       <div className="fade-up mt-4 sm:mt-8 flex shrink-0 flex-col items-center gap-3" style={{ animationDelay: '120ms' }}>
         {/* Primary Execution Controls */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <PillButton variant="primary" className="min-w-[136px]" onClick={engine.toggle}>
             <StartIcon size={18} aria-hidden="true" />
             {engine.running ? t('timer.pause') : t('timer.start')}
@@ -125,14 +125,8 @@ export function TimerView({
             <span>{t('focus.enter')}</span>
           </button>
 
-          <PillButton
-            variant="icon"
-            onClick={onOpenSettings}
-            aria-label={t('settings.timer')}
-            title={t('settings.timer')}
-            className="size-target rounded-control border border-line bg-card"
-          >
-            <Settings2 size={16} aria-hidden="true" />
+          <PillButton variant="secondary" onClick={onOpenSettings} className="gap-1.5 px-3.5 py-1.5 text-caption">
+            <Settings2 size={16} aria-hidden="true" /><span>{t('settings.timer')}</span>
           </PillButton>
         </div>
 

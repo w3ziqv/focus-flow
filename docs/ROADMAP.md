@@ -63,7 +63,7 @@ with work or require a permanently running video.
 
 ### Experience
 
-Offer an **Ogród / Garden** where completed focus sessions gradually grow plants.
+Offer a **Garden** where completed focus sessions gradually grow plants.
 Make it optional and available offline without an account. The timer remains
 the main screen; the garden is a quiet place to visit after work.
 

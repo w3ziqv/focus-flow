@@ -150,6 +150,16 @@ describe('AppSettingsModal Component', () => {
       expect(onImportSuccess).toHaveBeenCalledTimes(1)
     })
 
+    it('reports unavailable storage separately from a malformed backup', async () => {
+      const onImportSuccess = vi.fn()
+      vi.spyOn(dataPortModule, 'importData').mockResolvedValue({ success: false, reason: 'storage', error: 'Storage quota exceeded' })
+      const { container } = renderModal({ onImportSuccess }, 'data')
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
+      fireEvent.change(fileInput, { target: { files: [new File(['{}'], 'backup.json', { type: 'application/json' })] } })
+      await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/storage|wolne miejsce/i))
+      expect(onImportSuccess).not.toHaveBeenCalled()
+    })
+
     it('displays error message and does not invoke onImportSuccess when importing invalid JSON', async () => {
       const onImportSuccess = vi.fn()
       vi.spyOn(dataPortModule, 'importData').mockResolvedValue({ success: false, error: 'Malformed JSON' })

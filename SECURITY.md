@@ -1,6 +1,8 @@
 # Security
 
-Security fixes target the 3.0 release line. Older versions and prereleases may
+Security fixes target the latest published release, including the 3.1 update.
+See the [3.1 review and remaining checks](docs/SECURITY-REVIEW-3.1.md).
+Older versions and prereleases may
 use different cloud schemas or test projects; their reports do not establish
 current production behavior.
 
@@ -22,6 +24,7 @@ coordinate a fix and disclosure; reporter credit can be agreed before publicatio
 | Version | Security maintenance |
 | --- | --- |
 | Latest 3.0.x | Supported |
+| Latest 3.1.x | Supported; physical-device acceptance limits are documented in the release notes |
 | Earlier 3.0 prereleases and 2.x | Upgrade; fixes are not backported by default |
 
 A published dependency advisory is reviewed against actual exposure. Security
@@ -49,6 +52,8 @@ npm audit --audit-level=high
 npm run typecheck
 npm run lint
 npm run test:run
+npm run build
+npm run test:stress
 npx --yes firebase-tools@15.32.1 emulators:exec --only firestore --project demo-focus-flow-security "npm run test:rules && npm run test:integration"
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 cargo test --locked --release --manifest-path src-tauri/Cargo.toml patched_glib_string_iterator_optimized_regression
@@ -62,9 +67,11 @@ cloud project and published SHA-256 manifest.
 
 Dependency audits include development dependencies. The Firebase Node transport
 uses an explicit patched `@grpc/grpc-js` override; remove it only after the
-upstream pin is compatible. The development toolchain currently has four low
-entries from the unpatched [deepmerge advisory](https://github.com/advisories/GHSA-gcqx-w48m-w2h4).
-The runtime npm audit reports zero; that does not certify the whole system.
+upstream pin is compatible. On 2026-11-04, the development toolchain audit has
+13 moderate and two low entries involving minimatch, glob and deepmerge.
+No critical/high finding is reported; the runtime npm audit reports zero.
+See the 3.1 review for the raw audits, exposure and Rust maintenance notices.
+An audit does not certify the whole system.
 
 ## Native dependency backport
 

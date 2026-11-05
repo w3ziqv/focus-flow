@@ -292,6 +292,7 @@ export const zh = {
   "webhookError": "事件发送失败",
   "importSuccess": "备份已成功恢复",
   "importInvalid": "备份文件无效或已损坏",
+  "importStorageError": "无法完整保存备份。请检查可用空间，导出当前数据后重试。",
   "wakeReconciled": "你离开期间，本次专注已完成。",
   "wakeDismiss": "关闭提示",
   "platform.browser": "浏览器",

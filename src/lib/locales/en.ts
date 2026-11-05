@@ -292,6 +292,7 @@ export const en = {
   "webhookError": "Dispatch failed",
   "importSuccess": "Backup restored successfully",
   "importInvalid": "Invalid or corrupt backup file",
+  "importStorageError": "The backup could not be fully saved. Check available storage, export your current data, then try again.",
   "wakeReconciled": "Focus session completed while you were away.",
   "wakeDismiss": "Dismiss",
   "platform.browser": "browser",

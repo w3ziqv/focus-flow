@@ -33,10 +33,10 @@ export const AppDialogs: React.NamedExoticComponent<Props> = memo(function AppDi
   const { t } = useI18n()
   const { stack, close, audio } = props
   return <>{stack.map(dialog => {
-    if (dialog === 'app') return <Suspense key={dialog} fallback={<DialogLoading title={t('settings.app')} onClose={close} />}>
+    if (dialog === 'app' || dialog === 'data') return <Suspense key={dialog} fallback={<DialogLoading title={t('settings.app')} onClose={close} />}>
       <AppSettingsModal open theme={props.theme} onTheme={props.onTheme} interfacePrefs={props.interfacePrefs}
         onInterfaceChange={props.onInterfaceChange} onOpenShortcuts={props.openShortcuts} onOpenCloudSync={props.openCloud}
-        onImportSuccess={props.onImportSuccess} onClose={close} />
+        onImportSuccess={props.onImportSuccess} onClose={close} initialSection={dialog === 'data' ? 'data' : 'main'} />
     </Suspense>
     if (dialog === 'cloud') return <Suspense key={dialog} fallback={<DialogLoading title={t('sync.title')} onClose={close} />}>
       <CloudSyncModal open onClose={close} onSyncComplete={props.onSyncComplete} />

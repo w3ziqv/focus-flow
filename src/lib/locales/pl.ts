@@ -292,6 +292,7 @@ export const pl = {
   "webhookError": "Błąd wysyłania",
   "importSuccess": "Dane zostały pomyślnie przywrócone",
   "importInvalid": "Nieprawidłowy plik kopii zapasowej",
+  "importStorageError": "Nie udało się zapisać całej kopii. Sprawdź wolne miejsce, wyeksportuj aktualne dane i spróbuj ponownie.",
   "wakeReconciled": "Sesja skupienia została ukończona podczas Twojej nieobecności.",
   "wakeDismiss": "Zamknij",
   "platform.browser": "przeglądarka",

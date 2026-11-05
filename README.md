@@ -59,6 +59,9 @@ For desktop development use `npm run desktop:dev`; create installers with
 cloud configuration must be provided through the protected release environment.
 Never commit server credentials or private user data.
 
+The 3.1 interface update and its validation limits are documented in
+[the release notes](docs/RELEASE-3.1.md).
+
 ## Documentation
 
 - [Roadmap](docs/ROADMAP.md)

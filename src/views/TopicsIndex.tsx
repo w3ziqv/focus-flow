@@ -10,7 +10,7 @@ export default function TopicsIndex({ onOpenTopic }: { onOpenTopic: (id: TopicId
   const { t, lang } = useI18n()
 
   return (
-    <div className="fade-up mx-auto w-full max-w-[760px] px-4 pt-12 pb-16 md:pt-24">
+    <div className="fade-up mx-auto w-full max-w-[760px] px-4 pt-8 pb-12 md:pt-12">
       <p className="text-overline text-ink-3">{t('app.name')}</p>
       <h1 className="mt-2 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{t('tips.title')}</h1>
       <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-ink-2">{t('tips.desc')}</p>

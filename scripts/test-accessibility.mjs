@@ -2,6 +2,10 @@ import assert from 'node:assert/strict'
 import {mkdir, writeFile} from 'node:fs/promises'
 import {chromium} from 'playwright-core'
 import axe from 'axe-core'
+import {spawn} from 'node:child_process'
+import {setTimeout as delay} from 'node:timers/promises'
+const url = process.env.FOCUS_FLOW_TEST_URL ?? 'http://127.0.0.1:1452'
+const server = process.env.FOCUS_FLOW_TEST_URL ? null : spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--mode', 'test', '--host', '127.0.0.1', '--port', '1452', '--strictPort'], {stdio: 'pipe'})
 const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH, headless: true, args: process.env.CHROMIUM_NO_SANDBOX ? ['--no-sandbox'] : []})
 const directory = process.env.FOCUS_FLOW_A11Y_OUTPUT ?? '/tmp/focus-flow-ux-audit'
 await mkdir(directory, {recursive: true})
@@ -19,7 +23,12 @@ async function audit(name) {
   await page.screenshot({path: `${directory}/3.0-${name}.png`, fullPage: true})
 }
 try {
-  await page.goto(process.env.FOCUS_FLOW_TEST_URL ?? 'http://127.0.0.1:1420')
+  for (let attempt=0; attempt<100; attempt++) {
+    try { if ((await fetch(url)).ok) break } catch {}
+    if (attempt===99) throw Error('Accessibility test server did not start')
+    await delay(100)
+  }
+  await page.goto(url)
   await page.getByRole('button', {name: 'Zamknij', exact: true}).click()
   await audit('timer-pl')
   await page.getByRole('button', {name: /Statystyki/}).click()
@@ -66,4 +75,5 @@ try {
 } finally {
   await writeFile(`${directory}/accessibility-results.json`, JSON.stringify(reports, null, 2))
   await browser.close()
+  server?.kill()
 }

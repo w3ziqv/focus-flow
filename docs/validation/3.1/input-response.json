@@ -1,0 +1,169 @@
+{
+  "chromium": "155.0.8059.79",
+  "viewport": "393x852",
+  "serviceWorkers": "blocked",
+  "reducedMotion": true,
+  "method": "input/click dispatch to two animation frames, not field INP",
+  "runs": [
+    {
+      "url": "http://127.0.0.1:4174",
+      "sample": 0,
+      "lcpMs": 1436,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 26.200000000186265
+        },
+        {
+          "name": "click",
+          "ms": 16.0999999998603
+        }
+      ],
+      "jsBytes": 436378
+    },
+    {
+      "url": "http://127.0.0.1:4174",
+      "sample": 1,
+      "lcpMs": 1336,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 27.199999999953434
+        },
+        {
+          "name": "click",
+          "ms": 14.199999999953434
+        }
+      ],
+      "jsBytes": 436378
+    },
+    {
+      "url": "http://127.0.0.1:4174",
+      "sample": 2,
+      "lcpMs": 1344,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 21.199999999953434
+        },
+        {
+          "name": "click",
+          "ms": 23.9000000001397
+        }
+      ],
+      "jsBytes": 436378
+    },
+    {
+      "url": "http://127.0.0.1:4174",
+      "sample": 3,
+      "lcpMs": 1368,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 23.5
+        },
+        {
+          "name": "click",
+          "ms": 25.600000000093132
+        }
+      ],
+      "jsBytes": 436378
+    },
+    {
+      "url": "http://127.0.0.1:4174",
+      "sample": 4,
+      "lcpMs": 1352,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 25.299999999813735
+        },
+        {
+          "name": "click",
+          "ms": 25.600000000093132
+        }
+      ],
+      "jsBytes": 436378
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "sample": 0,
+      "lcpMs": 368,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 18.600000000093132
+        },
+        {
+          "name": "click",
+          "ms": 25.300000000046566
+        }
+      ],
+      "jsBytes": 437080
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "sample": 1,
+      "lcpMs": 396,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 26.800000000046566
+        },
+        {
+          "name": "click",
+          "ms": 24.9000000001397
+        }
+      ],
+      "jsBytes": 437080
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "sample": 2,
+      "lcpMs": 380,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 24.899999999906868
+        },
+        {
+          "name": "click",
+          "ms": 25.5
+        }
+      ],
+      "jsBytes": 437080
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "sample": 3,
+      "lcpMs": 364,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 28.5
+        },
+        {
+          "name": "click",
+          "ms": 32.39999999990687
+        }
+      ],
+      "jsBytes": 437080
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "sample": 4,
+      "lcpMs": 420,
+      "paint": [
+        {
+          "name": "input",
+          "ms": 28.5
+        },
+        {
+          "name": "click",
+          "ms": 20
+        }
+      ],
+      "jsBytes": 437080
+    }
+  ]
+}

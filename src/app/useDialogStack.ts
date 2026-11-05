@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-export type AppDialog = 'app' | 'shortcuts' | 'timer' | 'sound' | 'cloud'
+export type AppDialog = 'app' | 'data' | 'shortcuts' | 'timer' | 'sound' | 'cloud'
 export interface DialogStack {
   stack: AppDialog[]
   close: () => void
@@ -8,6 +8,7 @@ export interface DialogStack {
   openTimer: () => void
   openSound: () => void
   openCloud: () => void
+  openData: () => void
   openShortcuts: () => void
   desktopPreferences: (show: boolean) => void
 }
@@ -23,7 +24,8 @@ export function useDialogStack(): DialogStack {
   const openTimer = useCallback(() => open('timer'), [open])
   const openSound = useCallback(() => open('sound'), [open])
   const openCloud = useCallback(() => open('cloud'), [open])
+  const openData = useCallback(() => open('data'), [open])
   const openShortcuts = useCallback(() => open('shortcuts'), [open])
   const desktopPreferences = useCallback((show: boolean) => { if (show) open('app') }, [open])
-  return { stack, close, openApp, openTimer, openSound, openCloud, openShortcuts, desktopPreferences }
+  return { stack, close, openApp, openTimer, openSound, openCloud, openData, openShortcuts, desktopPreferences }
 }

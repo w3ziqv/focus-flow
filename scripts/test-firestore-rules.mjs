@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing'
-import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, query, limit, updateDoc } from 'firebase/firestore'
+import { doc, collection, setDoc, getDoc, getDocs, deleteDoc, query, limit, updateDoc, writeBatch } from 'firebase/firestore'
 
 const address = process.env.FIRESTORE_EMULATOR_HOST
 if (!address || !/^(127\.0\.0\.1|localhost):\d+$/.test(address)) {
@@ -77,9 +77,43 @@ try {
   await check('oversized platform rejected', () => assertFails(setDoc(doc(owner, 'users/alice/metadata/sync'), { clientPlatform: 'x'.repeat(513) })))
   await check('root document denied', () => assertFails(setDoc(doc(owner, 'users/alice'), { admin: true })))
   await check('unknown collection denied', () => assertFails(setDoc(doc(owner, 'admin/config'), { admin: true })))
+  const prefsRef = doc(owner, 'users/alice/interface/current')
+  async function contentBatch(id, preferences, content) {
+    const batch = writeBatch(owner)
+    batch.set(prefsRef, preferences)
+    batch.set(doc(owner, `users/alice/sessions/${id}`), { ...session, id, ...content })
+    return batch.commit()
+  }
+  await check('new masking preference rejects titled session in same batch', () => assertFails(contentBatch('mask-new', {maskTaskTitlesInCloud: true}, {})))
+  await setDoc(prefsRef, {maskTaskTitlesInCloud: false})
+  await check('enabling masking rejects titled session in same batch', () => assertFails(contentBatch('mask-enable', {maskTaskTitlesInCloud: true}, {})))
+  await check('enabling masking rejects checklist in same batch', () => assertFails(contentBatch('mask-list', {maskTaskTitlesInCloud: true}, {task: null})))
+  await check('enabling masking accepts stripped session in same batch', () => assertSucceeds(contentBatch('mask-clean', {maskTaskTitlesInCloud: true}, {task: null, checklist: []})))
+  await check('masked nullable content remains valid', () => assertSucceeds(setDoc(doc(owner, 'users/alice/sessions/mask-null'), {...session, id: 'mask-null', task: null, checklist: null})))
+  await check('existing mask rejects new private content', () => assertFails(setDoc(doc(owner, 'users/alice/sessions/mask-existing'), {...session, id: 'mask-existing'})))
+  await check('disabling masking allows content in same batch', () => assertSucceeds(contentBatch('mask-disabled', {maskTaskTitlesInCloud: false}, {})))
+  await deleteDoc(prefsRef)
+  await check('deletion wins over session in same batch', () => {
+    const batch = writeBatch(owner)
+    batch.set(doc(owner, 'users/alice/tombstones/batch-deleted'), {id: 'batch-deleted', deletedAt: date})
+    batch.set(doc(owner, 'users/alice/sessions/batch-deleted'), {...session, id: 'batch-deleted'})
+    return assertFails(batch.commit())
+  })
+  await check('deletion and session removal can commit together', () => {
+    const batch = writeBatch(owner)
+    batch.set(doc(owner, 'users/alice/tombstones/mask-disabled'), {id: 'mask-disabled', deletedAt: date})
+    batch.delete(doc(owner, 'users/alice/sessions/mask-disabled'))
+    return assertSucceeds(batch.commit())
+  })
   await check('owner creates permanent deletion', () => assertSucceeds(setDoc(doc(owner, 'users/alice/tombstones/session-1'), {id: 'session-1', deletedAt: '2020-01-01T12:00:00Z'})))
   await check('deleted ID cannot be overwritten', () => assertFails(setDoc(ref, session)))
   await check('owner can delete a session', () => assertSucceeds(deleteDoc(ref)))
   await check('deleted ID cannot be recreated after years offline', () => assertFails(setDoc(ref, session)))
+  await check('deleting tombstone cannot resurrect session in same batch', () => {
+    const batch = writeBatch(owner)
+    batch.delete(doc(owner, 'users/alice/tombstones/session-1'))
+    batch.set(ref, session)
+    return assertFails(batch.commit())
+  })
   console.log(`${passed} real Firestore authorization checks passed`)
 } finally { await env.cleanup() }

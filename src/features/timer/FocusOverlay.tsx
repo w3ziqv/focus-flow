@@ -24,9 +24,9 @@ export function FocusOverlay({ open, onClose, children }: FocusOverlayProps): Re
       aria-modal="true"
       aria-label={t('focus.enter')}
       tabIndex={-1}
-      className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-10 overflow-y-auto bg-page p-6"
+      className="focus-viewport fixed inset-0 z-50 flex flex-col items-center gap-8 overflow-y-auto bg-page"
     >
-      <PillButton variant="secondary" className="absolute top-6 left-6" onClick={onClose}>
+      <PillButton variant="secondary" className="shrink-0 self-start" onClick={onClose}>
         <ArrowLeft size={16} aria-hidden="true" />
         {t('focus.exit')}
       </PillButton>

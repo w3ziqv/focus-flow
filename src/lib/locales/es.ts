@@ -292,6 +292,7 @@ export const es = {
   "webhookError": "No se pudo enviar el evento",
   "importSuccess": "Copia de seguridad restaurada",
   "importInvalid": "El archivo de copia no es válido o está dañado",
+  "importStorageError": "No se pudo guardar toda la copia. Comprueba el espacio disponible, exporta tus datos actuales y vuelve a intentarlo.",
   "wakeReconciled": "La sesión de concentración terminó mientras estabas ausente.",
   "wakeDismiss": "Cerrar aviso",
   "platform.browser": "navegador",

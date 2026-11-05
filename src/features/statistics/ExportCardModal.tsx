@@ -58,9 +58,9 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
   return (
     <div
       data-dialog-root
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in"
+      className="dialog-viewport fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm animate-fade-in"
     >
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="card-modal-title" tabIndex={-1} className="relative max-h-[90dvh] overflow-auto w-full max-w-lg rounded-2xl border border-line bg-card p-6 shadow-xl">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="card-modal-title" tabIndex={-1} className="dialog-panel w-full max-w-lg">
         <button
           type="button"
           onClick={onClose}
@@ -70,7 +70,7 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
           <X className="size-5" />
         </button>
 
-        <div>
+        <div className="pr-10">
           <p className="text-overline text-ink-3">{t('app.name')}</p>
           <h2 id="card-modal-title" className="mt-1 font-serif text-[22px] font-medium text-ink">
             {t('stats.exportCardTitle')}

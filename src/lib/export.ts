@@ -207,7 +207,9 @@ export function escapeCsvField(val: string | number | null | undefined): string 
     return String(val)
   }
   let str = String(val)
-  if (str.startsWith('=') || str.startsWith('@')) {
+  // Spreadsheet importers may discard leading whitespace/control characters
+  // before evaluating a formula. Quoting alone does not keep these cells inert.
+  if (/^[\s\p{Cc}\p{Cf}]*[=+@-]/u.test(str)) {
     str = `'${str}`
   }
   return `"${str.replace(/"/g, '""')}"`
