@@ -44,7 +44,10 @@ export class LocalPeer {
     if (typeof RTCPeerConnection === 'undefined') throw Error('WebRTC is unavailable in this WebView')
     const connection = new RTCPeerConnection({iceServers: [], iceTransportPolicy: 'all'})
     this.connection = connection
-    connection.ondatachannel = event => { if (event.channel.label !== 'focus-flow-v3') { event.channel.close(); return }; this.attach(event.channel) }
+    connection.ondatachannel = event => {
+      if (connection !== this.connection || event.channel.label !== 'focus-flow-v3') { event.channel.close(); return }
+      this.attach(event.channel)
+    }
     connection.onconnectionstatechange = () => {
       if (connection !== this.connection) return
       if (connection.connectionState === 'failed') this.fail('Local connection failed. Re-pair the devices.')
@@ -153,7 +156,7 @@ export class LocalPeer {
     const channel = this.channel; this.channel = null
     if (channel) { channel.onclose = null; channel.onmessage = null; channel.onopen = null; channel.onerror = null; channel.close() }
     const connection = this.connection; this.connection = null
-    connection?.close()
+    if (connection) { connection.ondatachannel = null; connection.onconnectionstatechange = null; connection.close() }
     if (resetStatus) this.statusChanged('disconnected')
   }
 }

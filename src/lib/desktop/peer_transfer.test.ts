@@ -4,6 +4,7 @@ import { LocalReplica } from './replica'
 import { loadSessions, saveSessions } from '../storage'
 
 const channels: RTCDataChannel[] = []
+const rtcConnections: { ondatachannel: ((event: RTCDataChannelEvent) => void) | null }[] = []
 const connections: LocalPeer[] = []
 const fixture = () => {
   saveSessions(Array.from({ length: 100 }, (_, i) => ({ id: `quoted-${i}`, date: '2026-11-04T12:00:00Z', minutes: 1, task: '"'.repeat(200) })))
@@ -20,7 +21,10 @@ const frames = (data: string) => {
 beforeEach(() => {
   localStorage.clear()
   channels.length = 0
+  rtcConnections.length = 0
   vi.stubGlobal('RTCPeerConnection', class {
+    ondatachannel: ((event: RTCDataChannelEvent) => void) | null = null
+    constructor() { rtcConnections.push(this) }
     iceGatheringState = 'complete'
     localDescription = { toJSON: () => ({ type: 'offer', sdp: '' }) }
     createDataChannel() {
@@ -66,6 +70,18 @@ describe('peer transfer boundaries', () => {
     for (const frame of frames(data)) queued.call(channel, { data: frame } as MessageEvent)
     expect(peer.status).toBe('disconnected')
     expect(loadSessions()).toHaveLength(0)
+  })
+  it('rejects a queued data channel from a disconnected connection', async () => {
+    const data = fixture()
+    const { peer, channel } = await open()
+    const queued = rtcConnections.at(-1)!.ondatachannel!
+    const incoming = { ...channel, close: vi.fn() } as unknown as RTCDataChannel
+    peer.disconnect()
+    queued({ channel: incoming } as RTCDataChannelEvent)
+    for (const frame of frames(data)) incoming.onmessage?.call(incoming, { data: frame } as MessageEvent)
+    expect(peer.status).toBe('disconnected')
+    expect(loadSessions()).toHaveLength(0)
+    expect(incoming.close).toHaveBeenCalledOnce()
   })
   it('rejects oversized decoded chunks without altering stored history', async () => {
     const { peer, channel } = await open()
