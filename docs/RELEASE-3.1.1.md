@@ -17,6 +17,7 @@ keeping the circular timer, warm themes and the 3.1 navigation and data behavior
   session log is empty. A search with no matches keeps its search/date controls.
 - Populated statistics use an aligned overview and plain session rows. Milestones
   remain available in a keyboard-accessible disclosure, with readable labels.
+- Statistics columns stay within a 320px viewport with a large session history.
 - Zero-minute bars have zero height. Task bars use their actual percentage without
   an artificial minimum fill.
 - The guide index uses compact topic rows with its existing descriptions and
@@ -62,7 +63,10 @@ hidden retained Timer view on other screens; active headings were checked
 separately rather than removing retained views to satisfy that probe.
 
 Release checks additionally verify both web and desktop build isolation and
-version consistency across npm and Cargo metadata. Protected-branch CI and the
+version consistency across npm and Cargo metadata. The built-app stress suite
+passed 40 start/pause cycles, 30 view cycles, 1,000-session exports, storage-quota
+rollback and 320px layout checks without leaked audio sources or object URLs.
+Protected-branch CI and the
 production desktop workflow provide native build and installed-app results; the
 release entry links the exact source and completed workflow runs.
 

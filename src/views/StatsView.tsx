@@ -204,8 +204,8 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
       ) : (
         <>
           {/* 12 columns share a 24px gutter: 7 + 5 and 7 + 5 end on the same canvas edges. */}
-          <div className="grid items-start gap-6 lg:grid-cols-12">
-            <div className="rounded-panel bg-card p-5 lg:col-span-7">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+            <div className="min-w-0 rounded-panel bg-card p-5 lg:col-span-7">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-body-sm font-medium text-ink">{range === '7' ? t('stats.chart7Title') : t('stats.chart30Title')}</h2>
                 <div className="w-40">
@@ -219,12 +219,12 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
               />
             </div>
 
-            <div className="lg:col-span-5">
+            <div className="min-w-0 lg:col-span-5">
               <ActivityHeatmap days={heatmapDays} totalMinutes={heatmapTotalMinutes} />
             </div>
 
-            {taskBreakdown.length > 0 && <div className="lg:col-span-7"><TaskBreakdown items={taskBreakdown} /></div>}
-            {insights.totalSessions > 0 && <div className="lg:col-span-5"><ProductivityInsights insights={insights} /></div>}
+            {taskBreakdown.length > 0 && <div className="min-w-0 lg:col-span-7"><TaskBreakdown items={taskBreakdown} /></div>}
+            {insights.totalSessions > 0 && <div className="min-w-0 lg:col-span-5"><ProductivityInsights insights={insights} /></div>}
           </div>
 
           {/* Session History & Management */}
