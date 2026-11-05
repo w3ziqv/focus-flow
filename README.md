@@ -1,6 +1,6 @@
 # Focus Flow
 
-[![Live app](https://img.shields.io/badge/app-focusflow.ink-C96442)](https://focusflow.ink)
+[![Live app](https://img.shields.io/badge/app-focusflow.ink-376C63)](https://focusflow.ink)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Focus Flow is a Pomodoro timer for web, PWA and desktop. It combines adjustable
@@ -59,8 +59,9 @@ For desktop development use `npm run desktop:dev`; create installers with
 cloud configuration must be provided through the protected release environment.
 Never commit server credentials or private user data.
 
-The 3.1 interface update and its validation limits are documented in
-[the release notes](docs/RELEASE-3.1.md).
+The latest interface refinements and validation limits are documented in
+[the 3.1.1 release notes](docs/RELEASE-3.1.1.md). The preceding interface and
+security update is recorded in [3.1](docs/RELEASE-3.1.md).
 
 ## Documentation
 

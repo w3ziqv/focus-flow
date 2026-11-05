@@ -59,6 +59,17 @@ with work or require a permanently running video.
 - No unresolved performance regression beyond measurement noise. Any deliberate
   tradeoff needs a concrete benefit and a recorded before/after comparison.
 
+## 3.1.1 — interface refinement
+
+The patch simplifies the existing 3.1 interface without changing storage or
+synchronization schemas. Plain navigation, text task presets, quieter controls
+and a simpler countdown reduce competing decoration. First-run statistics offer
+one action; populated history uses an aligned overview, plain session rows and
+optional milestone details. The guide index becomes a compact topic list.
+
+All five themes, four languages, keyboard controls, PWA safe areas and retained
+view state remain supported. See [release details and validation limits](RELEASE-3.1.1.md).
+
 ## 3.2 — an optional personal garden
 
 ### Experience

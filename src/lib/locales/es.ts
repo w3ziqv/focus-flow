@@ -1,4 +1,6 @@
 export const es = {
+  "stats.emptyTitle": "Aún no hay sesiones",
+  "stats.emptyDescription": "Cuando completes tu primera sesión, verás aquí tu tiempo de concentración y el historial de tareas.",
   "log.showMore": "Mostrar más sesiones",
   "log.shown": "Mostrando {shown} de {total} sesiones",
   "common.loading": "Cargando…",

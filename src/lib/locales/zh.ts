@@ -1,4 +1,6 @@
 export const zh = {
+  "stats.emptyTitle": "还没有专注记录",
+  "stats.emptyDescription": "完成第一次专注后，这里会显示你的专注时长和任务记录。",
   "log.showMore": "显示更多记录",
   "log.shown": "已显示 {shown} 条，共 {total} 条记录",
   "common.loading": "正在加载…",

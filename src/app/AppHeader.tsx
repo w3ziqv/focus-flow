@@ -20,7 +20,7 @@ export const AppHeader: React.NamedExoticComponent<Props> = memo(function AppHea
     <NavPill view={props.view} onView={props.onView} onOpenSettings={props.onOpenSettings} />
     <div className="app-utilities">
       <SyncStatusIndicator onClick={props.onOpenCloud} />
-      <button type="button" onClick={props.onOpenData} title={t('data.export')} className="inline-flex min-h-target items-center justify-center gap-2 rounded-control border border-line bg-card px-3 text-caption text-ink-2 hover:bg-sunken hover:text-ink">
+      <button type="button" onClick={props.onOpenData} title={t('data.export')} className="inline-flex min-h-target items-center justify-center gap-2 rounded-control px-3 text-caption text-ink-2 hover:bg-sunken hover:text-ink">
         <Download size={16} aria-hidden="true" /><span className="sr-only md:not-sr-only">{t('data.export')}</span>
       </button>
     </div>

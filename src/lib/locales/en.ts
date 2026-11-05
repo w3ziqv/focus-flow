@@ -1,4 +1,6 @@
 export const en = {
+  "stats.emptyTitle": "No sessions yet",
+  "stats.emptyDescription": "After your first completed session, your focus time and task history will appear here.",
   "log.showMore": "Show more sessions",
   "log.shown": "Showing {shown} of {total} sessions",
   "common.loading": "Loading…",

@@ -12,8 +12,8 @@ export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function N
   const { t } = useI18n()
 
   const linkClass = (active: boolean) =>
-    `rounded-full px-3 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] active:bg-sunken ${
-      active ? 'bg-sunken text-ink' : 'text-ink-2 hover:text-ink'
+    `rounded-control px-3 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken ${
+      active ? 'text-ink underline decoration-2 underline-offset-8' : 'text-ink-2 hover:text-ink'
     }`
 
   return (
@@ -31,12 +31,11 @@ export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function N
         <button type="button" aria-current={view === 'tips' ? 'page' : undefined} onClick={() => onView('tips')} className={linkClass(view === 'tips')}>
           {t('nav.tips')}
         </button>
-        <span aria-hidden="true" className="mx-1 h-5 w-px bg-line" />
         <button
           type="button"
           onClick={onOpenSettings}
           aria-label={t('settings.app')}
-          className="flex size-11 items-center justify-center rounded-full text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
+          className="flex size-11 items-center justify-center rounded-control text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
         >
           <Settings2 size={18} aria-hidden="true" />
         </button>

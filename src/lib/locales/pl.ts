@@ -1,4 +1,6 @@
 export const pl = {
+  "stats.emptyTitle": "Jeszcze bez sesji",
+  "stats.emptyDescription": "Po pierwszej ukończonej sesji zobaczysz tu czas skupienia i historię zadań.",
   "log.showMore": "Pokaż kolejne sesje",
   "log.shown": "Wyświetlono {shown} z {total} sesji",
   "common.loading": "Wczytywanie…",

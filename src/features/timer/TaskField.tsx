@@ -163,7 +163,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
   // Done Phase Rendering
   if (phase === 'done' && value.trim() !== '') {
     return (
-      <div className="mx-auto w-full max-w-[380px]">
+      <div className="mx-auto w-full max-w-[460px]">
         <div className="flex min-h-[3rem] items-center justify-center gap-2 text-[15px] text-ink-2">
           <CheckCircle2 size={18} className="text-success shrink-0" aria-hidden="true" />
           <span className="truncate">
@@ -197,7 +197,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
   // Running Phase Rendering
   if (phase === 'running' && value.trim() !== '') {
     return (
-      <div className="mx-auto w-full max-w-[380px]">
+      <div className="mx-auto w-full max-w-[460px]">
         <div className="flex min-h-[3rem] items-center justify-center gap-2 text-[15px]">
           <span aria-hidden="true" className="size-2 rounded-full bg-[var(--ac)] session-dot shrink-0" />
           <span className="truncate">
@@ -249,7 +249,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
 
   // Draft Phase Rendering
   return (
-    <div className="mx-auto w-full max-w-[380px]">
+    <div className="mx-auto w-full max-w-[460px]">
       <p aria-hidden="true" className="mb-1 text-center text-overline text-ink-3">
         {greeting}
       </p>
@@ -284,7 +284,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
             key={preset.id}
             type="button"
             onClick={() => handleSelectPreset(preset)}
-            className="min-h-target rounded-control bg-card px-2.5 py-1 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
+            className="min-h-target min-w-11 rounded-control px-1 py-1 text-caption max-sm:basis-[30%] text-ink-2 underline-offset-4 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:text-ink hover:underline active:bg-sunken"
           >
             {preset.label}
           </button>

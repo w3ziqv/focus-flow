@@ -86,10 +86,7 @@ main :is(button, input, a, select) {
   display: flex;
   align-items: center;
   gap: .25rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-control);
-  background: var(--color-card);
-  padding: .375rem .5rem;
+  padding: .375rem 0;
 }
 .app-nav-controls > button { min-height: var(--spacing-target); }
 .app-nav-controls > button:last-child { flex-shrink: 0; }
@@ -113,7 +110,7 @@ main :is(button, input, a, select) {
   .app-utilities { grid-column: 2; grid-row: 1; }
   .app-nav { grid-column: 1 / -1; grid-row: 2; }
 }
-.timer-workspace { padding-top: 2.5rem; padding-bottom: 3rem; }
+.timer-workspace { padding-top: 1.5rem; padding-bottom: 3rem; }
 main { overflow-wrap: anywhere; }
 .guide-return {
   position: sticky;
@@ -139,14 +136,17 @@ main { overflow-wrap: anywhere; }
   .app-utilities { justify-content: flex-end; gap: .25rem; }
   .app-nav {
     position: fixed;
-    left: calc(var(--safe-left) + .5rem);
-    right: calc(var(--safe-right) + .5rem);
-    bottom: calc(var(--safe-bottom) + .75rem);
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 40;
     display: flex;
     justify-content: center;
+    border-top: 1px solid var(--color-line);
+    background: var(--color-page);
+    padding: .25rem var(--safe-right) var(--safe-bottom) var(--safe-left);
   }
-  .app-nav-controls { width: 100%; max-width: 24rem; box-shadow: var(--shadow-whisper); }
+  .app-nav-controls { width: 100%; max-width: 24rem; padding-inline: .5rem; }
   .app-nav-controls > button { min-height: var(--spacing-target); min-width: 0; padding-left: .5rem; padding-right: .5rem; overflow-wrap: anywhere; }
   .app-nav-controls > button:not(:last-child) { flex: 1 1 0; }
   .app-nav-controls > button:last-child { flex-shrink: 0; }
@@ -187,26 +187,6 @@ main { overflow-wrap: anywhere; }
   background: var(--color-elevated);
   padding: var(--spacing-dialog);
   box-shadow: var(--shadow-whisper);
-}
-
-/* Section 7 — film grain (light theme signature) */
-.grain::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-.dark.grain::before {
-  opacity: 0.02;
-}
-.obsidian.grain::before {
-  opacity: 0.015;
-}
-.eink.grain::before {
-  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

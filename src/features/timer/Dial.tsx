@@ -129,7 +129,7 @@ export function Dial({
   return (
     <div className={'relative mx-auto aspect-square w-full max-w-[400px]' + (complete ? ' dial-complete' : '')}>
       <svg aria-hidden="true" viewBox="0 0 360 360" className="absolute inset-0 h-full w-full -rotate-90">
-        {TICKS.map((tick, i) => (
+        {TICKS.filter(tick => tick.major).map((tick, i) => (
           <line
             key={i}
             x1={tick.x1}

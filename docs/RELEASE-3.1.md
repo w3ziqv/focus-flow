@@ -1,5 +1,8 @@
 # Focus Flow 3.1 — interface update
 
+The interface refinements in the subsequent patch are documented in
+[Focus Flow 3.1.1](RELEASE-3.1.1.md). This page records the original 3.1 release.
+
 ## Publication follow-up — 2026-11-05
 
 The owner requested publication of 3.1 to the production website and GitHub
