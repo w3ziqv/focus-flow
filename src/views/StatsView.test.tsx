@@ -25,6 +25,38 @@ describe('StatsView (v2.3 Features)', () => {
     localStorage.clear()
   })
 
+  it('offers the first session without empty charts, filters or locked milestones', () => {
+    const onStartSession = vi.fn()
+    const emptyStats = { ...mockStats, today: 0, week: 0, streak: 0, minutes: 0, history: {} }
+    render(<I18nProvider><StatsView stats={emptyStats} lang="pl" onStartSession={onStartSession} /></I18nProvider>)
+
+    expect(screen.getByRole('heading', { name: 'Jeszcze bez sesji' })).toBeDefined()
+    expect(screen.queryByRole('img')).toBeNull()
+    expect(screen.queryByRole('searchbox')).toBeNull()
+    expect(screen.queryByText('Kamienie milowe')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Rozpocznij pierwszą sesję' }))
+    expect(onStartSession).toHaveBeenCalledOnce()
+  })
+
+  it('preserves aggregate statistics when the retained session log is empty', () => {
+    render(<I18nProvider><StatsView stats={mockStats} lang="pl" /></I18nProvider>)
+
+    expect(screen.queryByRole('heading', { name: 'Jeszcze bez sesji' })).toBeNull()
+    expect(screen.getByRole('searchbox')).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Eksportuj kartę' })).toBeDefined()
+  })
+
+  it('keeps history controls available when a search has no matching sessions', () => {
+    storage.saveSessions([{ id: 'search-empty', date: new Date().toISOString(), minutes: 25, task: 'Read notes' }])
+    render(<I18nProvider><StatsView stats={mockStats} lang="pl" /></I18nProvider>)
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'missing task' } })
+    expect(screen.getByText(/Brak sesji spełniających/i)).toBeDefined()
+    expect(screen.queryByRole('heading', { name: 'Jeszcze bez sesji' })).toBeNull()
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } })
+    expect(screen.getAllByText('Read notes', { exact: true }).length).toBeGreaterThanOrEqual(1)
+  })
+
   it('pages the visible history while searching the complete set and preserving stored sessions', () => {
     const entries = Array.from({length:65}, (_, i) => ({id:`page-${i}`,date:new Date().toISOString(),minutes:1,task:`History ${i}`}))
     storage.saveSessions(entries)

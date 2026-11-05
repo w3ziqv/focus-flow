@@ -6,7 +6,7 @@ interface StatCardProps {
 
 export function StatCard({ value, label, emphasized = false }: StatCardProps): React.JSX.Element {
   return (
-    <div className="flex flex-col items-center gap-1 sm:flex-1 sm:border-l sm:border-line sm:px-4 sm:first:border-l-0">
+    <div className="flex flex-col items-start gap-2 sm:flex-1">
       <span
         className={`tnum whitespace-nowrap font-serif text-[1.75rem] leading-none font-[400] ${
           emphasized ? 'text-[var(--ac-strong)]' : 'text-ink'
@@ -14,7 +14,7 @@ export function StatCard({ value, label, emphasized = false }: StatCardProps): R
       >
         {value}
       </span>
-      <span className="text-center text-overline text-ink-3">{label}</span>
+      <span className="text-overline text-ink-2">{label}</span>
     </div>
   )
 }

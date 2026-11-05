@@ -58,7 +58,7 @@ function formatDate(iso: string, lang: Lang): string {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
-    }).toUpperCase()
+    })
   } catch {
     return ''
   }
@@ -198,18 +198,17 @@ export function ZenMilestones({ stats, sessions }: ZenMilestonesProps): React.JS
   }, [evaluated])
 
   return (
-    <div className="rounded-2xl border border-line bg-card p-5">
+    <div className="pt-4 pb-2">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-overline text-ink-3">{t('milestones.title')}</p>
-          <h2 className="mt-1 font-serif text-[18px] font-medium text-ink">{t('milestones.subtitle')}</h2>
+          <h2 className="text-body-sm font-medium text-ink">{t('milestones.subtitle')}</h2>
         </div>
         <span className="text-caption text-ink-3">
           {t('milestones.progress', { unlocked: evaluated.length, total: ZEN_MILESTONES.length })}
         </span>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {MILESTONE_DEFS.map((def) => {
           const record = unlockedMap.get(def.id)
           const isUnlocked = Boolean(record)
@@ -217,12 +216,7 @@ export function ZenMilestones({ stats, sessions }: ZenMilestonesProps): React.JS
           return (
             <div
               key={def.id}
-              className={
-                'flex items-start gap-3.5 rounded-xl border p-3.5 transition-colors ' +
-                (isUnlocked
-                  ? 'border-line bg-surface/50 shadow-[0_1px_4px_rgba(20,20,19,0.03)]'
-                  : 'border-line-subtle/80 bg-sunken/30')
-              }
+              className="flex items-start gap-3.5 last:sm:col-span-2"
             >
               <div className="shrink-0 mt-0.5">
                 <ZenStoneStamp unlocked={isUnlocked} id={def.id} />
@@ -234,7 +228,7 @@ export function ZenMilestones({ stats, sessions }: ZenMilestonesProps): React.JS
                   </p>
                 </div>
                 <p className="text-[12px] leading-relaxed text-ink-3 mt-0.5">{t(def.descKey)}</p>
-                <div className="mt-2 flex items-center justify-between gap-2 text-[10px]">
+                <div className="mt-2 flex items-center justify-between gap-2 text-[12px]">
                   <span className="text-ink-3">{t(def.thresholdKey)}</span>
                   {isUnlocked && record?.unlockedAt && (
                     <span className="tnum font-medium text-[var(--ac-strong)]">

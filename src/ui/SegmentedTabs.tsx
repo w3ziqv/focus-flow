@@ -26,7 +26,7 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLab
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="relative mx-auto flex w-full max-w-[380px] rounded-full bg-sunken p-1"
+      className="relative mx-auto flex w-full max-w-[380px] border-b border-line px-1"
       onKeyDown={(event) => {
         if (event.key === 'ArrowRight') {
           event.preventDefault()
@@ -44,7 +44,7 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLab
     >
       <span
         aria-hidden="true"
-        className="absolute top-1 bottom-1 left-1 rounded-full bg-[var(--ac-soft)] transition-transform duration-[220ms] [transition-timing-function:var(--ease-standard)]"
+        className="absolute bottom-0 left-1 h-0.5 bg-ink transition-transform duration-[220ms] [transition-timing-function:var(--ease-standard)]"
         style={{
           width: `calc((100% - 8px) / ${Math.max(1, tabs.length)})`,
           transform: `translateX(${activeIndex * 100}%)`,
@@ -63,8 +63,8 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLab
             aria-selected={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(tab.id)}
-            className={`relative z-10 min-h-target min-w-0 flex-1 rounded-full px-2 py-3 text-caption font-medium break-words transition-colors duration-150 [transition-timing-function:var(--ease-micro)] ${
-              active ? 'text-[var(--ac-strong)]' : 'text-ink-2 hover:text-ink'
+            className={`relative z-10 min-h-target min-w-0 flex-1 rounded-control px-2 py-3 text-caption font-medium break-words transition-colors duration-150 [transition-timing-function:var(--ease-micro)] ${
+              active ? 'text-ink' : 'text-ink-2 hover:text-ink'
             }`}
           >
             {tab.label}

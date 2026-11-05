@@ -163,208 +163,230 @@ export function StatsView({ stats: propStats, lang, onStatsChange, onStartSessio
     }
   }, [stats, lang, taskBreakdown])
 
+  // Retained totals can outlive the capped session log or a legacy import.
+  const hasRecordedFocus = stats.minutes > 0 || sessions.length > 0
+
   return (
-    <div className="fade-up mx-auto w-full max-w-[640px] px-4 pt-8 pb-12 md:pt-12 space-y-10">
+    <div className={`mx-auto w-full px-4 pt-8 pb-12 md:pt-6 space-y-8 ${hasRecordedFocus ? 'max-w-[1100px]' : 'max-w-[640px]'}`}>
       <div>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-overline text-ink-3">{t('app.name')}</p>
-            <h1 className="mt-2 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{t('stats.view')}</h1>
+            <h1 className="font-serif text-2xl font-medium text-ink">{t('stats.view')}</h1>
           </div>
-          <PillButton
-            variant="secondary"
-            onClick={() => setExportModalOpen(true)}
-            className="flex items-center gap-2 mt-2 text-[13px]"
-          >
-            <Share2 className="size-4 text-[var(--ac-strong)]" />
-            <span>{t('stats.exportCard')}</span>
-          </PillButton>
+          {hasRecordedFocus && (
+            <PillButton
+              variant="secondary"
+              onClick={() => setExportModalOpen(true)}
+              className="flex items-center gap-2 mt-2 text-[13px]"
+            >
+              <Share2 className="size-4 text-[var(--ac-strong)]" />
+              <span>{t('stats.exportCard')}</span>
+            </PillButton>
+          )}
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
-          <StatCard value={formatNumber(lang, stats.today)} label={t('stat.today')} emphasized />
-          <StatCard value={formatNumber(lang, stats.week)} label={t('stat.week')} />
-          <StatCard value={formatNumber(lang, stats.streak)} label={t('stat.streak')} />
-          <StatCard value={formatNumber(lang, stats.minutes)} label={t('stat.minutes')} />
-        </div>
+        {hasRecordedFocus && (
+          <div className="mt-8 grid grid-cols-2 gap-y-8 sm:flex sm:items-start">
+            <StatCard value={formatNumber(lang, stats.today)} label={t('stat.today')} emphasized />
+            <StatCard value={formatNumber(lang, stats.week)} label={t('stat.week')} />
+            <StatCard value={formatNumber(lang, stats.streak)} label={t('stat.streak')} />
+            <StatCard value={formatNumber(lang, stats.minutes)} label={t('stat.minutes')} />
+          </div>
+        )}
       </div>
 
-      {stats.minutes === 0 && onStartSession && <PillButton onClick={onStartSession}>{t('stats.begin')}</PillButton>}
+      {!hasRecordedFocus ? (
+        <section className="max-w-[640px] rounded-panel bg-card p-6 sm:p-8" aria-labelledby="stats-empty-title">
+          <h2 id="stats-empty-title" className="text-lg font-medium text-ink">{t('stats.emptyTitle')}</h2>
+          <p className="mt-3 max-w-[44ch] text-[15px] leading-relaxed text-ink-2">{t('stats.emptyDescription')}</p>
+          {onStartSession && <PillButton variant="primary" className="mt-6" onClick={onStartSession}>{t('stats.begin')}</PillButton>}
+        </section>
+      ) : (
+        <>
+          {/* 12 columns share a 24px gutter: 7 + 5 and 7 + 5 end on the same canvas edges. */}
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+            <div className="min-w-0 rounded-panel bg-card p-5 lg:col-span-7">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-body-sm font-medium text-ink">{range === '7' ? t('stats.chart7Title') : t('stats.chart30Title')}</h2>
+                <div className="w-40">
+                  <SegmentedTabs tabs={rangeTabs} value={range} onChange={setRange} ariaLabel={t('stats.chart7Title')} />
+                </div>
+              </div>
+              <WeekChart
+                days={activeChartDays}
+                totalMinutes={activeChartTotal}
+                showTitle={false}
+              />
+            </div>
 
-      <ActivityHeatmap days={heatmapDays} totalMinutes={heatmapTotalMinutes} />
+            <div className="min-w-0 lg:col-span-5">
+              <ActivityHeatmap days={heatmapDays} totalMinutes={heatmapTotalMinutes} />
+            </div>
 
-      <div className="rounded-2xl border border-line bg-card p-5">
-        <div className="mb-4 flex justify-end">
-          <div className="w-40">
-            <SegmentedTabs tabs={rangeTabs} value={range} onChange={setRange} ariaLabel={t('stats.chart7Title')} />
+            {taskBreakdown.length > 0 && <div className="min-w-0 lg:col-span-7"><TaskBreakdown items={taskBreakdown} /></div>}
+            {insights.totalSessions > 0 && <div className="min-w-0 lg:col-span-5"><ProductivityInsights insights={insights} /></div>}
           </div>
-        </div>
-        <WeekChart
-          days={activeChartDays}
-          totalMinutes={activeChartTotal}
-          title={range === '7' ? t('stats.chart7Title') : t('stats.chart30Title')}
-        />
-      </div>
 
-      <TaskBreakdown items={taskBreakdown} />
+          {/* Session History & Management */}
+          <div className="space-y-4">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-base font-medium text-ink">{t('log.title')}</h2>
+            </div>
 
-      <ProductivityInsights insights={insights} />
+            <SearchFilterWell
+              query={searchQuery}
+              onQueryChange={query => { setSearchQuery(query); setVisibleCount(SESSION_PAGE_SIZE) }}
+              dateFilter={dateFilter}
+              onDateFilterChange={date => { setDateFilter(date); setVisibleCount(SESSION_PAGE_SIZE) }}
+              totalCount={sessions.length}
+              filteredCount={filteredSessions.length}
+            />
 
-      {/* Session History & Management */}
-      <div className="space-y-4">
-        <div className="flex items-baseline justify-between">
-          <p className="text-overline text-ink-3">{t('log.title')}</p>
-        </div>
+            {days.length === 0 ? (
+              <p className="mt-4 py-5 text-[14px] leading-relaxed text-ink-2">
+                {sessions.length === 0 ? t('log.empty') : t('log.noMatches')}
+              </p>
+            ) : (
+              <div className="mt-4 space-y-6">
+                {days.map((day) => (
+                  <section key={day.key}>
+                    <p className="text-caption font-semibold text-ink">{day.label}</p>
+                    <ul className="mt-2 space-y-2">
+                      {day.entries.map((entry) => {
+                        const isEditing = editingId === entry.id
+                        const completedMicrosteps = entry.checklist?.filter((c) => c.completed).length ?? 0
+                        const totalMicrosteps = entry.checklist?.length ?? 0
 
-        <SearchFilterWell
-          query={searchQuery}
-          onQueryChange={query => { setSearchQuery(query); setVisibleCount(SESSION_PAGE_SIZE) }}
-          dateFilter={dateFilter}
-          onDateFilterChange={date => { setDateFilter(date); setVisibleCount(SESSION_PAGE_SIZE) }}
-          totalCount={sessions.length}
-          filteredCount={filteredSessions.length}
-        />
+                        return (
+                          <li
+                            key={entry.id}
+                            className="group flex flex-col gap-2 border-b border-line-subtle py-4"
+                          >
+                            <div className={isEditing ? 'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3' : 'flex items-start justify-between gap-3'}>
+                              <div className="min-w-0 flex-1">
+                                {isEditing ? (
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      ref={editInputRef}
+                                      type="text"
+                                      aria-label={t('log.editTask')}
+                                      value={editTaskText}
+                                      maxLength={200}
+                                      onChange={(e) => setEditTaskText(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveEdit(entry.id)
+                                        if (e.key === 'Escape') handleCancelEdit()
+                                      }}
+                                      onBlur={(event) => {
+                                        // Save/Cancel own their action; focus moving to them must not commit first.
+                                        if (event.relatedTarget instanceof Node && event.currentTarget.parentElement?.contains(event.relatedTarget)) return
+                                        handleSaveEdit(entry.id)
+                                      }}
+                                      className="min-h-target min-w-0 flex-1 rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSaveEdit(entry.id)}
+                                      className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-[var(--ac-strong)] hover:bg-sunken"
+                                      aria-label={t('log.saveTask')}
+                                    >
+                                      <Check className="size-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onMouseDown={event => event.preventDefault()}
+                                      onClick={handleCancelEdit}
+                                      className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken"
+                                      aria-label={t('log.cancelEdit')}
+                                    >
+                                      <X className="size-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <span className="block truncate text-[14px] font-medium text-ink">
+                                      {entry.task ?? t('log.noTask')}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartEdit(entry)}
+                                      className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-ink"
+                                      aria-label={t('log.editTask')}
+                                    >
+                                      <Edit2 className="size-3.5" />
+                                    </button>
+                                  </div>
+                                )}
 
-        {days.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-line bg-card p-5 text-[14px] leading-relaxed text-ink-2">
-            {sessions.length === 0 ? t('log.empty') : t('log.noMatches')}
-          </p>
-        ) : (
-          <div className="mt-4 space-y-6">
-            {days.map((day) => (
-              <section key={day.key}>
-                <p className="text-caption font-semibold text-ink">{day.label}</p>
-                <ul className="mt-2 space-y-2">
-                  {day.entries.map((entry) => {
-                    const isEditing = editingId === entry.id
-                    const completedMicrosteps = entry.checklist?.filter((c) => c.completed).length ?? 0
-                    const totalMicrosteps = entry.checklist?.length ?? 0
+                                <div className="flex items-center gap-3 mt-1 text-[12px] text-ink-3">
+                                  <span>{timeLabel(entry.date, lang)}</span>
+                                  {totalMicrosteps > 0 && (
+                                    <>
+                                      <span>•</span>
+                                      <span>
+                                        {t('log.microstepsCount', {
+                                          completed: completedMicrosteps,
+                                          total: totalMicrosteps,
+                                        })}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
 
-                    return (
-                      <li
-                        key={entry.id}
-                        className="group flex flex-col gap-2 rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-subtle"
-                      >
-                        <div className={isEditing ? 'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3' : 'flex items-start justify-between gap-3'}>
-                          <div className="min-w-0 flex-1">
-                            {isEditing ? (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  ref={editInputRef}
-                                  type="text"
-                                  aria-label={t('log.editTask')}
-                                  value={editTaskText}
-                                  maxLength={200}
-                                  onChange={(e) => setEditTaskText(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSaveEdit(entry.id)
-                                    if (e.key === 'Escape') handleCancelEdit()
-                                  }}
-                                  onBlur={(event) => {
-                                    // Save/Cancel own their action; focus moving to them must not commit first.
-                                    if (event.relatedTarget instanceof Node && event.currentTarget.parentElement?.contains(event.relatedTarget)) return
-                                    handleSaveEdit(entry.id)
-                                  }}
-                                  className="min-h-target min-w-0 flex-1 rounded-lg border border-[var(--ac)] bg-sunken px-2.5 py-1 text-[14px] text-ink"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleSaveEdit(entry.id)}
-                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-[var(--ac-strong)] hover:bg-sunken"
-                                  aria-label={t('log.saveTask')}
-                                >
-                                  <Check className="size-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onMouseDown={event => event.preventDefault()}
-                                  onClick={handleCancelEdit}
-                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken"
-                                  aria-label={t('log.cancelEdit')}
-                                >
-                                  <X className="size-4" />
-                                </button>
+                                {/* Show micro-steps details if present */}
+                                {entry.checklist && entry.checklist.length > 0 && (
+                                  <div className="mt-2 space-y-1 pl-1">
+                                    {entry.checklist.map((chk) => (
+                                      <div key={chk.id} className="flex items-center gap-2 text-[12px] text-ink-2">
+                                        <span
+                                          className={
+                                            'size-1.5 rounded-full ' +
+                                            (chk.completed ? 'bg-[var(--ac)]' : 'bg-line-subtle')
+                                          }
+                                        />
+                                        <span className={chk.completed ? 'line-through text-ink-3' : ''}>
+                                          {chk.text}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <span className="block truncate text-[14px] font-medium text-ink">
-                                  {entry.task ?? t('log.noTask')}
+
+                              <div className={`flex items-center gap-2 shrink-0 ${isEditing ? 'self-end sm:self-auto' : ''}`}>
+                                <span className="tnum text-[14px] font-medium text-[var(--ac-strong)]">
+                                  {formatNumber(lang, entry.minutes)} {t('unit.minuteShort')}
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() => handleStartEdit(entry)}
-                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-ink"
-                                  aria-label={t('log.editTask')}
+                                  onClick={() => handleDeleteSession(entry.id)}
+                                  className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-danger"
+                                  aria-label={t('log.deleteSession')}
                                 >
-                                  <Edit2 className="size-3.5" />
+                                  <Trash2 className="size-4" />
                                 </button>
                               </div>
-                            )}
-
-                            <div className="flex items-center gap-3 mt-1 text-[12px] text-ink-3">
-                              <span>{timeLabel(entry.date, lang)}</span>
-                              {totalMicrosteps > 0 && (
-                                <>
-                                  <span>•</span>
-                                  <span>
-                                    {t('log.microstepsCount', {
-                                      completed: completedMicrosteps,
-                                      total: totalMicrosteps,
-                                    })}
-                                  </span>
-                                </>
-                              )}
                             </div>
-
-                            {/* Show micro-steps details if present */}
-                            {entry.checklist && entry.checklist.length > 0 && (
-                              <div className="mt-2 space-y-1 pl-1">
-                                {entry.checklist.map((chk) => (
-                                  <div key={chk.id} className="flex items-center gap-2 text-[12px] text-ink-2">
-                                    <span
-                                      className={
-                                        'size-1.5 rounded-full ' +
-                                        (chk.completed ? 'bg-[var(--ac)]' : 'bg-line-subtle')
-                                      }
-                                    />
-                                    <span className={chk.completed ? 'line-through text-ink-3' : ''}>
-                                      {chk.text}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className={`flex items-center gap-2 shrink-0 ${isEditing ? 'self-end sm:self-auto' : ''}`}>
-                            <span className="tnum text-[14px] font-medium text-[var(--ac-strong)]">
-                              {formatNumber(lang, entry.minutes)} {t('unit.minuteShort')}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteSession(entry.id)}
-                              className="inline-flex size-target shrink-0 items-center justify-center rounded-control text-ink-3 hover:bg-sunken hover:text-danger"
-                              aria-label={t('log.deleteSession')}
-                            >
-                              <Trash2 className="size-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
-            ))}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )}
+            {filteredSessions.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
+              <p role="status" className="text-caption text-ink-2">{t('log.shown', { shown: visibleSessions.length, total: filteredSessions.length })}</p>
+              {visibleSessions.length < filteredSessions.length && <PillButton onClick={() => setVisibleCount(count => count + SESSION_PAGE_SIZE)}>{t('log.showMore')}</PillButton>}
+            </div>}
           </div>
-        )}
-        {filteredSessions.length > 0 && <div className="flex flex-wrap items-center justify-between gap-3">
-          <p role="status" className="text-caption text-ink-2">{t('log.shown', { shown: visibleSessions.length, total: filteredSessions.length })}</p>
-          {visibleSessions.length < filteredSessions.length && <PillButton onClick={() => setVisibleCount(count => count + SESSION_PAGE_SIZE)}>{t('log.showMore')}</PillButton>}
-        </div>}
-      </div>
 
-      <ZenMilestones stats={stats} sessions={sessions} />
+          <details className="rounded-panel bg-card px-5 py-4">
+            <summary className="min-h-target cursor-pointer content-center text-[15px] font-medium text-ink">{t('milestones.title')}</summary>
+            <ZenMilestones stats={stats} sessions={sessions} />
+          </details>
+        </>
+      )}
 
       <ExportCardModal
         open={exportModalOpen}

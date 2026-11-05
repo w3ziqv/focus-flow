@@ -19,9 +19,9 @@ export function ActivityHeatmap({ days, totalMinutes }: ActivityHeatmapProps): R
   const { t, lang } = useI18n()
 
   return (
-    <div className="rounded-2xl border border-line bg-card p-5">
+    <div className="rounded-panel bg-card p-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-overline text-ink-3">{t('stats.heatmapTitle')}</p>
+        <h2 className="text-body-sm font-medium text-ink">{t('stats.heatmapTitle')}</h2>
         <span className="text-caption text-ink-3">{formatNumber(lang, totalMinutes)} {t('unit.minuteShort')}</span>
       </div>
 

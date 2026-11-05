@@ -50,7 +50,7 @@ export function TimerView({
     <div className="timer-workspace mx-auto flex w-full max-w-[560px] flex-col px-4">
       <h1 className="sr-only">{t('app.name')} — {t('nav.timer')}</h1>
 
-      <div className="fade-up shrink-0" style={{ animationDelay: '0ms' }}>
+      <div className="shrink-0">
         <TaskField
           phase={taskPhase}
           value={engine.task}
@@ -64,11 +64,11 @@ export function TimerView({
         />
       </div>
 
-      <div className="fade-up mt-3 shrink-0 sm:mt-6" style={{ animationDelay: '40ms' }}>
+      <div className="mt-3 shrink-0 sm:mt-4">
         <SegmentedTabs tabs={tabs} value={engine.mode} onChange={engine.switchMode} ariaLabel={t('timer.modes')} />
       </div>
 
-      <div className="fade-up my-auto py-1 sm:my-0 sm:mt-6 sm:py-0" style={{ animationDelay: '80ms' }}>
+      <div className="mt-4 py-1">
         <div className="timer-dial mx-auto aspect-square w-full max-w-[320px] sm:max-w-[360px]">
           <Dial
             mode={engine.mode}
@@ -87,7 +87,7 @@ export function TimerView({
       </div>
 
       {/* Unified Command Dock */}
-      <div className="fade-up mt-4 sm:mt-8 flex shrink-0 flex-col items-center gap-3" style={{ animationDelay: '120ms' }}>
+      <div className="mt-4 flex shrink-0 flex-col items-center gap-3">
         {/* Primary Execution Controls */}
         <div className="flex flex-wrap items-center justify-center gap-3">
           <PillButton variant="primary" className="min-w-[136px]" onClick={engine.toggle}>
@@ -106,7 +106,7 @@ export function TimerView({
             type="button"
             onClick={onOpenSoundSettings}
             aria-label={t('sound.settings')}
-            className="inline-flex min-h-target items-center gap-1.5 rounded-control border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
+            className="inline-flex min-h-target items-center gap-1.5 rounded-control px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
           >
             <Volume2 size={15} aria-hidden="true" />
             <span>{t('sound.settings')}</span>
@@ -119,7 +119,7 @@ export function TimerView({
             type="button"
             onClick={onEnterFocus}
             aria-label={t('focus.enter')}
-            className="inline-flex min-h-target items-center gap-1.5 rounded-control border border-line bg-card px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
+            className="inline-flex min-h-target items-center gap-1.5 rounded-control px-3.5 py-1.5 text-caption text-ink-2 transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken hover:text-ink active:scale-95"
           >
             <Maximize2 size={14} aria-hidden="true" />
             <span>{t('focus.enter')}</span>
@@ -134,7 +134,7 @@ export function TimerView({
       </div>
 
       {breakTip !== null && (
-        <div className="fade-up mt-4 shrink-0 rounded-2xl border border-line bg-card p-4 text-center sm:mt-8 sm:p-5">
+        <div className="mt-6 shrink-0 rounded-panel bg-card p-5 text-center">
           <p className="text-overline text-ink-3">{t('break.tip')}</p>
           <p className="mt-1 font-serif text-[1.125rem] font-[500] text-ink">
             {breakTip.title[lang]}

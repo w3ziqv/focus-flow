@@ -31,7 +31,7 @@ export function SearchFilterWell({
   }
 
   return (
-    <div className="rounded-2xl border border-line bg-card p-4 space-y-3">
+    <div className="space-y-3">
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1">
           <label htmlFor={searchInputId} className="sr-only">
