@@ -87,9 +87,20 @@ export function isValidTheme(val: unknown): val is Theme {
  * Applies the selected theme to the root HTML element, configuring
  * class lists, custom property tokens, and color-scheme for native elements.
  */
+let themeTransitionTimer: ReturnType<typeof setTimeout> | undefined
+
 export function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return
   const root = document.documentElement
+
+  if (root.dataset.theme && root.dataset.theme !== theme) {
+    clearTimeout(themeTransitionTimer)
+    root.classList.add('theme-changing')
+    // Capture the previous palette before replacing its custom properties.
+    void root.offsetWidth
+    themeTransitionTimer = setTimeout(() => root.classList.remove('theme-changing'), 450)
+  }
+  root.dataset.theme = theme
 
   // Clean existing theme class markers
   root.classList.remove('dark', 'obsidian', 'sage', 'eink')

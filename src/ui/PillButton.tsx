@@ -8,7 +8,7 @@ interface PillButtonProps extends ComponentPropsWithRef<'button'> {
 }
 
 const base =
-  'inline-flex min-h-target select-none items-center justify-center gap-2 rounded-control font-medium transition-[color,background-color,transform] duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40'
+  'motion-press inline-flex min-h-target select-none items-center justify-center gap-2 rounded-control font-medium transition-[color,background-color,transform] duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] disabled:pointer-events-none disabled:opacity-40'
 
 const variants: Record<Variant, string> = {
   primary:

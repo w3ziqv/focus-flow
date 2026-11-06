@@ -1,8 +1,8 @@
 import type { TopicId } from '../types'
-import { articleCount } from '../lib/translations'
-import { X } from 'lucide-react'
+import { articleCount, formatNumber } from '../lib/translations'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { articlesForTopic, readMinutes, totalReadMinutesForTopic } from '../lib/articles'
-import { topicById } from '../lib/topics'
+import { topicById, topicCover } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
 import { accentStyle } from '../lib/accent'
 
@@ -15,59 +15,40 @@ interface TopicViewProps {
 export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): React.JSX.Element {
   const { t, lang } = useI18n()
   const topic = topicById(topicId)
-  const Icon = topic.icon
   const articles = articlesForTopic(topic.id)
-  const title = topic.copy[lang].title
-  const totalMinutes = totalReadMinutesForTopic(topic.id, lang)
 
   return (
-    <div
-      className="fade-up relative mx-auto w-full max-w-[760px] px-4 pt-8 pb-12 md:pt-12"
-      style={accentStyle(topic.accent)}
-    >
+    <div className="guide-category" style={accentStyle(topic.accent)}>
       <div className="guide-return">
-      <button
-        type="button"
-        onClick={onBack}
-        aria-label={t('topic.back')}
-        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-card text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink"
-      >
-        <X size={20} aria-hidden="true" />
-      </button>
+        <button type="button" onClick={onBack} aria-label={t('topic.back')} className="guide-back">
+          <ArrowLeft size={18} aria-hidden="true" /><span>{t('nav.tips')}</span>
+        </button>
       </div>
+      <header className="guide-category-hero">
+        <img src={topicCover(topic.id)} width="1200" height="800" alt="" className="guide-cover" fetchPriority="high" />
+        <div className="guide-category-heading">
+          <span className="guide-cover-label">{t('guides.category')}</span>
+          <h1 tabIndex={-1}>{topic.copy[lang].title}</h1>
+          <p>{topic.copy[lang].description}</p>
+          <span className="guide-category-meta">{t('topic.meta', { articles: articleCount(lang, articles.length), minutes: totalReadMinutesForTopic(topic.id, lang) })}</span>
+        </div>
+      </header>
 
-      <div className="flex flex-col items-center pt-8 text-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-[var(--ac-soft)]">
-          <Icon size={30} strokeWidth={1.5} className="text-[var(--ac)]" aria-hidden="true" />
-        </span>
-        <h1 className="mt-5 font-serif text-[2rem] font-[500] tracking-[-0.01em] text-ink">{title}</h1>
-        <p className="mt-2 text-caption text-ink-3">
-          {t('topic.meta', { articles: articleCount(lang, articles.length), minutes: totalMinutes })}
-        </p>
-      </div>
-
-      <div className="mt-10 border-t border-line">
-        {articles.map((article) => (
-          <button
-            key={article.id}
-            type="button"
-            onClick={() => onOpenArticle(article.id)}
-            className="group flex w-full items-center justify-between gap-4 border-b border-line py-5 text-left outline-offset-4"
-          >
-            <span>
-              <span className="block text-[15px] font-medium text-ink group-hover:text-[var(--ac-strong)]">
-                {article.content[lang].title}
-              </span>
-              <span className="mt-1 block text-caption text-ink-3">
-                {t('topic.read', { n: readMinutes(article, lang) })}
-              </span>
+      <div className="guide-section-heading"><h2>{t('guides.inCategory')}</h2></div>
+      <div className="guide-article-list">
+        {articles.map((article, index) => (
+          <button key={article.id} type="button" onClick={() => onOpenArticle(article.id)} className="guide-article-row group">
+            <span className="guide-article-number" aria-hidden="true">{formatNumber(lang, index + 1)}</span>
+            <span className="guide-article-row-copy">
+              <span className="guide-article-row-title">{article.content[lang].title}</span>
+              <span className="guide-article-excerpt">{article.content[lang].intro}</span>
+              <span className="guide-reading-time">{t('topic.read', { n: readMinutes(article, lang) })}</span>
             </span>
-            <span aria-hidden="true" className="text-ink-3 transition-colors group-hover:text-[var(--ac-strong)]">→</span>
+            <ArrowRight size={18} className="guide-row-arrow" aria-hidden="true" />
           </button>
         ))}
       </div>
     </div>
   )
 }
-
 export default TopicView

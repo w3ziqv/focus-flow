@@ -12,6 +12,11 @@ export interface Topic {
   copy: Record<Lang, { title: string; description: string }>
 }
 
+/** Local covers are shared by category headers and the library thumbnails. */
+export function topicCover(id: TopicId, thumbnail = false): string {
+  return `/images/guides/${id}${thumbnail ? '-small' : ''}.webp`
+}
+
 export const TOPICS: Topic[] = [
   { id: 'learning', icon: Brain, accent: 'focus', copy: {
     pl: { title: 'Nauka', description: 'Odtwarzanie z pamięci, powtórki i dobór ćwiczeń.' },

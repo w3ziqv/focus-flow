@@ -5,7 +5,7 @@ import { useTimerFeedback } from '../features/timer/useTimerFeedback'
 import { getCloudSyncAdapter } from '../lib/sync/adapter'
 import { useDesktopBridge } from '../lib/desktop/bridge'
 import { flushPersistence } from '../lib/desktop/runtime'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GoalSettings, InterfacePrefs, Settings, Theme } from '../types'
 import { useI18n } from '../lib/i18n'
 import { useTimerEngine } from '../lib/timer'
@@ -24,17 +24,20 @@ import {
 import { captureInstallPrompt } from '../lib/installPrompt'
 import { AppHeader } from './AppHeader'
 import { A11yLiveAnnouncer } from '../app/A11yLiveAnnouncer'
-import { ViewLoading } from '../ui/LoadingState'
 import { FocusOverlay } from '../features/timer/FocusOverlay'
 import { InstallPrompt } from '../app/InstallPrompt'
 import { Onboarding } from '../app/Onboarding'
 import { PillButton } from '../ui/PillButton'
 import { Dial } from '../features/timer/Dial'
 import { TimerView } from '../views/TimerView'
+import { MotionSurface } from '../ui/motion/MotionSurface'
 import { applyTheme } from '../lib/theme'
 
-const GuidesView = lazy(() => import('../views/GuidesView'))
-const StatsView = lazy(() => import('../views/StatsView'))
+interface LoadedViews {
+  tips?: typeof import('../views/GuidesView').default
+  stats?: typeof import('../views/StatsView').default
+}
+const viewLoaders = { tips: () => import('../views/GuidesView'), stats: () => import('../views/StatsView') }
 
 type View = 'timer' | 'stats' | 'tips'
 
@@ -43,7 +46,14 @@ export function Shell(): React.JSX.Element {
   const engine = useTimerEngine()
   const { t, lang } = useI18n()
   const [view, setView] = useState<View>('timer')
-  const [visited, setVisited] = useState({ stats: false, tips: false })
+  const [restoreScroll, setRestoreScroll] = useState(0)
+  const [viewDirection, setViewDirection] = useState<'forward' | 'backward'>('forward')
+  const [loadedViews, setLoadedViews] = useState<LoadedViews>({})
+  const [navigationError, setNavigationError] = useState<unknown>(null)
+  const [pendingView, setPendingView] = useState<View | null>(null)
+  const navigationRequest = useRef(0)
+  const GuidesView = loadedViews.tips
+  const StatsView = loadedViews.stats
   const scrollPositions = useRef<Record<View, number>>({ timer: 0, stats: 0, tips: 0 })
   const [theme, setTheme] = useState<Theme>(() => loadTheme() ?? systemTheme())
   const [syncToastMessage, setSyncToastMessage] = useState<string | null>(null)
@@ -97,26 +107,42 @@ export function Shell(): React.JSX.Element {
 
   useWakeLock(engine.running)
 
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => window.scrollTo({ top: scrollPositions.current[view] }))
-    return () => cancelAnimationFrame(frame)
-  }, [view])
-
   const setThemeAndPersist = useCallback((next: Theme) => {
     setTheme(next)
     saveTheme(next)
   }, [])
 
   const changeView = useCallback((next: View) => {
-    scrollPositions.current[view] = window.scrollY
-    setVisited(current => next === 'timer' || current[next] ? current : { ...current, [next]: true })
-    setView(next)
-  }, [view])
+    const request = ++navigationRequest.current
+    setPendingView(null)
+    if (next === view) return
+    const commit = () => {
+      if (request !== navigationRequest.current) return
+      scrollPositions.current[view] = window.scrollY
+      setRestoreScroll(scrollPositions.current[next])
+      const order: View[] = ['timer', 'stats', 'tips']
+      setViewDirection(order.indexOf(next) > order.indexOf(view) ? 'forward' : 'backward')
+      setPendingView(null)
+      setView(next)
+    }
+    if (next === 'timer' || loadedViews[next]) { commit(); return }
+    setPendingView(next)
+    // Keep the current screen usable while its destination loads.
+    void viewLoaders[next]().then(module => {
+      if (request !== navigationRequest.current) return
+      setLoadedViews(current => ({ ...current, [next]: module.default }))
+      commit()
+    }).catch(error => {
+      // The root recovery boundary handles retired or unavailable chunks.
+      if (request === navigationRequest.current) setNavigationError(error)
+    })
+  }, [view, loadedViews])
+  useEffect(() => () => { ++navigationRequest.current }, [])
 
   const startFromStats = useCallback(() => {
-    setView('timer')
+    changeView('timer')
     startSession()
-  }, [startSession])
+  }, [startSession, changeView])
 
   useTimerFeedback(engine, interfacePrefs)
 
@@ -180,6 +206,8 @@ export function Shell(): React.JSX.Element {
     />
   )
 
+  if (navigationError) throw navigationError
+
   return (
     <div style={accentStyle(engine.mode === 'focus' ? 'focus' : 'break')} className="app-shell">
       {desktopError && <div role="alert" className="safe-notice fixed left-4 z-50 max-w-sm rounded-2xl border border-line bg-card p-4 text-body-sm text-ink">
@@ -204,10 +232,10 @@ export function Shell(): React.JSX.Element {
         </div>
       )}
 
-      <AppHeader view={view} onView={changeView} onOpenSettings={dialogs.openApp} onOpenCloud={dialogs.openCloud} onOpenData={dialogs.openData} />
+      <AppHeader view={pendingView ?? view} onView={changeView} onOpenSettings={dialogs.openApp} onOpenCloud={dialogs.openCloud} onOpenData={dialogs.openData} />
 
-      <main>
-        <div hidden={view !== 'timer'}>
+      <MotionSurface as="main" value={view} direction={viewDirection} kind="tab" target="[data-motion-view]:not([hidden])" scrollTop={restoreScroll} className={view === 'tips' ? 'guides-main' : undefined}>
+        <div data-motion-view hidden={view !== 'timer'}>
           <TimerView
             engine={engine}
             ambient={audioControls.prefs.baseTexture}
@@ -218,19 +246,17 @@ export function Shell(): React.JSX.Element {
             showGreeting={interfacePrefs.showGreeting}
           />
         </div>
-        <div hidden={view !== 'stats'}>{visited.stats && (
-          <Suspense fallback={<ViewLoading />}>
+        <div data-motion-view hidden={view !== 'stats'}>{StatsView && (
             <StatsView
               onStartSession={startFromStats}
               stats={engine.stats}
               lang={lang}
               onStatsChange={engine.setStats}
             />
-          </Suspense>
         )}</div>
-        <div hidden={view !== 'tips'}>{visited.tips && <Suspense fallback={<ViewLoading />}><GuidesView active={view === 'tips'} /></Suspense>}</div>
+        <div data-motion-view hidden={view !== 'tips'}>{GuidesView && <GuidesView active={view === 'tips'} />}</div>
 
-      </main>
+      </MotionSurface>
 
       <footer
         className={`footer-safe-bottom pb-28 text-center text-caption text-ink-3 md:pb-10 ${

@@ -29,4 +29,9 @@ for (const sound of ['rain', 'waves']) {
   assert.ok(sw.includes(file), `${sound} must be precached for offline playback`)
 }
 assert.ok(sw.includes('sounds/moodist/NOTICE.txt'), 'Recording attribution must remain available offline')
+for (const cover of readdirSync('public/images/guides').filter(name => name.endsWith('.webp'))) {
+  const file = `images/guides/${cover}`
+  assert.deepEqual(readFileSync(`dist/${file}`), readFileSync(`dist-desktop/${file}`), `${cover} must ship in both targets`)
+  assert.ok(sw.includes(file), `${cover} must be precached for offline reading`)
+}
 console.log('Web PWA and desktop build isolation verified.')

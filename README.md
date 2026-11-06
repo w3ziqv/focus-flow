@@ -59,13 +59,16 @@ For desktop development use `npm run desktop:dev`; create installers with
 cloud configuration must be provided through the protected release environment.
 Never commit server credentials or private user data.
 
-The latest interface refinements and validation limits are documented in
-[the 3.1.1 release notes](docs/RELEASE-3.1.1.md). The preceding interface and
-security update is recorded in [3.1](docs/RELEASE-3.1.md).
+The guide, settings and motion update is documented in
+[the 3.1.2 release notes](docs/RELEASE-3.1.2.md). Earlier interface refinements are
+recorded in [3.1.1](docs/RELEASE-3.1.1.md), and the preceding security update in
+[3.1](docs/RELEASE-3.1.md).
 
 ## Documentation
 
 - [Roadmap](docs/ROADMAP.md)
+- [Guide content and evidence](docs/GUIDE-CONTENT.md)
+- [Interface motion](docs/MOTION.md)
 - [Security and vulnerability reporting](SECURITY.md)
 - [Data protection and trust boundaries](docs/SECURITY.md)
 - [Installation, backup and rollback](docs/INSTALL-UPDATE.md)

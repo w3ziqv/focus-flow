@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import { Settings2 } from 'lucide-react'
 import { useI18n } from '../lib/i18n'
 
@@ -10,10 +10,31 @@ interface NavPillProps {
 
 export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function NavPill({ view, onView, onOpenSettings }: NavPillProps): React.JSX.Element {
   const { t } = useI18n()
+  const links = useRef<HTMLDivElement>(null)
+  const indicator = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const root = links.current
+    if (!root) return
+    const measure = () => {
+      const active = root.querySelector<HTMLElement>('[aria-current="page"]')
+      if (!active || !indicator.current) return
+      indicator.current.style.width = `${Math.max(0, active.offsetWidth - 24)}px`
+      indicator.current.style.transform = `translateX(${active.offsetLeft + 12}px)`
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', measure)
+      return () => window.removeEventListener('resize', measure)
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(root)
+    for (const button of root.querySelectorAll('button')) observer.observe(button)
+    return () => observer.disconnect()
+  }, [view, t])
 
   const linkClass = (active: boolean) =>
     `rounded-control px-3 py-3 text-caption font-medium transition-colors duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken ${
-      active ? 'text-ink underline decoration-2 underline-offset-8' : 'text-ink-2 hover:text-ink'
+      active ? 'text-ink' : 'text-ink-2 hover:text-ink'
     }`
 
   return (
@@ -22,6 +43,8 @@ export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function N
       className="app-nav"
     >
       <div className="app-nav-controls">
+        <div ref={links} className="app-nav-links">
+        <span ref={indicator} className="nav-active-indicator" aria-hidden="true" />
         <button type="button" aria-current={view === 'timer' ? 'page' : undefined} onClick={() => onView('timer')} className={linkClass(view === 'timer')}>
           {t('nav.timer')}
         </button>
@@ -31,6 +54,7 @@ export const NavPill: React.NamedExoticComponent<NavPillProps> = memo(function N
         <button type="button" aria-current={view === 'tips' ? 'page' : undefined} onClick={() => onView('tips')} className={linkClass(view === 'tips')}>
           {t('nav.tips')}
         </button>
+        </div>
         <button
           type="button"
           onClick={onOpenSettings}

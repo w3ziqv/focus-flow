@@ -43,6 +43,29 @@ try {
     assert.ok(Math.abs(recording.duration - 58) < 0.1, `${recording.sound} must decode completely offline`)
     assert.equal(recording.channels, 2)
   }
+  await page.getByRole('button', {name: 'Guides', exact: true}).click()
+  await page.locator('.guide-library h1').waitFor()
+  const covers = await page.evaluate(async () => {
+    const topics = ['learning', 'break', 'sleep', 'food', 'productivity', 'wellbeing', 'mindfulness']
+    let decoded = 0
+    for (const topic of topics) for (const size of ['', '-small']) {
+      const response = await fetch(`/images/guides/${topic}${size}.webp`)
+      if (!response.ok) throw Error(`Missing offline guide cover: ${topic}${size}`)
+      const bitmap = await createImageBitmap(await response.blob())
+      if (!bitmap.width || !bitmap.height) throw Error('Invalid offline guide cover')
+      bitmap.close()
+      decoded++
+    }
+    return decoded
+  })
+  assert.equal(covers, 14, 'Every category cover and thumbnail must decode offline before being visited')
+  await page.locator('.guide-feature').click()
+  await page.locator('.guide-category h1').waitFor()
+  await page.locator('.guide-article-row').last().click()
+  await page.locator('.guide-article h1').waitFor()
+  assert.equal(await page.locator('.guide-article h1').textContent(), 'Try a question before opening the notes')
+  assert.equal(await page.locator('.guide-article ol li').count(), 4)
+  await page.getByRole('button', {name: 'Timer', exact: true}).click()
   await page.getByRole('button',{name:'Start',exact:true}).waitFor()
   const task = page.getByRole('textbox', {name:'What are you working on?'})
   await task.fill('TEST offline intention')
@@ -62,7 +85,7 @@ try {
   await page.getByRole('button',{name:'Guides',exact:true}).click()
   await page.getByRole('button',{name:'App',exact:true}).click()
   assert.deepEqual(errors,[])
-  console.log('PASS: production PWA reload, timer/navigation/settings, rain/wave decoding and attribution offline, no page errors')
+  console.log('PASS: production PWA reload, timer/navigation/settings, rain/wave decoding, 14 guide covers, new guide content and attribution offline, no page errors')
 
   // Reproduce a retired deployment asset without SW precache hiding the 404.
   const recoveryContext = await browser.newContext({serviceWorkers: 'block'})

@@ -7,7 +7,7 @@ import { globalIgnores } from 'eslint/config'
 import { uiBoundaries } from './scripts/eslint-ui-boundaries.mjs'
 
 export default tseslint.config([
-  globalIgnores(['dist', 'dist-desktop', 'src-tauri/target', 'src-tauri/gen', 'node_modules', 'test-artifacts']),
+  globalIgnores(['dist', 'dist-desktop', 'src-tauri/target', 'src-tauri/gen', 'node_modules', 'test-artifacts', '.taste-skill']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, tseslint.configs.recommended, reactRefresh.configs.vite],
@@ -21,6 +21,7 @@ export default tseslint.config([
     },
     languageOptions: {
       ecmaVersion: 2022,
+      parserOptions: { tsconfigRootDir: import.meta.dirname },
       globals: globals.browser,
     },
   },

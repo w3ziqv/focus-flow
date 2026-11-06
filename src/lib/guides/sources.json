@@ -110,5 +110,73 @@
   "bodyScan": {
     "label": "Mirams et al. (2013) · Consciousness and Cognition",
     "url": "https://pubmed.ncbi.nlm.nih.gov/22889642/"
+  },
+  "selfExplanation": {
+    "label": "Chi et al. (1994) · Cognitive Science",
+    "url": "https://www.sciencedirect.com/science/article/pii/0364021394900167"
+  },
+  "workedExamples": {
+    "label": "Sweller & Cooper (1985) · Cognition and Instruction",
+    "url": "https://doi.org/10.1207/s1532690xci0201_3"
+  },
+  "pretesting": {
+    "label": "Kornell, Hays & Bjork (2009) · Journal of Experimental Psychology: Learning, Memory, and Cognition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/19586265/"
+  },
+  "microbreaks": {
+    "label": "Albulescu et al. (2022) · PLOS ONE",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9432722/"
+  },
+  "creativeWalking": {
+    "label": "Oppezzo & Schwartz (2014) · Journal of Experimental Psychology: Learning, Memory, and Cognition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/24749966/"
+  },
+  "activity": {
+    "label": "WHO · Physical activity",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/physical-activity"
+  },
+  "sleepMemory": {
+    "label": "Rasch & Born (2013) · Physiological Reviews",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/23589831/"
+  },
+  "naps": {
+    "label": "Brooks & Lack (2006) · Sleep",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/16796222/"
+  },
+  "breakfast": {
+    "label": "Galioto & Spitznagel (2016) · Advances in Nutrition",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/27184286/"
+  },
+  "caffeineSafety": {
+    "label": "EFSA · Caffeine",
+    "url": "https://www.efsa.europa.eu/en/topics/topic/caffeine"
+  },
+  "notifications": {
+    "label": "Stothart, Mitchum & Yehnert (2015) · Journal of Experimental Psychology: Human Perception and Performance",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/26121498/"
+  },
+  "restartPlans": {
+    "label": "Masicampo & Baumeister (2011) · Journal of Personality and Social Psychology",
+    "url": "https://doi.org/10.1037/a0024192"
+  },
+  "progress": {
+    "label": "Harkin et al. (2016) · Psychological Bulletin",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/26479070/"
+  },
+  "stressSupport": {
+    "label": "WHO · Stress",
+    "url": "https://www.who.int/news-room/questions-and-answers/item/stress"
+  },
+  "detachment": {
+    "label": "Wendsche & Lohmann-Haislah (2017) · Frontiers in Psychology",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5233687/"
+  },
+  "mindWandering": {
+    "label": "Mrazek et al. (2013) · Psychological Science",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/23538911/"
+  },
+  "mindfulWalking": {
+    "label": "Teut et al. (2013) · Evidence-Based Complementary and Alternative Medicine",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3747483/"
   }
 }

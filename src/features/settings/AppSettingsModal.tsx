@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import type { JSX } from 'react'
+import type { JSX, ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import {
   Bell,
   Calendar,
@@ -34,6 +35,7 @@ import {
   requestNotificationPermission,
   type NotificationPermissionState,
 } from '../../lib/notifications'
+import { MotionSurface } from '../../ui/motion/MotionSurface'
 import { Modal } from '../../ui/Modal'
 import { PillButton } from '../../ui/PillButton'
 import { SegmentedTabs } from '../../ui/SegmentedTabs'
@@ -72,6 +74,22 @@ const platformLabels = {
   pwa: 'platform.pwa',
   browser: 'platform.browser',
 } as const
+
+function SettingsRow({ icon: Icon, title, description, onClick, trailing }: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  onClick: () => void
+  trailing?: ReactNode
+}): JSX.Element {
+  return <button type="button" className="settings-row" onClick={onClick}>
+    <Icon size={18} strokeWidth={1.65} className="settings-row-icon" aria-hidden="true" />
+    <span className="settings-row-copy"><span className="settings-row-title">{title}</span>
+      {description && <span className="settings-row-description">{description}</span>}
+    </span>
+    {trailing}<ChevronRight size={16} className="settings-row-chevron" aria-hidden="true" />
+  </button>
+}
 
 export function AppSettingsModal({
   open,
@@ -267,240 +285,61 @@ export function AppSettingsModal({
                       : t('settings.notifications')
 
   return (
-    <Modal open={open} onClose={onClose} title={modalTitle}>
+    <Modal open={open} onClose={onClose} title={modalTitle} className="settings-panel">
+      <MotionSurface value={section} direction={direction} resize>
       {section !== 'main' && (
         <button
           type="button"
           onClick={goBack}
-          className="group inline-flex items-center gap-1.5 text-caption font-medium text-accent hover:text-accent-strong active:scale-[0.98] transition-all mb-4 -mt-2 min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg pr-2"
+          className="settings-subview-back"
         >
           <ChevronLeft size={16} className="transition-transform duration-150 group-hover:-translate-x-0.5 group-active:-translate-x-1" aria-hidden="true" />
           {t('common.back')}
         </button>
       )}
 
-      <div
-        key={section}
-        className={direction === 'forward' ? 'slide-enter-right' : 'slide-enter-left'}
-      >
       {section === 'main' && (
-        <div className="flex flex-col gap-3.5">
-          {/* Group 1: Appearance & Localization */}
-          <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
-            <button
-              type="button"
-              onClick={() => goToSection('theme')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Palette size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('settings.theme')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">{t(THEME_TOKENS[theme].nameKey as TranslationKey)}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="size-4 rounded-full border border-black/15 shrink-0"
-                  style={{ backgroundColor: THEME_TOKENS[theme].surfacePage }}
-                />
-                <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => goToSection('language')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Globe size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('settings.language')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">{LANGUAGE_META[lang].name}</div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* Group 2: Ergonomics & A11y */}
-          <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
-            <button
-              type="button"
-              onClick={() => goToSection('a11y')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Volume2 size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('a11y.title')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">
-                    {interfacePrefs.narration?.voiceAlertsEnabled ? t('narration.voiceAlerts') : t('narration.standard')}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (onOpenShortcuts) onOpenShortcuts()
-                else goToSection('shortcuts')
-              }}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Keyboard size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('shortcuts.title')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">{t('shortcuts.desc')}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <kbd className="inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded border border-line bg-page text-[11px] font-sans text-ink-3">
-                  ?
-                </kbd>
-                <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-              </div>
-            </button>
-          </div>
-
-          {platform === 'tauri' && (
-            <div className="rounded-2xl border border-line bg-card overflow-hidden">
-              <button
-                type="button"
-                onClick={() => goToSection('desktop')}
-                className="flex w-full items-center justify-between gap-3 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                    <Monitor size={17} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <div className="text-[14px] font-medium text-ink leading-snug">{t('desktop.title')}</div>
-                    <div className="text-[12px] text-ink-3 leading-snug">{t('desktop.summary')}</div>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="shrink-0 text-ink-3" aria-hidden="true" />
-              </button>
+        <div className="settings-overview">
+          <p className="settings-intro">{t('settings.description')}</p>
+          <section className="settings-group">
+            <h3>{t('settings.appearance')}</h3>
+            <div className="settings-group-rows">
+              <SettingsRow icon={Palette} title={t('settings.theme')} description={t(THEME_TOKENS[theme].nameKey as TranslationKey)} onClick={() => goToSection('theme')}
+                trailing={<span className="settings-theme-dot" style={{ backgroundColor: THEME_TOKENS[theme].surfacePage }} />} />
+              <SettingsRow icon={Globe} title={t('settings.language')} description={LANGUAGE_META[lang].name} onClick={() => goToSection('language')} />
             </div>
-          )}
-
-          {/* Group 3: Data, Webhook & Notifications */}
-          <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
-            {onOpenCloudSync && (
-              <button
-                type="button"
-                onClick={onOpenCloudSync}
-                className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                    <Cloud size={17} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <div className="text-[14px] font-medium text-ink">{t('sync.title')}</div>
-                    <div className="text-[12px] text-ink-3">{t('sync.scope')}</div>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => goToSection('data')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Download size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('data.title')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">Markdown, CSV, iCal, JSON</div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
-
-
-            <button
-              type="button"
-              onClick={() => goToSection('notifications')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Bell size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('settings.notifications')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">{badge.label}</div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
-          </div>
-
-          <details className="rounded-2xl border border-line bg-card overflow-hidden"><summary className="cursor-pointer p-3.5 text-sm text-ink">{t('settings.advanced')}</summary>
-            {platform === 'tauri' && (
-              <button
-                type="button"
-                onClick={() => goToSection('peer')}
-                className="flex w-full items-center justify-between gap-3 border-t border-line/60 p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                    <Link2 size={17} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <div className="text-[14px] font-medium text-ink leading-snug">{t('peer.title')}</div>
-                    <div className="text-[12px] text-ink-3 leading-snug">{t('peer.summary')}</div>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="shrink-0 text-ink-3" aria-hidden="true" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => goToSection('webhook')}
-              className="flex w-full items-center justify-between p-3.5 text-left transition-all duration-150 hover:bg-sunken/60 active:scale-[0.985] active:bg-sunken min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center text-ink-2">
-                  <Radio size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-medium text-ink leading-snug">{t('webhookTitle')}</div>
-                  <div className="text-[12px] text-ink-3 leading-snug">
-                    {webhookSettings.enabled ? t('webhook.active') : t('webhookEnabled')}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-ink-3" aria-hidden="true" />
-            </button>
-
+          </section>
+          <section className="settings-group">
+            <h3>{t('settings.comfort')}</h3>
+            <div className="settings-group-rows">
+              <SettingsRow icon={Volume2} title={t('a11y.title')} description={interfacePrefs.narration?.voiceAlertsEnabled ? t('narration.voiceAlerts') : t('narration.standard')} onClick={() => goToSection('a11y')} />
+              <SettingsRow icon={Keyboard} title={t('shortcuts.title')} onClick={() => onOpenShortcuts ? onOpenShortcuts() : goToSection('shortcuts')}
+                trailing={<kbd className="settings-shortcut">?</kbd>} />
+              <SettingsRow icon={Bell} title={t('settings.notifications')} description={badge.label} onClick={() => goToSection('notifications')} />
+            </div>
+          </section>
+          <section className="settings-group">
+            <h3>{t('settings.storage')}</h3>
+            <div className="settings-group-rows">
+              {onOpenCloudSync && <SettingsRow icon={Cloud} title={t('sync.title')} description={t('settings.syncSummary')} onClick={onOpenCloudSync} />}
+              <SettingsRow icon={Download} title={t('data.title')} description={t('settings.dataSummary')} onClick={() => goToSection('data')} />
+              {platform === 'tauri' && <SettingsRow icon={Monitor} title={t('desktop.title')} description={t('desktop.summary')} onClick={() => goToSection('desktop')} />}
+            </div>
+          </section>
+          <details className="settings-advanced">
+            <summary>{t('settings.advanced')}</summary>
+            <div className="settings-group-rows">
+              {platform === 'tauri' && <SettingsRow icon={Link2} title={t('peer.title')} description={t('peer.summary')} onClick={() => goToSection('peer')} />}
+              <SettingsRow icon={Radio} title={t('webhookTitle')} description={webhookSettings.enabled ? t('webhook.active') : t('webhookEnabled')} onClick={() => goToSection('webhook')} />
+            </div>
           </details>
-          <p className="mt-3 text-[12px] text-ink-3 text-center">
-            Focus Flow v{__APP_VERSION__} · {t(platformLabels[platform])}
-          </p>
+          <div className="settings-footer"><span>Focus Flow {__APP_VERSION__}</span><span>{t(platformLabels[platform])}</span></div>
         </div>
       )}
 
       {/* Subview: Theme */}
       {section === 'theme' && (
-        <div className="flex flex-col gap-2.5" role="radiogroup" aria-label={t('settings.theme')}>
+        <div className="settings-theme-options" role="radiogroup" aria-label={t('settings.theme')}>
           {THEMES.map((th) => {
             const isSelected = theme === th.id
             return (
@@ -510,25 +349,17 @@ export function AppSettingsModal({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => onTheme(th.id)}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all min-h-[58px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  isSelected
-                    ? 'border-accent bg-accent-soft text-ink shadow-sm'
-                    : 'border-line bg-card hover:bg-sunken/60 text-ink-2'
-                }`}
+                className={`settings-theme-option ${isSelected ? 'is-selected' : ''}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="size-7 rounded-full border border-black/15 shrink-0 flex items-center justify-center"
-                    style={{ backgroundColor: th.surfacePage }}
-                  >
-                    <div
-                      className="size-2.5 rounded-full"
-                      style={{ backgroundColor: th.accentFocus }}
-                    />
-                  </div>
+                  <span className="settings-theme-preview" aria-hidden="true" style={{ backgroundColor: th.surfacePage, color: th.accentFocus, borderColor: th.textSecondary }}>
+                    <span className="settings-theme-preview-line" style={{ background: th.textPrimary }} />
+                    <span className="settings-theme-preview-dial" />
+                    <span className="settings-theme-preview-line short" style={{ background: th.textSecondary }} />
+                  </span>
                   <div className="min-w-0">
                     <div className="text-[14px] font-medium text-ink leading-snug">{t(th.nameKey as TranslationKey)}</div>
-                    <div className="text-[12px] text-ink-3 leading-snug truncate">{t(th.descKey as TranslationKey)}</div>
+                    <div className="text-[12px] text-ink-3 leading-snug">{t(th.descKey as TranslationKey)}</div>
                   </div>
                 </div>
                 {isSelected && (
@@ -544,7 +375,7 @@ export function AppSettingsModal({
 
       {/* Subview: Language */}
       {section === 'language' && (
-        <div className="rounded-2xl border border-line bg-card overflow-hidden divide-y divide-line/60">
+        <div className="rounded-panel border border-line bg-card overflow-hidden divide-y divide-line/60">
           {LANGUAGE_CODES.map(code => (
             <button key={code} type="button" lang={LANGUAGE_META[code].htmlLang}
               aria-pressed={lang === code} onClick={() => setLang(code)}
@@ -594,7 +425,7 @@ export function AppSettingsModal({
           />
 
           {interfacePrefs.narration?.voiceAlertsEnabled && (
-            <div className="flex flex-col gap-2 p-3 rounded-xl border border-line/70 bg-card/60">
+            <div className="flex flex-col gap-2 p-3 rounded-control border border-line/70 bg-card/60">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[13px] text-ink-2">{t('narration.voiceAlertsDesc')}</span>
                 <button
@@ -636,7 +467,7 @@ export function AppSettingsModal({
       {section === 'shortcuts' && (
         <div className="flex flex-col gap-3">
           <p className="text-[13px] text-ink-2 leading-relaxed">{t('shortcuts.desc')}</p>
-          <div className="rounded-xl border border-line bg-card divide-y divide-line/60">
+          <div className="rounded-control border border-line bg-card divide-y divide-line/60">
             <div className="flex items-center justify-between p-3">
               <span className="text-[14px] text-ink">{t('shortcuts.toggleTimer')}</span>
               <kbd className="inline-flex min-h-[28px] items-center px-2 rounded border border-line bg-page text-caption font-sans text-ink">
@@ -687,7 +518,7 @@ export function AppSettingsModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line bg-card px-3.5 py-2 text-caption transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={handleExportMarkdown}
             >
               <FileText size={15} aria-hidden="true" />
@@ -695,7 +526,7 @@ export function AppSettingsModal({
             </button>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line bg-card px-3.5 py-2 text-caption transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={handleExportCsv}
             >
               <Table size={15} aria-hidden="true" />
@@ -703,7 +534,7 @@ export function AppSettingsModal({
             </button>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line bg-card px-3.5 py-2 text-caption transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={handleExportICal}
             >
               <Calendar size={15} aria-hidden="true" />
@@ -711,7 +542,7 @@ export function AppSettingsModal({
             </button>
             <button
               type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-line bg-card px-3.5 py-2 text-caption shadow-halo transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line bg-card px-3.5 py-2 text-caption transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={handleExportJson}
             >
               <Download size={15} aria-hidden="true" />
@@ -724,7 +555,7 @@ export function AppSettingsModal({
               type="button"
               disabled={importStatus === 'importing'}
               aria-busy={importStatus === 'importing'}
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line bg-sunken/50 px-4 py-2 text-caption font-medium text-ink transition-colors duration-150 hover:bg-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-control border border-line bg-sunken/50 px-4 py-2 text-caption font-medium text-ink transition-colors duration-150 hover:bg-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => fileRef.current?.click()}
             >
               <Upload size={15} aria-hidden="true" />
@@ -780,13 +611,13 @@ export function AppSettingsModal({
                 value={webhookSettings.url}
                 onChange={handleWebhookUrlChange}
                 placeholder={t('webhookPlaceholder')}
-                className="min-h-11 flex-1 rounded-xl border border-line bg-sunken px-3 py-2 text-[14px] text-ink placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="min-h-11 flex-1 rounded-control border border-line bg-sunken px-3 py-2 text-[14px] text-ink placeholder:text-ink-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               />
               <button
                 type="button"
                 disabled={testStatus === 'testing'}
                 onClick={handleTestWebhook}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2 text-caption text-ink shadow-halo transition-colors duration-150 hover:bg-sunken disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-card px-4 py-2 text-caption text-ink transition-colors duration-150 hover:bg-sunken disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {testStatus === 'testing' ? t('webhookTesting') : t('webhookTest')}
               </button>
@@ -855,7 +686,7 @@ export function AppSettingsModal({
           )}
         </div>
       )}
-      </div>
+      </MotionSurface>
     </Modal>
   )
 }

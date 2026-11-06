@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '../../lib/i18n'
 import { PillButton } from '../../ui/PillButton'
+import { DialogMotion } from '../../ui/motion/DialogMotion'
 import { useDialogFocus } from '../../ui/useDialogFocus'
 
 interface FocusOverlayProps {
@@ -18,6 +19,7 @@ export function FocusOverlay({ open, onClose, children }: FocusOverlayProps): Re
   if (!open) return null
 
   return (
+    <DialogMotion focusMode className="focus-motion-viewport fixed inset-0 z-50">
     <div
       ref={panelRef}
       role="dialog"
@@ -32,5 +34,6 @@ export function FocusOverlay({ open, onClose, children }: FocusOverlayProps): Re
       </PillButton>
       {children}
     </div>
+    </DialogMotion>
   )
 }

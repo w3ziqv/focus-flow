@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { DialogMotion } from '../../ui/motion/DialogMotion'
 import { useDialogFocus } from '../../ui/useDialogFocus'
 import { Download, Copy, Check, X } from 'lucide-react'
 import { useI18n } from '../../lib/i18n'
@@ -56,9 +57,8 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
   }
 
   return (
-    <div
-      data-dialog-root
-      className="dialog-viewport fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm animate-fade-in"
+    <DialogMotion
+      className="dialog-viewport fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm"
     >
       <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="card-modal-title" tabIndex={-1} className="dialog-panel w-full max-w-lg">
         <button
@@ -132,6 +132,6 @@ export function ExportCardModal({ open, onClose, cardData }: ExportCardModalProp
           </PillButton>
         </div>
       </div>
-    </div>
+    </DialogMotion>
   )
 }

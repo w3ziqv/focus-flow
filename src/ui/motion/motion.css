@@ -1,0 +1,44 @@
+/* Screens share one curve; only depth and distance change with navigation. */
+.motion-surface { position: relative; overflow-x: clip; }
+.motion-surface[data-motion-running] { isolation: isolate; overflow: clip; }
+.motion-surface[data-motion-running] > :is(.motion-content, [data-motion-view]) { z-index: 2; }
+.motion-surface[data-motion-resizing] { overflow: hidden; }
+.motion-content, [data-motion-view] { position: relative; background: var(--color-page); }
+.motion-snapshot { pointer-events: none; background: var(--color-page); contain: paint; }
+.dialog-panel .motion-content, .dialog-panel .motion-snapshot { background: var(--color-elevated); }
+.settings-panel .motion-content, .settings-panel .motion-snapshot { background: var(--color-card); }
+[data-motion-copy], [data-motion-copy] * { pointer-events: none !important; animation: none !important; transition: none !important; caret-color: transparent !important; }
+.motion-dialog-exit { pointer-events: none !important; }
+
+/* Individual scale leaves layout and existing translate/transform effects intact. */
+:where(.motion-press, .app-nav-controls button, .settings-row, .settings-theme-option, .guide-feature, .guide-topic-card, .guide-article-row, .guide-back) {
+  transition: scale var(--duration-micro) var(--ease-spatial), color var(--duration-micro) var(--ease-micro), background-color var(--duration-micro) var(--ease-micro), border-color var(--duration-micro) var(--ease-micro);
+}
+:where(.motion-press, .app-nav-controls button, .settings-row, .settings-theme-option, .guide-feature, .guide-topic-card, .guide-article-row, .guide-back):active:not(:disabled) {
+  scale: .985;
+  transition-duration: 90ms;
+}
+.motion-press { transform-origin: center; }
+.motion-check { animation: check-settle var(--duration-micro) var(--ease-spatial) both; }
+@keyframes check-settle { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+
+/* Theme changes interpolate the actual surfaces instead of covering controls. */
+html.theme-changing, .theme-changing body, .theme-changing .app-shell,
+.theme-changing .motion-content, .theme-changing [data-motion-view],
+.theme-changing .app-header, .theme-changing .app-nav, .theme-changing .dialog-panel,
+.theme-changing .guide-return, .theme-changing .settings-row,
+.theme-changing .settings-theme-option, .theme-changing .focus-viewport {
+  transition: background-color 400ms var(--ease-spatial), color 400ms var(--ease-spatial), border-color 400ms var(--ease-spatial);
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.motion-press, .app-nav-controls button, .settings-row, .settings-theme-option, .guide-feature, .guide-topic-card, .guide-article-row, .guide-back):active { scale: 1; }
+}
+.reduce-motion :where(.motion-press, .app-nav-controls button, .settings-row, .settings-theme-option, .guide-feature, .guide-topic-card, .guide-article-row, .guide-back):active { scale: 1; }
+
+.app-nav-links { position: relative; display: flex; gap: .25rem; }
+.nav-active-indicator { position: absolute; bottom: 4px; left: 0; height: 2px; background: var(--color-ink); pointer-events: none; transition: transform var(--duration-tab) var(--ease-spatial), width var(--duration-tab) var(--ease-spatial); }
+
+@media (max-width: 767.98px) {
+  .app-nav-links { flex: 1; min-width: 0; }
+  .app-nav-links > button { flex: 1; min-width: 0; padding-inline: .5rem; overflow-wrap: anywhere; }
+}

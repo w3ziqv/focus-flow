@@ -32,9 +32,30 @@ const catalog = {
   'stress-reappraisal': { topicId: 'wellbeing', sources: ['reappraisal'] },
   'open-monitoring-focus': { topicId: 'mindfulness', sources: ['monitoring'] },
   'body-scan-awareness': { topicId: 'mindfulness', sources: ['bodyScan'] },
+  'learning-self-explanation': { topicId: 'learning', sources: ['selfExplanation'], reviewedOn: '2026-11-05' },
+  'learning-worked-examples': { topicId: 'learning', sources: ['workedExamples'], reviewedOn: '2026-11-05' },
+  'learning-pretest': { topicId: 'learning', sources: ['pretesting'], reviewedOn: '2026-11-05' },
+  'break-microbreaks': { topicId: 'break', sources: ['microbreaks'], reviewedOn: '2026-11-05' },
+  'break-creative-walk': { topicId: 'break', sources: ['creativeWalking'], reviewedOn: '2026-11-05' },
+  'break-movement': { topicId: 'break', sources: ['activity'], reviewedOn: '2026-11-05' },
+  'sleep-wake-time': { topicId: 'sleep', sources: ['sleep'], reviewedOn: '2026-11-05' },
+  'sleep-memory': { topicId: 'sleep', sources: ['sleepMemory'], reviewedOn: '2026-11-05' },
+  'sleep-naps': { topicId: 'sleep', sources: ['naps'], reviewedOn: '2026-11-05' },
+  'food-breakfast': { topicId: 'food', sources: ['breakfast'], reviewedOn: '2026-11-05' },
+  'food-simple-lunch': { topicId: 'food', sources: ['diet'], reviewedOn: '2026-11-05' },
+  'food-caffeine-labels': { topicId: 'food', sources: ['caffeineSafety'], reviewedOn: '2026-11-05' },
+  'productivity-notifications': { topicId: 'productivity', sources: ['notifications'], reviewedOn: '2026-11-05' },
+  'productivity-restart-plan': { topicId: 'productivity', sources: ['restartPlans'], reviewedOn: '2026-11-05' },
+  'productivity-progress': { topicId: 'productivity', sources: ['progress'], reviewedOn: '2026-11-05' },
+  'wellbeing-ask-support': { topicId: 'wellbeing', sources: ['stressSupport'], reviewedOn: '2026-11-05' },
+  'wellbeing-detachment': { topicId: 'wellbeing', sources: ['detachment'], reviewedOn: '2026-11-05' },
+  'wellbeing-activity': { topicId: 'wellbeing', sources: ['activity'], reviewedOn: '2026-11-05' },
+  'mindfulness-wandering': { topicId: 'mindfulness', sources: ['mindWandering'], reviewedOn: '2026-11-05' },
+  'mindfulness-walking': { topicId: 'mindfulness', sources: ['mindfulWalking'], reviewedOn: '2026-11-05' },
+  'mindfulness-sounds': { topicId: 'mindfulness', sources: ['mindfulness'], reviewedOn: '2026-11-05' },
 } as const
 export type ArticleId = keyof typeof catalog
-export const GUIDE_CATALOG: Record<ArticleId, { topicId: TopicId; sources: readonly GuideSourceId[] }> = catalog
+export const GUIDE_CATALOG: Record<ArticleId, { topicId: TopicId; sources: readonly GuideSourceId[]; reviewedOn?: string }> = catalog
 export interface ArticleCopy {
   title: string
   intro: string

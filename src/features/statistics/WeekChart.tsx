@@ -27,10 +27,10 @@ export function WeekChart({ days, totalMinutes, title, showTitle = true }: WeekC
             <div key={index} className="flex min-w-0 flex-1 flex-col items-center justify-end self-stretch">
               <div
                 title={t('chart.day', { day: day.label, minutes: day.minutes })}
-                className={`w-full ${isMonthly ? 'max-w-[10px]' : 'max-w-[28px]'} origin-bottom rounded-t-[3px] transition-colors ${
+                className={`chart-bar w-full ${isMonthly ? 'max-w-[10px]' : 'max-w-[28px]'} origin-bottom rounded-t-[3px] transition-[height,background-color] duration-[400ms] [transition-timing-function:var(--ease-spatial)] ${
                   day.isToday ? 'bg-[var(--ac)]' : day.minutes > 0 ? 'bg-line' : 'bg-line-subtle'
                 }`}
-                style={{ height: `${height}px`, animationDelay: `${Math.min(index * 20, 300)}ms` }}
+                style={{ height: `${height}px`, animationDelay: `${Math.min(index * 8, 120)}ms` }}
               />
               {!isMonthly && (
                 <span className="mt-2 truncate text-[11px] text-ink-3">{day.label}</span>
