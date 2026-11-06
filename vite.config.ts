@@ -68,7 +68,7 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
         includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'],
         manifest: manifestForLanguage('en'),
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}', 'sounds/moodist/*.{mp3,txt,json}'],
+          globPatterns: ['**/*.{js,css,html,svg,woff2,webmanifest}', 'sounds/moodist/*.{mp3,txt,json}', 'images/guides/*.webp'],
           navigateFallback: '/index.html',
         },
       }),

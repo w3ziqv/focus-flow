@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { detectPlatform } from '../lib/platform'
 import { nativeInvoke } from '../lib/desktop/runtime'
-import { ArrowLeft, X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { articleById, readMinutes } from '../lib/articles'
 import { topicById } from '../lib/topics'
 import { useI18n } from '../lib/i18n'
@@ -23,26 +23,26 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
   const copy = article.content[lang]
   // A calendar date, not an instant: use UTC explicitly to avoid changing the day in western zones.
   const reviewDate = new Date(`${article.reviewedOn}T00:00:00Z`).toLocaleDateString(localeFor(lang), { timeZone: 'UTC' })
-  const headingClass = 'font-serif text-[1.25rem] font-[500] text-ink'
-  const bodyClass = 'mt-2 text-[15px] leading-relaxed text-ink-2'
+  const headingClass = 'guide-article-section-title'
+  const bodyClass = 'guide-article-body'
   return (
-    <article className="fade-up relative mx-auto w-full max-w-[640px] px-4 pt-8 pb-12 md:pt-12" style={accentStyle(topic.accent)}>
+    <article className="guide-article" style={accentStyle(topic.accent)}>
       <div className="guide-return">
-      <button type="button" onClick={onBack} aria-label={t('topic.back')}
-        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-card text-ink-2 transition-colors duration-150 hover:bg-sunken hover:text-ink">
-        <X size={20} aria-hidden="true" />
-      </button>
+        <button type="button" onClick={onBack} aria-label={t('topic.back')} className="guide-back">
+          <ArrowLeft size={18} aria-hidden="true" /><span>{topic.copy[lang].title}</span>
+        </button>
+        <span className="guide-reading-time">{t('topic.read', { n: readMinutes(article, lang) })}</span>
       </div>
-      <p className="text-overline text-ink-3">{topic.copy[lang].title}</p>
-      <h1 className="mt-2 font-serif text-[1.75rem] font-[500] leading-snug tracking-[-0.01em] text-ink">{copy.title}</h1>
-      <p className="mt-2 text-caption text-ink-3">{t('topic.read', { n: readMinutes(article, lang) })}</p>
-      <p className="mt-6 text-[16px] leading-relaxed text-ink">{copy.intro}</p>
+      <header className="guide-article-heading">
+        <h1 tabIndex={-1}>{copy.title}</h1>
+        <p className="guide-article-intro">{copy.intro}</p>
+      </header>
       <section className="mt-8">
         <h2 className={headingClass}>{t('topic.evidence')}</h2><p className={bodyClass}>{copy.evidence}</p>
       </section>
       <section className="mt-8">
         <h2 className={headingClass}>{t('topic.steps')}</h2>
-        <ol className="mt-2 list-decimal space-y-2 pl-5 text-[15px] leading-relaxed text-ink-2 marker:font-medium marker:text-ink">
+        <ol className="guide-article-steps">
           {copy.steps.map((step, index) => <li key={index}>{step}</li>)}
         </ol>
       </section>
@@ -50,7 +50,7 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
         <h2 className={headingClass}>{t('topic.limits')}</h2><p className={bodyClass}>{copy.limits}</p>
       </section>
       <section className="mt-10 border-t border-line pt-5">
-        <h2 className="text-overline text-ink-3">{t('topic.sources')}</h2>
+        <h2 className="text-caption text-ink-3">{t('topic.sources')}</h2>
         <ul className="mt-2 space-y-2">
           {article.sources.map(source => <li key={source.url} className="text-[13px] text-ink-2">
             <a href={source.url} onClick={event => {
@@ -64,9 +64,9 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
         {sourceFailed && <p role="alert" className="mt-3 text-caption text-ink">{t('topic.sourceError')}</p>}
         <p className="mt-3 text-caption text-ink-3">{t('topic.reviewed', { date: reviewDate })}</p>
       </section>
-      <div className="mt-10 flex justify-center border-t border-line pt-6 pb-24 sm:pb-12">
+      <div className="mt-10 flex border-t border-line pt-6">
         <button type="button" onClick={onBack}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-card px-6 py-2.5 text-caption font-medium text-ink shadow-halo transition-all duration-150 [transition-timing-function:var(--ease-micro)] hover:bg-sunken active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line bg-card px-4 py-2.5 text-caption font-medium text-ink transition-colors duration-150 hover:bg-sunken">
           <ArrowLeft size={16} aria-hidden="true" /><span>{t('topic.backToTopic')}</span>
         </button>
       </div>

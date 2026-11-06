@@ -2,6 +2,7 @@ import { useRef, useId } from 'react'
 import type { ReactNode } from 'react'
 import { useI18n } from '../lib/i18n'
 import { X } from 'lucide-react'
+import { DialogMotion } from './motion/DialogMotion'
 import { useDialogFocus } from './useDialogFocus'
 
 interface ModalProps {
@@ -9,9 +10,10 @@ interface ModalProps {
   title: string
   onClose: () => void
   children: ReactNode
+  className?: string
 }
 
-export function Modal({ open, title, onClose, children }: ModalProps): React.JSX.Element | null {
+export function Modal({ open, title, onClose, children, className = '' }: ModalProps): React.JSX.Element | null {
   const {t} = useI18n()
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
@@ -20,15 +22,15 @@ export function Modal({ open, title, onClose, children }: ModalProps): React.JSX
   if (!open) return null
 
   return (
-    <div data-dialog-root className="dialog-viewport fixed inset-0 z-50 grid place-items-center">
-      <div aria-hidden="true" className="absolute inset-0 bg-page/70 backdrop-blur-sm modal-backdrop" onMouseDown={onClose} />
+    <DialogMotion className="dialog-viewport fixed inset-0 z-50 grid place-items-center">
+      <div aria-hidden="true" className="absolute inset-0 bg-page/70 backdrop-blur-sm" onMouseDown={onClose} />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="dialog-panel modal-in"
+        className={`dialog-panel ${className}`}
       >
         <button
           type="button"
@@ -43,6 +45,6 @@ export function Modal({ open, title, onClose, children }: ModalProps): React.JSX
         </h2>
         {children}
       </div>
-    </div>
+    </DialogMotion>
   )
 }

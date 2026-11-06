@@ -24,10 +24,10 @@ export function Switch({ checked, onChange, label, disabled = false, hideLabel =
         onClick={() => onChange(!checked)}
         className="relative flex size-target shrink-0 items-center rounded-control disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <span aria-hidden="true" className={`absolute inset-x-0 top-2.5 h-6 rounded-control transition-colors duration-200 ${checked ? 'bg-[var(--ac)]' : 'bg-sunken ring-1 ring-line ring-inset'}`} />
+        <span aria-hidden="true" className={`absolute inset-x-0 top-2.5 h-6 rounded-control transition-colors duration-[var(--duration-micro)] ${checked ? 'bg-[var(--ac)]' : 'bg-sunken ring-1 ring-line ring-inset'}`} />
         <span
           aria-hidden="true"
-          className={`absolute top-3 left-0.5 size-5 rounded-control bg-card transition-transform duration-200 [transition-timing-function:var(--ease-overshoot)] ${
+          className={`absolute top-3 left-0.5 size-5 rounded-control bg-card transition-transform duration-[var(--duration-micro)] [transition-timing-function:var(--ease-spatial)] ${
             checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />

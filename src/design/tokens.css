@@ -40,9 +40,14 @@
   --text-body-sm: 0.875rem;
   --text-body-sm--line-height: 1.5;
   --text-control: 0.9375rem;
-  --duration-micro: 150ms;
+  --duration-micro: 180ms;
   --duration-standard: 220ms;
   --duration-emphasis: 500ms;
+  --ease-spatial: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --duration-depth: 440ms;
+  --duration-tab: 320ms;
+  --duration-dialog-open: 380ms;
+  --duration-dialog-close: 260ms;
 }
 
 .dark {

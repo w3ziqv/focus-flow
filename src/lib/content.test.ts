@@ -5,8 +5,8 @@ import { GUIDE_CATALOG, GUIDE_SOURCES } from './guides/catalog'
 import { TOPICS } from './topics'
 
 describe('reviewed guide content', () => {
-  it('preserves all 27 routes and seven topics with complete four-language copy', () => {
-    expect(Object.keys(ARTICLES)).toHaveLength(27)
+  it('provides 48 guides across seven topics with complete four-language copy', () => {
+    expect(Object.keys(ARTICLES)).toHaveLength(48)
     expect(TOPICS).toHaveLength(7)
     for (const topic of TOPICS) for (const lang of LANGUAGE_CODES) {
       expect(topic.copy[lang].title.trim()).not.toBe('')

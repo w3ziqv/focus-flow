@@ -1,0 +1,28 @@
+.dialog-panel.settings-panel { max-width: 30rem; border-radius: 12px; background: var(--color-card); padding: 28px; }
+.settings-panel > h2 { margin-bottom: 8px; font-size: 28px; letter-spacing: -.025em; }
+.settings-intro { margin-bottom: 24px; font-size: 14px; line-height: 1.6; color: var(--color-ink-2); }
+.settings-group { margin-top: 24px; }
+.settings-group h3 { margin-bottom: 8px; font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+.settings-group-rows { border-top: 1px solid var(--color-line); }
+.settings-row { display: flex; width: 100%; align-items: center; gap: 14px; min-height: 58px; padding: 12px 0; border-bottom: 1px solid var(--color-line); text-align: left; transition: background 150ms var(--ease-micro); }
+.settings-row:hover { background: var(--color-sunken); }
+.settings-row-icon, .settings-row-chevron { flex-shrink: 0; color: var(--color-ink-3); }
+.settings-row-copy { display: block; flex: 1; min-width: 0; }
+.settings-row-title { display: block; color: var(--color-ink); font-size: 14px; line-height: 1.45; font-weight: 500; }
+.settings-row-description { display: block; margin-top: 3px; color: var(--color-ink-3); font-size: 12px; line-height: 1.45; }
+.settings-theme-dot { width: 18px; height: 18px; border: 1px solid var(--color-ink-3); border-radius: 50%; flex-shrink: 0; }
+.settings-shortcut { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 24px; border: 1px solid var(--color-line); border-radius: var(--radius-control); color: var(--color-ink-3); font: 12px var(--font-sans); }
+.settings-advanced { margin-top: 16px; }
+.settings-advanced summary { min-height: 44px; padding: 12px 0; color: var(--color-ink-2); cursor: pointer; font-size: 13px; }
+.settings-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 24px; color: var(--color-ink-3); font-size: 12px; }
+.settings-subview-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 0 16px; color: var(--color-ink-2); font-size: 13px; }
+.settings-subview-back:hover { color: var(--color-ink); }
+.settings-theme-options { display: flex; flex-direction: column; gap: 10px; }
+.settings-theme-option { display: flex; align-items: center; justify-content: space-between; min-height: 78px; gap: 8px; padding: 12px; border: 1px solid var(--color-line); border-radius: var(--radius-panel); background: var(--color-card); text-align: left; }
+.settings-theme-option:hover { background: var(--color-sunken); }
+.settings-theme-option.is-selected { border-color: var(--color-ink-2); }
+.settings-theme-preview { position: relative; display: flex; align-items: center; justify-content: center; width: 70px; height: 50px; flex-shrink: 0; border: 1px solid; border-radius: var(--radius-control); }
+.settings-theme-preview-dial { width: 24px; height: 24px; border-radius: 50%; border: 2px solid currentColor; }
+.settings-theme-preview-line { position: absolute; top: 5px; left: 6px; width: 12px; height: 2px; opacity: .7; }
+.settings-theme-preview-line.short { width: 8px; top: auto; bottom: 4px; left: calc(50% - 4px); }
+@media (max-width: 479px) { .dialog-panel.settings-panel { padding: 24px 20px; } }

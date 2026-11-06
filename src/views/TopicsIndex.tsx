@@ -1,51 +1,50 @@
 import type { TopicId } from '../types'
-import { formatNumber } from '../lib/translations'
-import { TOPICS } from '../lib/topics'
+import { ArrowUpRight, ArrowRight } from 'lucide-react'
+import { articleCount } from '../lib/translations'
+import { TOPICS, topicCover } from '../lib/topics'
 import { articlesForTopic } from '../lib/articles'
 import { useI18n } from '../lib/i18n'
-import { accentStyle } from '../lib/accent'
 
 export default function TopicsIndex({ onOpenTopic }: { onOpenTopic: (id: TopicId) => void }): React.JSX.Element {
   const { t, lang } = useI18n()
+  const featured = TOPICS[0]
 
   return (
-    <div className="mx-auto w-full max-w-[1100px] px-4 pt-8 pb-12">
-      <h1 className="font-serif text-2xl font-medium text-ink">{t('tips.title')}</h1>
-      <p className="mt-3 max-w-[52ch] text-[15px] leading-relaxed text-ink-2">{t('tips.desc')}</p>
+    <div className="guide-library">
+      <header className="guide-library-heading">
+        <div>
+          <h1 tabIndex={-1}>{t('tips.title')}</h1>
+          <p>{t('tips.desc')}</p>
+        </div>
+        <span className="guide-library-note">{t('guides.libraryNote')}</span>
+      </header>
 
-      <div className="mt-8 grid gap-x-8 sm:grid-cols-2">
-        {TOPICS.map((topic) => {
-          const Icon = topic.icon
-          const count = articlesForTopic(topic.id).length
-          return (
-            <button
-              key={topic.id}
-              type="button"
-              onClick={() => onOpenTopic(topic.id)}
-              style={accentStyle(topic.accent)}
-              className="group border-b border-line py-6 text-left transition-colors duration-150 hover:bg-card"
-            >
-              <div className="flex items-center gap-3">
-                <Icon
-                  size={18}
-                  strokeWidth={1.75}
-                  className="shrink-0 text-ink-2"
-                  aria-hidden="true"
-                />
-                <p className="grow text-base font-medium text-ink">{topic.copy[lang].title}</p>
-                <span className="text-caption text-ink-2">{formatNumber(lang, count)}</span>
-              </div>
-              <p className="mt-2 pl-[30px] text-[14px] leading-relaxed text-ink-2">
-                {topic.copy[lang].description}
-              </p>
-            </button>
-          )
-        })}
+      <button type="button" onClick={() => onOpenTopic(featured.id)} className="guide-feature group">
+        <img src={topicCover(featured.id)} width="1200" height="800" alt="" fetchPriority="high" className="guide-cover" />
+        <span className="guide-feature-content">
+          <span className="guide-cover-label">{t('guides.featured')}</span>
+          <span className="guide-feature-title">{featured.copy[lang].title}</span>
+          <span className="guide-feature-description">{featured.copy[lang].description}</span>
+          <span className="guide-feature-bottom">
+            <span>{articleCount(lang, articlesForTopic(featured.id).length)}</span>
+            <span className="guide-cover-action">{t('guides.explore')}<ArrowRight size={17} aria-hidden="true" /></span>
+          </span>
+        </span>
+      </button>
+
+      <div className="guide-section-heading"><h2>{t('guides.categories')}</h2><span>{t('topics.more')}</span></div>
+      <div className="guide-topics-grid">
+        {TOPICS.slice(1).map(topic => (
+          <button key={topic.id} type="button" onClick={() => onOpenTopic(topic.id)} className="guide-topic-card group">
+            <div className="guide-topic-image"><img src={topicCover(topic.id, true)} alt="" width="400" height="267" loading="lazy" /></div>
+            <div className="guide-topic-copy">
+              <span className="guide-topic-title">{topic.copy[lang].title}<ArrowUpRight size={17} aria-hidden="true" /></span>
+              <span className="guide-topic-description">{topic.copy[lang].description}</span>
+              <span className="guide-topic-count">{articleCount(lang, articlesForTopic(topic.id).length)}</span>
+            </div>
+          </button>
+        ))}
       </div>
-
-      <p className="mt-8 text-caption text-ink-2">
-        {t('topics.more')}
-      </p>
     </div>
   )
 }

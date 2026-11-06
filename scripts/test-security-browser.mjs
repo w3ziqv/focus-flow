@@ -58,7 +58,9 @@ try {
  assert.equal(await page.getByRole('button',{name:'Edit task name',exact:true}).count(),1)
  await page.getByRole('searchbox').fill('')
  assert.equal(await page.evaluate(()=>window.__injected),undefined)
- assert.equal(await page.locator('main img, main script').count(),0)
+ // Local guide covers remain mounted in hidden views; inspect the visible history.
+ assert.equal(await page.locator('main > div:not([hidden])').locator('img, script').count(),0)
+ assert.equal(await page.locator('main script').count(),0)
  console.log('PASS: 30 view cycles preserve deadline; history remains bounded and text stays inert')
  await page.getByRole('button',{name:'Export backup',exact:true}).click()
  const csvPromise=page.waitForEvent('download')

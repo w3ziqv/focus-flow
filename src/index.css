@@ -3,6 +3,9 @@
 @import '@fontsource-variable/instrument-sans';
 
 @import './design/tokens.css';
+@import './features/guides/guides.css';
+@import './features/settings/settings.css';
+@import './ui/motion/motion.css';
 
 /* Section 3 — base typography */
 html {
@@ -112,17 +115,6 @@ main :is(button, input, a, select) {
 }
 .timer-workspace { padding-top: 1.5rem; padding-bottom: 3rem; }
 main { overflow-wrap: anywhere; }
-.guide-return {
-  position: sticky;
-  top: var(--safe-top);
-  z-index: 30;
-  display: flex;
-  justify-content: flex-end;
-  padding-block: .5rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--color-line);
-  background: var(--color-page);
-}
 .safe-notice { top: calc(var(--safe-top) + 1rem); max-width: calc(100% - 2rem); }
 .safe-toast { bottom: calc(var(--safe-bottom) + 6rem); max-width: calc(100% - 2rem); }
 .dialog-viewport, .focus-viewport {
@@ -230,81 +222,6 @@ main { overflow-wrap: anywhere; }
   letter-spacing: 0.01em;
 }
 
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-up {
-  animation: fade-up 400ms var(--ease-emphasis) backwards;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal-backdrop {
-  animation: fade-in 200ms var(--ease-standard) backwards;
-}
-
-@keyframes modal-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-in {
-  animation: modal-pop 200ms var(--ease-standard) backwards;
-}
-
-@keyframes slide-in-from-right {
-  from {
-    opacity: 0;
-    transform: translate3d(16px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes slide-in-from-left {
-  from {
-    opacity: 0;
-    transform: translate3d(-16px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.slide-enter-right {
-  animation: slide-in-from-right 220ms var(--ease-standard) backwards;
-  will-change: transform, opacity;
-}
-
-.slide-enter-left {
-  animation: slide-in-from-left 220ms var(--ease-standard) backwards;
-  will-change: transform, opacity;
-}
-
 @keyframes chart-grow {
   from {
     transform: scaleY(0);
@@ -315,22 +232,12 @@ main { overflow-wrap: anywhere; }
 }
 
 .chart-bar {
-  animation: chart-grow 500ms var(--ease-emphasis) backwards;
+  animation: chart-grow 400ms var(--ease-spatial) backwards;
   transform-origin: bottom;
 }
 
-@keyframes dot-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
-
 .session-dot {
-  animation: dot-pulse 2s var(--ease-standard) infinite;
+  opacity: 1;
 }
 
 @keyframes dial-pulse {

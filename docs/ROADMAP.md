@@ -70,6 +70,15 @@ optional milestone details. The guide index becomes a compact topic list.
 All five themes, four languages, keyboard controls, PWA safe areas and retained
 view state remain supported. See [release details and validation limits](RELEASE-3.1.1.md).
 
+## 3.1.2: guides and settings
+
+The library has 48 guides in four languages, seven generated landscape covers,
+category article lists and a compact reader. Settings follow the current interface
+surfaces and control shapes. Images are local and included in the PWA precache.
+The original guide route IDs and application storage schemas are retained.
+
+See [release details and validation limits](RELEASE-3.1.2.md).
+
 ## 3.2 — an optional personal garden
 
 ### Experience

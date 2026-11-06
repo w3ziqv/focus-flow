@@ -170,7 +170,7 @@ try {
     await page.getByRole('button', { name: d['timer.pause'], exact: true }).waitFor()
     assert.equal(await page.locator('html').getAttribute('lang'), htmlLang[lang])
     assert.equal(await page.title(), d['app.documentTitle'])
-    report.languages.push({ lang, timerPreserved: true, historyPreserved: true, reload: true, guideCount: 27, markdown: true })
+    report.languages.push({ lang, timerPreserved: true, historyPreserved: true, reload: true, guideCount: Object.keys(catalog).length, markdown: true })
     console.log(`PASS: ${lang} controls, export, guides and persistence`)
     previous = lang
   }
@@ -187,11 +187,11 @@ try {
     report.localizedOffline = true
     await context.setOffline(false)
   }
-  assert.equal(report.guideViews, 108)
+  assert.equal(report.guideViews, Object.keys(catalog).length * langs.length)
   assert.deepEqual(report.errors, [])
   assert.deepEqual(report.accessibility.flatMap(r => r.violations), [])
   report.passed = true
-  console.log('PASS: four languages, 108 guide views, source links, 320/390/1440 layouts, active timer and history persistence, Markdown export, reload and 20 axe states')
+  console.log(`PASS: four languages, ${report.guideViews} guide views, source links, 320/390/1440 layouts, active timer and history persistence, Markdown export, reload and 20 axe states`)
 } catch (failure) {
   report.failure = String(failure)
   await page?.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {})

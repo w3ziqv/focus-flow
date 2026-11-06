@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useI18n } from '../lib/i18n'
 import { detectOS, detectPlatform } from '../lib/platform'
 import { saveOnboardingDone } from '../lib/storage'
+import { MotionSurface } from '../ui/motion/MotionSurface'
 import { Modal } from '../ui/Modal'
 import { PillButton } from '../ui/PillButton'
 
@@ -13,6 +14,7 @@ interface OnboardingProps {
 export function Onboarding({ open, onDone }: OnboardingProps): React.JSX.Element | null {
   const { t } = useI18n()
   const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
 
   if (!open) return null
 
@@ -44,28 +46,30 @@ export function Onboarding({ open, onDone }: OnboardingProps): React.JSX.Element
 
   return (
     <Modal open title={slide.title} onClose={complete}>
-      <p className="text-[0.95rem] leading-relaxed text-ink-2">{slide.body}</p>
-      <p className="sr-only">{t('onboarding.step', { n: step + 1, total })}</p>
-      <div className="mt-6 flex items-center justify-between gap-3">
-        <span className="flex gap-1.5" aria-hidden="true">
-          {slides.map((_, index) => (
-            <span
-              key={index}
-              className={`size-1.5 rounded-full transition-colors duration-150 ${index === step ? 'bg-[var(--ac)]' : 'bg-line'}`}
-            />
-          ))}
-        </span>
-        <div className="flex gap-2">
-          {step > 0 && (
-            <PillButton variant="secondary" onClick={() => setStep(step - 1)}>
-              {t('onboarding.back')}
+      <MotionSurface value={String(step)} direction={direction} resize>
+        <p className="text-[0.95rem] leading-relaxed text-ink-2">{slide.body}</p>
+        <p className="sr-only">{t('onboarding.step', { n: step + 1, total })}</p>
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <span className="flex gap-1.5" aria-hidden="true">
+            {slides.map((_, index) => (
+              <span
+                key={index}
+                className={`size-1.5 rounded-full transition-colors duration-150 ${index === step ? 'bg-[var(--ac)]' : 'bg-line'}`}
+              />
+            ))}
+          </span>
+          <div className="flex gap-2">
+            {step > 0 && (
+              <PillButton variant="secondary" onClick={() => { setDirection('backward'); setStep(step - 1) }}>
+                {t('onboarding.back')}
+              </PillButton>
+            )}
+            <PillButton variant="primary" onClick={() => { setDirection('forward'); if (last) complete(); else setStep(step + 1) }}>
+              {last ? t('onboarding.done') : t('onboarding.next')}
             </PillButton>
-          )}
-          <PillButton variant="primary" onClick={() => (last ? complete() : setStep(step + 1))}>
-            {last ? t('onboarding.done') : t('onboarding.next')}
-          </PillButton>
+          </div>
         </div>
-      </div>
+      </MotionSurface>
     </Modal>
   )
 }

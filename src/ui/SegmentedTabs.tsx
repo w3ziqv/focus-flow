@@ -44,7 +44,7 @@ export function SegmentedTabs<T extends string>({ tabs, value, onChange, ariaLab
     >
       <span
         aria-hidden="true"
-        className="absolute bottom-0 left-1 h-0.5 bg-ink transition-transform duration-[220ms] [transition-timing-function:var(--ease-standard)]"
+        className="absolute bottom-0 left-1 h-0.5 bg-ink transition-transform duration-[var(--duration-tab)] [transition-timing-function:var(--ease-spatial)]"
         style={{
           width: `calc((100% - 8px) / ${Math.max(1, tabs.length)})`,
           transform: `translateX(${activeIndex * 100}%)`,

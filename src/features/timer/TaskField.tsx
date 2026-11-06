@@ -183,7 +183,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
                       : 'border-ink-3/40 bg-transparent'
                   }`}
                 >
-                  {item.completed && <Check size={9} strokeWidth={3} aria-hidden="true" />}
+                  {item.completed && <Check className="motion-check" size={9} strokeWidth={3} aria-hidden="true" />}
                 </span>
                 <span className={item.completed ? 'line-through' : ''}>{item.text}</span>
               </div>
@@ -222,11 +222,11 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
                       : 'border-ink-3/50 bg-transparent hover:border-ink'
                   }`}
                 >
-                  {item.completed && <Check size={9} strokeWidth={3} aria-hidden="true" />}
+                  {item.completed && <Check className="motion-check" size={9} strokeWidth={3} aria-hidden="true" />}
                 </button>
                 <div className="relative min-w-0 flex-1 text-left font-sans text-[14px]">
                   <span
-                    className={`block truncate transition-colors duration-[120ms] [transition-timing-function:var(--ease-micro)] ${
+                    className={`block truncate transition-colors duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] ${
                       item.completed ? 'text-ink-3' : 'text-ink'
                     }`}
                   >
@@ -234,7 +234,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`absolute left-0 top-1/2 h-[1px] w-full bg-ink-3 transition-transform duration-[120ms] [transition-timing-function:var(--ease-micro)] origin-left pointer-events-none ${
+                    className={`absolute left-0 top-1/2 h-[1px] w-full bg-ink-3 transition-transform duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] origin-left pointer-events-none ${
                       item.completed ? 'scale-x-100' : 'scale-x-0'
                     }`}
                   />
@@ -309,12 +309,12 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
                       : 'border-ink-3/50 bg-transparent hover:border-ink'
                   }`}
                 >
-                  {item.completed && <Check size={9} strokeWidth={3} aria-hidden="true" />}
+                  {item.completed && <Check className="motion-check" size={9} strokeWidth={3} aria-hidden="true" />}
                 </button>
 
                 <div className="relative min-w-0 flex-1 text-left font-sans text-[14px]">
                   <span
-                    className={`block truncate transition-colors duration-[120ms] [transition-timing-function:var(--ease-micro)] ${
+                    className={`block truncate transition-colors duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] ${
                       item.completed ? 'text-ink-3' : 'text-ink'
                     }`}
                   >
@@ -322,7 +322,7 @@ export const TaskField: React.NamedExoticComponent<TaskFieldProps> = memo(functi
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`absolute left-0 top-1/2 h-[1px] w-full bg-ink-3 transition-transform duration-[120ms] [transition-timing-function:var(--ease-micro)] origin-left pointer-events-none ${
+                    className={`absolute left-0 top-1/2 h-[1px] w-full bg-ink-3 transition-transform duration-[var(--duration-micro)] [transition-timing-function:var(--ease-micro)] origin-left pointer-events-none ${
                       item.completed ? 'scale-x-100' : 'scale-x-0'
                     }`}
                   />

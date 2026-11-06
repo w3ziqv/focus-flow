@@ -19,7 +19,7 @@ export const ARTICLES: Record<string, Article> = Object.fromEntries(
     id, topicId: GUIDE_CATALOG[id].topicId,
     content: { pl: pl[id], en: en[id], es: es[id], zh: zh[id] },
     sources: GUIDE_CATALOG[id].sources.map(source => ({ id: source, ...GUIDE_SOURCES[source] })),
-    reviewedOn: '2026-10-28',
+    reviewedOn: GUIDE_CATALOG[id].reviewedOn ?? '2026-10-28',
   }]),
 )
 
