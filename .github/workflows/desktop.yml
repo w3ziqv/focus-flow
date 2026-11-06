@@ -75,7 +75,7 @@ jobs:
       - name: Record installer cloud target
         run: node scripts/desktop-cloud-config.mjs
       - run: node scripts/checksums.mjs
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: focus-flow-${{ runner.os }}
@@ -154,7 +154,7 @@ jobs:
         run: ./scripts/test-windows-upgrade.ps1
       - name: Native runtime evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-runtime-evidence-${{ runner.os }}
           path: |
@@ -179,7 +179,7 @@ jobs:
       - run: npm run test:localization
       - name: Localization evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: localization-evidence
           path: test-artifacts/localization
@@ -191,7 +191,7 @@ jobs:
           node scripts/test-accessibility.mjs
       - name: Accessibility evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: accessibility-evidence
           path: |
