@@ -25,6 +25,7 @@ these runs do not emulate Safari's rendering engine or a physical device.
 | Settings subviews | 40 localized 320px/landscape cases passed, including accessibility, notifications, data, nested shortcuts and webhook settings. |
 | Existing content audit | 108 introductions changed; all original route IDs, evidence, steps, limits and source destinations retained. 21 guides and 17 references added. |
 | Source style check | TasteSkill lint on the changed guide and settings files: zero failures and warnings. |
+| Built-app stress regression | 40 start/pause cycles, 30 view cycles, 1,000-session export, quota rollback and resource cleanup passed. The injection check scopes images to active history because local guide covers remain mounted in hidden views. |
 | Dependency audit | `npm audit --audit-level=high` passed on 2026-11-06. The registry reports two low and 13 moderate findings in the existing build/lint dependency tree; this release retains the dependency lock. |
 | Diff formatting | `git diff --check` passed. |
 
