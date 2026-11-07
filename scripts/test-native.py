@@ -247,9 +247,12 @@ try:
         script('window.fetch=window.__migrationFetch;delete window.__migrationFetch;'
                'window.removeEventListener("focus-flow:persistence",window.__migrationExportListener);'
                'delete window.__migrationExportListener;'
-               'document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))')
+               "document.querySelector('[role=\"dialog\"] button[aria-label=\"Close\"]').click()")
+        for _ in range(50):
+            if script('return !document.querySelector("[role=dialog]")'): break
+            time.sleep(.1)
+        else: raise AssertionError('Native backup dialog did not close')
         backup_path.unlink(missing_ok=True)
-        time.sleep(.4)
     main = request('GET', '/window')
     invoke('toggle_mini')
     time.sleep(1)
