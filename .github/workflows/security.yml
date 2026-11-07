@@ -34,5 +34,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+        with:
+          toolchain: 1.99.1
       - run: cargo install cargo-audit --version 0.22.2 --locked
       - run: cargo audit --file src-tauri/Cargo.lock
