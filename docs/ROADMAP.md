@@ -79,6 +79,15 @@ The original guide route IDs and application storage schemas are retained.
 
 See [release details and validation limits](RELEASE-3.1.2.md).
 
+## 3.1.3: toolchain and dependencies
+
+Web, PWA and desktop builds use Node 26, TypeScript 7 and current compatible
+React, Vite, Firebase and Tauri releases. The interface, motion, languages and
+storage schemas remain unchanged. Compatibility exceptions and repeatable
+measurements are recorded in the [migration report](validation/toolchain-migration/REPORT.md).
+
+See [release details and validation limits](RELEASE-3.1.3.md).
+
 ## 3.2 — an optional personal garden
 
 ### Experience
@@ -163,8 +172,9 @@ implementation. A language change alone does not solve security maintenance.
 Add a language or service only for a measured requirement that the current
 boundaries cannot address efficiently.
 
-- Use supported Node LTS and maintained Rust/Tauri toolchains. Node 24 remains
-  the release baseline; evaluate a newer LTS in a separate tested update.
+- Use supported Node LTS and maintained Rust/Tauri toolchains. Node 26 is the
+  release baseline; the Firebase emulator CLI uses an isolated Node 24 runtime
+  until its dependencies support Node 26.
 - Keep lockfiles, weekly dependency proposals and advisory checks on PR/main.
   Treat high-impact advisories as patch work; review moderate/low findings by
   actual exposure rather than hiding them or forcing incompatible downgrades.
