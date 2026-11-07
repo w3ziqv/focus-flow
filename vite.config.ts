@@ -1,7 +1,7 @@
 /// <reference types="vitest/config" />
 import fs from 'node:fs'
-import { LANGUAGE_CODES, isLang } from './src/domain/language'
-import { manifestForLanguage } from './src/lib/pwaManifest'
+import { LANGUAGE_CODES, isLang } from './src/domain/language.ts'
+import { manifestForLanguage } from './src/lib/pwaManifest.ts'
 import { defineConfig, type Plugin, type UserConfig, type UserConfigExport } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -45,7 +45,12 @@ const config: UserConfigExport = defineConfig(({ mode }): UserConfig => {
   const desktop = mode === 'desktop'
   const outDir = desktop ? 'dist-desktop' : 'dist'
   return {
-    build: { outDir },
+    build: {
+      outDir,
+      // Keep the Vite 7 syntax floor for browsers and native webviews.
+      target: ['chrome107', 'edge107', 'firefox104', 'safari16'],
+      cssTarget: ['chrome107', 'edge107', 'firefox104', 'safari16'],
+    },
     server: {
       ...(desktop ? { port: 1420, strictPort: true } : {}),
       // The other build target and test evidence must not reload an active app.
