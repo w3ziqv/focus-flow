@@ -152,6 +152,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/test-windows.ps1
+      - name: Windows offline installer upgrade and backup rollback
+        if: runner.os == 'Windows' && (inputs.cloud_mode || 'offline') == 'offline'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/test-windows-upgrade.ps1
       - name: Windows installer upgrade and backup rollback
         if: runner.os == 'Windows' && inputs.cloud_mode == 'production'
         shell: pwsh
