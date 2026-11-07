@@ -78,9 +78,11 @@ try {
   report.before = before
   root = candidate
   await page.evaluate(async () => {
-    const changed = new Promise(done => navigator.serviceWorker.addEventListener('controllerchange', done, { once: true }))
-    await (await navigator.serviceWorker.getRegistration()).update()
-    await changed
+    const changed = new Promise((done, reject) => {
+      const timer = setTimeout(() => reject(new Error('Candidate service worker did not take control')), 30_000)
+      navigator.serviceWorker.addEventListener('controllerchange', () => { clearTimeout(timer); done() }, { once: true })
+    })
+    await Promise.all([(await navigator.serviceWorker.getRegistration()).update(), changed])
   })
   await page.waitForFunction(async asset => {
     for (const key of await caches.keys()) if (key.includes('precache')) {

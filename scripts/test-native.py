@@ -196,9 +196,17 @@ try:
     # picker is redirected to a file inside this disposable profile's scope.
     data_root = Path(os.environ['APPDATA'] if os.name == 'nt' else os.environ['XDG_DATA_HOME'])
     backup_path = data_root / 'ink.focusflow.desktop' / 'sounds' / 'migration-smoke-backup.json'
-    script('window.__migrationInvoke = window.__TAURI_INTERNALS__.invoke;'
-           'window.__TAURI_INTERNALS__.invoke = (command, ...args) => command === "plugin:dialog|save"'
-           ' ? Promise.resolve(' + json.dumps(str(backup_path)) + ') : window.__migrationInvoke(command, ...args);'
+    script('window.__migrationFetch = window.fetch;window.__migrationDialogSelections = 0;'
+           'window.__migrationExportError = null;'
+           'window.__migrationExportListener = event => {window.__migrationExportError = String(event.detail)};'
+           'window.addEventListener("focus-flow:persistence", window.__migrationExportListener);'
+           'window.fetch = (input, options) => {'
+           'const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;'
+           'if (decodeURIComponent(new URL(url, location.href).pathname) === "/plugin:dialog|save") {'
+           'window.__migrationDialogSelections++;'
+           'return Promise.resolve(new Response(JSON.stringify(' + json.dumps(str(backup_path)) + '),'
+           '{headers:{"Content-Type":"application/json","Tauri-Response":"ok"}}));}'
+           'return window.__migrationFetch.call(window, input, options);};'
            "document.querySelector('button[title=\"Export backup\"]').click()")
     try:
         for _ in range(100):
@@ -207,10 +215,15 @@ try:
         else: raise AssertionError('Native backup export UI did not load')
         script('Array.from(document.querySelectorAll("button")).find(button=>button.textContent.trim()==="Full JSON Backup").click()')
         for _ in range(100):
-            if backup_path.exists(): break
-            time.sleep(.1)
-        else: raise AssertionError('Native JSON export did not write the selected file')
-        backup = json.loads(backup_path.read_text(encoding='utf-8'))
+            try:
+                backup = json.loads(backup_path.read_text(encoding='utf-8'))
+                break
+            except (FileNotFoundError, PermissionError, json.JSONDecodeError):
+                error = script('return window.__migrationExportError')
+                assert error is None, f'Native JSON export failed: {error}'
+                time.sleep(.1)
+        else: raise AssertionError('Native JSON export did not finish writing the selected file')
+        assert script('return window.__migrationDialogSelections') == 1, 'Save picker interception did not run'
         assert backup['version'] == 2 and isinstance(backup['data']['sessions'], list), 'Native export schema changed'
         original_focus = backup['data']['settings']['focus']
         for expected_focus in [original_focus % 120 + 1, original_focus]:
@@ -225,7 +238,9 @@ try:
             else: raise AssertionError('Native JSON import did not persist the expected setting')
         print('PASS: native JSON file export, import and restoration through the application UI')
     finally:
-        script('window.__TAURI_INTERNALS__.invoke=window.__migrationInvoke;delete window.__migrationInvoke;'
+        script('window.fetch=window.__migrationFetch;delete window.__migrationFetch;'
+               'window.removeEventListener("focus-flow:persistence",window.__migrationExportListener);'
+               'delete window.__migrationExportListener;'
                'document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))')
         backup_path.unlink(missing_ok=True)
         time.sleep(.4)

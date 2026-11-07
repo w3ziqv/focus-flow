@@ -6,7 +6,7 @@ Baseline: `e29b5278a66c17933b6195aedc7f275b9c22ca45` (`main`, published tag `v3.
 
 ## Status
 
-Implementation is complete. Final browser, native CI and performance checks are running. Visual comparison covers 105 pairs across five themes, seven states and 320/393/1440 px; image dimensions match and changed pixels stay below 0.21%, mainly from the randomized greeting. GitHub native builds and installed-app acceptance will be recorded after the draft PR runs. No installer has been published and the reference tag and release assets are unchanged.
+Implementation is complete. Final browser, native CI and performance checks are running. Visual comparison covers 105 pairs across five themes, seven states and 320/393/1440 px; image dimensions match and changed pixels stay below 0.21%, mainly from the randomized greeting. GitHub native builds and installed-app acceptance will be recorded after the draft PR runs. No release installer has been published; CI packages are test artifacts. The reference tag and release assets are unchanged.
 
 ## Runtime and compiler selection
 
@@ -108,7 +108,7 @@ GitHub-hosted runners support the Node 24 action runtime. Checkout 7, setup-node
 | Java (emulator runtime) | 21 → Temurin 27.0.1.0.2+1 | [Latest stable release](https://github.com/adoptium/temurin27-binaries/releases/tag/jdk-27.0.1.0.2%2B1); rules and integration passed locally on 21 and 27. |
 | firebase-tools | 15.35.0 | [Registry](https://registry.npmjs.org/firebase-tools/15.35.0). |
 
-npm 12 enforces allowScripts. The obsolete esbuild approval is removed because the final tree no longer contains esbuild. Firebase util's environment-driven postinstall configuration is unnecessary because this application initializes Firebase explicitly; protobufjs's version-scheme warning and optional fsevents build are also denied. There are no pending lifecycle approvals. [npm script policy](https://docs.npmjs.com/cli/v12/commands/npm-approve-scripts/).
+npm 12 enforces allowScripts. Project engine-strict rejects npm 11 before installation; an isolated probe rejected bundled npm 11.20.0 and accepted npm 12.2.2. The strict clean install leaves the lockfile unchanged. The obsolete esbuild approval is removed because the final tree no longer contains esbuild. Firebase util's environment-driven postinstall configuration is unnecessary because this application initializes Firebase explicitly; protobufjs's version-scheme warning and optional fsevents build are also denied. There are no pending lifecycle approvals. [npm script policy](https://docs.npmjs.com/cli/v12/commands/npm-approve-scripts/).
 
 Normal npm install followed by npm ci succeeds without force, legacy peers or blanket compatibility overrides. npm 12.2.2 --package-lock-only hits EALLOWREMOTE while inspecting Tailwind's bundled optional WASI package; normal npm install avoids that tooling bug and preserves cross-platform optional entries. The existing gRPC security override remains necessary: current @firebase/firestore 4.19.1 still declares ~1.9.0. It now resolves 1.14.7, preserving the baseline remediation. Removing it was tested and reproduced five high audit entries; reinstating the targeted override restores zero high/critical entries. [Firestore metadata](https://registry.npmjs.org/@firebase/firestore/4.19.1), [gRPC advisory](https://github.com/advisories/GHSA-m9gg-hp2v-232j).
 
@@ -125,7 +125,7 @@ Dependabot PRs #11–25 were inspected through metadata/checks; #23 fails normal
 
 The first candidate CI passed the main checks, Firestore, Rust audit, PWA update and macOS ARM64 packaging. Updated axe 4.14 detected an existing visible-label/ARIA-name mismatch on guide return buttons. Both names now include their visible localized destination; no visible UI string changed. Locale selectors use the translated back prefix. The fixed guide suite passed all 80 language/theme/viewport cases and 30 WCAG A/AA audits. No accessibility rule was disabled.
 
-Native smoke coverage now verifies JSON export to a real scoped native file, import of a changed setting and restoration of the exported value. Only the OS save picker is redirected; serialization, filesystem IPC and the import UI remain real. Linux and Windows also relaunch the same installed candidate and assert a UI-created task survived. Their CI results remain pending at this checkpoint.
+Native smoke coverage exercises JSON export to a real scoped native file, import of a changed setting and restoration of the exported value. Only the OS save picker is redirected; serialization, filesystem IPC and the import UI remain real. Linux and Windows also relaunch the same installed candidate and assert a UI-created task survived. The initial native run exposed a harness error: Tauri makes invoke immutable, so replacing that property did not redirect the picker. The test now intercepts only the save-dialog response at the fetch boundary, preserving invoke and all real filesystem requests. A local transport probe passed both Linux and Windows IPC URL forms; native reruns remain pending.
 
 ## Rollback and release limits
 

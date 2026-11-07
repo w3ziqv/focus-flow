@@ -68,6 +68,11 @@ try {
       $env:FOCUS_FLOW_RETENTION_TASK = 'TEST retained across native restart'
       python scripts/test-native.py
       if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed initial native smoke' }
+      for ($attempt = 0; $attempt -lt 100; $attempt++) {
+        if (-not (Get-Process -Name focus-flow -ErrorAction SilentlyContinue)) { break }
+        Start-Sleep -Milliseconds 100
+      }
+      if (Get-Process -Name focus-flow -ErrorAction SilentlyContinue) { throw 'Application did not exit before the retention restart' }
       Remove-Item Env:FOCUS_FLOW_RETENTION_TASK
       $env:FOCUS_FLOW_EXPECT_RETAINED_TASK = 'TEST retained across native restart'
       python scripts/test-native.py

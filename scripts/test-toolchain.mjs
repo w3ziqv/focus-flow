@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 import ts from 'typescript'
@@ -12,7 +11,7 @@ const require = createRequire(import.meta.url)
 test('the application compiler is TypeScript 7 and the AST API stays supported', () => {
   const path = require.resolve('@typescript/native/package.json')
   const compiler = JSON.parse(readFileSync(path, 'utf8'))
-  const version = execFileSync(process.execPath, [resolve(dirname(path), compiler.bin.tsc), '--version'], { encoding: 'utf8' }).trim()
+  const version = execFileSync('tsc', ['--version'], { encoding: 'utf8', shell: process.platform === 'win32' }).trim()
   assert.equal(version, `Version ${compiler.version}`)
   assert.match(version, /^Version 7\./)
   assert.match(ts.version, /^6\./)
