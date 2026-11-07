@@ -59,7 +59,8 @@ try {
   await page.getByRole('checkbox', { name: 'Retain the checklist', exact: true }).waitFor()
   await page.getByRole('button', { name: 'Start', exact: true }).click()
   await page.getByRole('button', { name: 'Pause', exact: true }).waitFor()
-  await page.waitForFunction(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active), null, { timeout: 30_000 })
+  // An active worker may still be activating; keep its first client alive until claim completes.
+  await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active?.state === 'activated' && Boolean(navigator.serviceWorker.controller), null, { timeout: 30_000 })
   await page.reload()
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller))
   // Persist a non-default locale through the same UI used by existing users.
@@ -134,6 +135,16 @@ try {
 } catch (error) {
   report.failure = String(error)
   report.documentScripts = await page?.evaluate(() => [...document.scripts].map(script => script.src)).catch(() => [])
+  report.worker = await page?.evaluate(async () => {
+    const registration = await navigator.serviceWorker.getRegistration()
+    return {
+      controller: navigator.serviceWorker.controller?.scriptURL,
+      active: registration?.active?.state,
+      waiting: registration?.waiting?.state,
+      installing: registration?.installing?.state,
+      caches: await caches.keys(),
+    }
+  }).catch(() => null)
   await page?.screenshot({ path: `${output}/failure.png`, fullPage: true }).catch(() => {})
   throw error
 } finally {
