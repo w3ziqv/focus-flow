@@ -22,7 +22,7 @@ jobs:
         run: |
           npm install --global npm@12.2.2
           node --version && npm --version
-          npm install --prefix "$RUNNER_TEMP/firebase-tools" --no-package-lock --ignore-scripts firebase-tools@15.35.0
+          npm install --prefix "$RUNNER_TEMP/firebase-tools" --no-package-lock --ignore-scripts --engine-strict firebase-tools@15.35.0
           echo "FIREBASE_TOOLS_NODE=$(command -v node)" >> "$GITHUB_ENV"
           echo "FIREBASE_TOOLS_CLI=$RUNNER_TEMP/firebase-tools/node_modules/firebase-tools/lib/bin/firebase.js" >> "$GITHUB_ENV"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
