@@ -20,7 +20,7 @@ export function TopicView({ topicId, onBack, onOpenArticle }: TopicViewProps): R
   return (
     <div className="guide-category" style={accentStyle(topic.accent)}>
       <div className="guide-return">
-        <button type="button" onClick={onBack} aria-label={t('topic.back')} className="guide-back">
+        <button type="button" onClick={onBack} aria-label={`${t('topic.back')}: ${t('nav.tips')}`} className="guide-back">
           <ArrowLeft size={18} aria-hidden="true" /><span>{t('nav.tips')}</span>
         </button>
       </div>

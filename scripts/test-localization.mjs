@@ -144,9 +144,9 @@ try {
         report.guideViews++
         // The persistent return control remains available above the reading
         // position, including on installed phones with a bottom navigation dock.
-        await page.getByRole('button', { name: d['topic.back'], exact: true }).click()
+        await page.getByRole('button', { name: new RegExp(`^${escape(d['topic.back'])}: `) }).click()
       }
-      await page.getByRole('button', { name: d['topic.back'], exact: true }).click()
+      await page.getByRole('button', { name: new RegExp(`^${escape(d['topic.back'])}: `) }).click()
     }
     await page.getByRole('button', { name: d['nav.timer'], exact: true }).click()
     await page.reload()

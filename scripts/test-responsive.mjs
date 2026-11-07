@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import { setTimeout as delay } from 'node:timers/promises'
 import { chromium } from 'playwright-core'
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // Chromium cannot supply iOS safe-area env() values. Inject the four shared
 // variables to verify layout geometry; physical Safari acceptance stays manual.
@@ -60,21 +61,21 @@ try {
       await page.keyboard.press('Escape')
       await page.getByRole('button', { name: t['nav.tips'], exact: true }).click()
       // If returning to an existing article, first return to the index.
-      while (await page.getByRole('button', { name: t['topic.back'], exact: true }).isVisible()) {
-        await page.getByRole('button', { name: t['topic.back'], exact: true }).click()
+      while (await page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) }).isVisible()) {
+        await page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) }).click()
       }
       await page.locator('main > div:not([hidden]) button.group').first().click()
       await page.locator('main > div:not([hidden]) button.group').first().click()
       await page.locator('article h1').waitFor()
       await page.evaluate(() => window.scrollTo(0, 500))
-      const close = page.getByRole('button', { name: t['topic.back'], exact: true })
+      const close = page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) })
       const closeBounds = await close.boundingBox()
       assert.ok(closeBounds.y >= top && closeBounds.y+closeBounds.height < height-bottom, 'Guide return is unreachable')
       await overflow()
       await page.getByRole('button', { name: t['nav.timer'], exact: true }).click()
       await page.getByRole('button', { name: t['nav.tips'], exact: true }).click()
       await page.locator('article h1').waitFor() // reading route survives navigation
-      await page.getByRole('button', { name: t['topic.back'], exact: true }).click()
+      await page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) }).click()
       await page.getByRole('button', { name: t['nav.timer'], exact: true }).click()
       if (width === 393) {
         await page.evaluate(() => window.scrollTo(0,0))

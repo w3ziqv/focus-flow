@@ -2,6 +2,12 @@ import assert from 'node:assert/strict'
 import { chromium } from 'playwright-core'
 import { spawn } from 'node:child_process'
 import { setTimeout as delay } from 'node:timers/promises'
+import { readConstant } from './read-typescript-constant.mjs'
+
+const topics = await readConstant('src/lib/topics.ts', 'TOPICS')
+const catalog = await readConstant('src/lib/guides/catalog.ts', 'catalog')
+const guides = await readConstant('src/lib/guides/en.ts', 'en')
+const featuredArticle = Object.entries(catalog).filter(([, meta]) => meta.topicId === topics[0].id).at(-1)[0]
 const url = process.env.FOCUS_FLOW_WEB_URL ?? 'http://127.0.0.1:4173'
 const server = process.env.FOCUS_FLOW_WEB_URL ? null : spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], { stdio: 'pipe' })
 let browser
@@ -45,8 +51,7 @@ try {
   }
   await page.getByRole('button', {name: 'Guides', exact: true}).click()
   await page.locator('.guide-library h1').waitFor()
-  const covers = await page.evaluate(async () => {
-    const topics = ['learning', 'break', 'sleep', 'food', 'productivity', 'wellbeing', 'mindfulness']
+  const covers = await page.evaluate(async topics => {
     let decoded = 0
     for (const topic of topics) for (const size of ['', '-small']) {
       const response = await fetch(`/images/guides/${topic}${size}.webp`)
@@ -57,14 +62,14 @@ try {
       decoded++
     }
     return decoded
-  })
-  assert.equal(covers, 14, 'Every category cover and thumbnail must decode offline before being visited')
+  }, topics.map(topic => topic.id))
+  assert.equal(covers, topics.length * 2, 'Every category cover and thumbnail must decode offline before being visited')
   await page.locator('.guide-feature').click()
   await page.locator('.guide-category h1').waitFor()
   await page.locator('.guide-article-row').last().click()
   await page.locator('.guide-article h1').waitFor()
-  assert.equal(await page.locator('.guide-article h1').textContent(), 'Try a question before opening the notes')
-  assert.equal(await page.locator('.guide-article ol li').count(), 4)
+  assert.equal(await page.locator('.guide-article h1').textContent(), guides[featuredArticle].title)
+  assert.equal(await page.locator('.guide-article ol li').count(), guides[featuredArticle].steps.length)
   await page.getByRole('button', {name: 'Timer', exact: true}).click()
   await page.getByRole('button',{name:'Start',exact:true}).waitFor()
   const task = page.getByRole('textbox', {name:'What are you working on?'})
@@ -85,7 +90,7 @@ try {
   await page.getByRole('button',{name:'Guides',exact:true}).click()
   await page.getByRole('button',{name:'App',exact:true}).click()
   assert.deepEqual(errors,[])
-  console.log('PASS: production PWA reload, timer/navigation/settings, rain/wave decoding, 14 guide covers, new guide content and attribution offline, no page errors')
+  console.log(`PASS: production PWA reload, timer/navigation/settings, rain/wave decoding, ${covers} catalog covers, guide content and attribution offline, no page errors`)
 
   // Reproduce a retired deployment asset without SW precache hiding the 404.
   const recoveryContext = await browser.newContext({serviceWorkers: 'block'})

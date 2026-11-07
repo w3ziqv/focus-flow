@@ -6,7 +6,7 @@ Baseline: `e29b5278a66c17933b6195aedc7f275b9c22ca45` (`main`, published tag `v3.
 
 ## Status
 
-Implementation and local checks are complete except for the final browser pass, visual comparison and performance repetitions, which are running. GitHub native builds and installed-app acceptance will be recorded after the draft PR runs. No installer has been published and the reference tag and release assets are unchanged.
+Implementation is complete. Final browser, native CI and performance checks are running. Visual comparison covers 105 pairs across five themes, seven states and 320/393/1440 px; image dimensions match and changed pixels stay below 0.21%, mainly from the randomized greeting. GitHub native builds and installed-app acceptance will be recorded after the draft PR runs. No installer has been published and the reference tag and release assets are unchanged.
 
 ## Runtime and compiler selection
 
@@ -80,8 +80,8 @@ Workbox build/window remain 7.4.1, the latest stable versions and the PWA plugin
 | `keepawake` | 0.6.1 | 0.6.1 | 0.6.1 | Already current; retained. [Registry](https://crates.io/crates/keepawake/0.6.1). |
 | `reqwest` | 0.13.5 | 0.13.5 | 0.13.5 | Already current; retained. [Registry](https://crates.io/crates/reqwest/0.13.5). |
 | `sha2` | 0.10.9 | 0.11.1 | 0.11.1 | Direct application dependency upgraded; older ABI versions may remain under upstream dependencies. [Registry](https://crates.io/crates/sha2/0.11.1). |
-| `base64` | 0.21.7, 0.22.1, 0.23.1 | 0.23.1 | 0.23.1 | Direct application dependency upgraded; older ABI versions may remain under upstream dependencies. [Registry](https://crates.io/crates/base64/0.23.1). |
-| `getrandom` | 0.2.17, 0.3.4, 0.4.3 | 0.4.3 | 0.4.3 | Direct application dependency upgraded; older ABI versions may remain under upstream dependencies. [Registry](https://crates.io/crates/getrandom/0.4.3). |
+| `base64` | 0.22.1 (direct) | 0.23.1 | 0.23.1 | Direct application dependency upgraded; older ABI versions may remain under upstream dependencies. [Registry](https://crates.io/crates/base64/0.23.1). |
+| `getrandom` | 0.3.4 (direct) | 0.4.3 | 0.4.3 | Direct application dependency upgraded; older ABI versions may remain under upstream dependencies. [Registry](https://crates.io/crates/getrandom/0.4.3). |
 | `open` | 5.4.4 | 5.4.5 | 5.4.5 | Latest direct dependency; locked resolution. [Registry](https://crates.io/crates/open/5.4.5). |
 | `keyring` | 3.6.3 | 4.2.0 | 3.6.3 | Deferred 4.2.0: it removes linux-native-sync-persistent and the existing combined Linux keyutils/Secret Service backend. Its v1 wrapper selects Secret Service only. Retain 3.6.3 to preserve credential-store behavior and existing refresh-token lookup; a backend migration needs dedicated retention acceptance. [Registry](https://crates.io/crates/keyring/4.2.0). |
 | `tauri-build` | 2.7.1 | 2.7.4 | 2.7.4 | Latest direct dependency; locked resolution. [Registry](https://crates.io/crates/tauri-build/2.7.4). |
@@ -105,6 +105,7 @@ GitHub-hosted runners support the Node 24 action runtime. Checkout 7, setup-node
 | `dtolnay/rust-toolchain` | stable; `b725eda525362e7cf34af9a7243cac1e3f01a7ec` | [Upstream](https://github.com/dtolnay/rust-toolchain/commit/b725eda525362e7cf34af9a7243cac1e3f01a7ec). |
 | cargo-audit | 0.22.2 | [Registry](https://crates.io/crates/cargo-audit/0.22.2). |
 | tauri-driver | 2.1.0 | [Registry](https://crates.io/crates/tauri-driver/2.1.0). |
+| Java (emulator runtime) | 21 → Temurin 27.0.1.0.2+1 | [Latest stable release](https://github.com/adoptium/temurin27-binaries/releases/tag/jdk-27.0.1.0.2%2B1); rules and integration passed locally on 21 and 27. |
 | firebase-tools | 15.35.0 | [Registry](https://registry.npmjs.org/firebase-tools/15.35.0). |
 
 npm 12 enforces allowScripts. The obsolete esbuild approval is removed because the final tree no longer contains esbuild. Firebase util's environment-driven postinstall configuration is unnecessary because this application initializes Firebase explicitly; protobufjs's version-scheme warning and optional fsevents build are also denied. There are no pending lifecycle approvals. [npm script policy](https://docs.npmjs.com/cli/v12/commands/npm-approve-scripts/).
@@ -118,11 +119,13 @@ Dependabot PRs #11–25 were inspected through metadata/checks; #23 fails normal
 - Baseline clean install, complete npm dependency tree, typechecks, lint, design tokens, UI boundaries, desktop configuration, 72 unit files / 910 tests, both builds and build isolation passed.
 - Baseline browser/interactions/responsive/accessibility/motion/offline/stress passed. System Chromium 156 timed out in localization and guides; both passed unchanged in an isolated baseline checkout on Playwright Chromium 151 (420.794 s and 75.250 s).
 - Node 26 exposed a test-environment mismatch: native sessionStorage did not share the Storage constructor used by prototype quota spies. Test setup now supplies one constructor with separate local/session stores. The original no-reload-on-quota assertion remains intact; all 910 tests pass.
-- Candidate TypeScript compiler/API regression tests, normal peer resolution, lint, typecheck, 910 unit tests, both frontend builds and build isolation passed. Firestore rules and 32 integration assertions passed using demo-focus-flow-security on the loopback emulator; no production account was used.
+- Candidate TypeScript compiler/API regression tests, normal peer resolution, lint, typecheck, 910 unit tests, both frontend builds and build isolation passed. 66 Firestore authorization checks and the integration suite passed using demo-focus-flow-security on the loopback emulator; no production account was used.
 - Same-origin PWA update passed from the reference build to the candidate with the same active deadline, session ID, task, checklist, history, settings, theme and Polish locale. The profile and worker were retained between builds. A later offline reload loaded both unvisited lazy routes, all catalog cover sizes and decoded rain/wave recordings.
 - Cargo formatting and audit passed. Baseline and candidate have zero vulnerability advisories; four upstream unmaintained warnings remain, and the baseline yanked warning is absent in the candidate. Full local native tests/Clippy/optimized application regression are unavailable because webkit2gtk-4.1 development metadata is missing. The exact existing GLib test was also copied into an isolated glib-only crate and passed with --release (10,000 traversals); this supplements rather than replaces platform CI.
 
-The final CI links, browser matrix, visual comparison and repeated timings will be recorded after their runs complete.
+The first candidate CI passed the main checks, Firestore, Rust audit, PWA update and macOS ARM64 packaging. Updated axe 4.14 detected an existing visible-label/ARIA-name mismatch on guide return buttons. Both names now include their visible localized destination; no visible UI string changed. Locale selectors use the translated back prefix. The fixed guide suite passed all 80 language/theme/viewport cases and 30 WCAG A/AA audits. No accessibility rule was disabled.
+
+Native smoke coverage now verifies JSON export to a real scoped native file, import of a changed setting and restoration of the exported value. Only the OS save picker is redirected; serialization, filesystem IPC and the import UI remain real. Linux and Windows also relaunch the same installed candidate and assert a UI-created task survived. Their CI results remain pending at this checkpoint.
 
 ## Rollback and release limits
 

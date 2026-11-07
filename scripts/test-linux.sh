@@ -83,7 +83,8 @@ export FOCUS_FLOW_DRIVER_LOG="${RUNNER_TEMP:-/tmp}/tauri-driver-linux.log"
 # tauri-driver HTTP proxy intermittently closes a live screenshot connection;
 # the direct driver still executes every UI/IPC/media assertion below.
 export FOCUS_FLOW_DIRECT_WEBKIT_DRIVER=1
-native_smoke
+FOCUS_FLOW_RETENTION_TASK='TEST retained across native restart' native_smoke
+FOCUS_FLOW_EXPECT_RETAINED_TASK='TEST retained across native restart' native_smoke
 
 # Exercise the portable package too. The installed .deb uses host GStreamer,
 # which previously hid the AppImage's missing media plugins on minimal systems.

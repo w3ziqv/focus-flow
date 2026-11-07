@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process'
 import { setTimeout as delay } from 'node:timers/promises'
 import { chromium } from 'playwright-core'
 import axe from 'axe-core'
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 import { readConstant } from './read-typescript-constant.mjs'
 
 const topics = await readConstant('src/lib/topics.ts', 'TOPICS')
@@ -62,8 +63,8 @@ try {
           document.documentElement.style.setProperty('--safe-bottom', `${bottom}px`)
         }, { top, bottom })
         await page.getByRole('button', { name: t['nav.tips'], exact: true }).click()
-        while (await page.getByRole('button', { name: t['topic.back'], exact: true }).isVisible()) {
-          await page.getByRole('button', { name: t['topic.back'], exact: true }).click()
+        while (await page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) }).isVisible()) {
+          await page.getByRole('button', { name: new RegExp(`^${escape(t['topic.back'])}: `) }).click()
         }
         await page.locator('.guide-library h1').waitFor()
         await settle()
