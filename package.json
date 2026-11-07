@@ -42,31 +42,32 @@
     "test:stress": "node scripts/test-security-browser.mjs",
     "test:guides": "node scripts/test-guides-interface.mjs",
     "test:motion": "node scripts/test-motion.mjs",
-    "test:toolchain": "node --test scripts/test-toolchain.mjs"
+    "test:toolchain": "node --test scripts/test-toolchain.mjs",
+    "test:dependency-migration": "node scripts/test-dependency-migration.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/fraunces": "^5.2.5",
-    "@fontsource-variable/instrument-sans": "^5.2.5",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
     "@tauri-apps/api": "^2.12.1",
     "@tauri-apps/plugin-autostart": "^2.7.0",
     "@tauri-apps/plugin-dialog": "^2.8.1",
     "@tauri-apps/plugin-fs": "^2.6.0",
     "@tauri-apps/plugin-notification": "^2.5.1",
-    "firebase": "^12.19.0",
-    "lucide-react": "^0.539.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "firebase": "^13.2.0",
+    "lucide-react": "^1.70.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@firebase/rules-unit-testing": "^5.0.0",
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@tailwindcss/vite": "^4.3.5",
     "@tauri-apps/cli": "^2.12.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.6.6",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@typescript/native": "npm:typescript@~7.0.2",
     "@vitejs/plugin-react": "^6.2.1",
     "axe-core": "^4.14.0",
@@ -88,8 +89,8 @@
     "protobufjs": false,
     "fsevents": false
   },
+  "packageManager": "npm@12.2.2",
   "overrides": {
-    "@grpc/grpc-js": "^1.13.6"
-  },
-  "packageManager": "npm@12.2.2"
+    "@grpc/grpc-js": "^1.14.7"
+  }
 }

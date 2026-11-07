@@ -4,6 +4,11 @@ import { spawn } from 'node:child_process'
 import { setTimeout as delay } from 'node:timers/promises'
 import { chromium } from 'playwright-core'
 import axe from 'axe-core'
+import { readConstant } from './read-typescript-constant.mjs'
+
+const topics = await readConstant('src/lib/topics.ts', 'TOPICS')
+const catalog = await readConstant('src/lib/guides/catalog.ts', 'catalog')
+const featuredArticles = Object.entries(catalog).filter(([, meta]) => meta.topicId === topics[0].id)
 
 const url = process.env.FOCUS_FLOW_TEST_URL ?? 'http://127.0.0.1:1456'
 const server = process.env.FOCUS_FLOW_TEST_URL ? null : spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--mode', 'test', '--host', '127.0.0.1', '--port', '1456', '--strictPort'], { stdio: 'pipe' })
@@ -40,6 +45,7 @@ try {
   for (const lang of ['pl', 'en', 'es', 'zh']) {
     const source = await readFile(`src/lib/locales/${lang}.ts`, 'utf8')
     const t = JSON.parse(source.slice(source.indexOf('{'), source.lastIndexOf('}') + 1))
+    const guides = await readConstant(`src/lib/guides/${lang}.ts`, lang)
     for (const theme of ['light', 'dark', 'obsidian', 'sage', 'eink']) {
       console.log(`Checking ${lang}/${theme}`)
       await page.goto(url)
@@ -61,13 +67,13 @@ try {
         }
         await page.locator('.guide-library h1').waitFor()
         await settle()
-        assert.equal(await page.locator('.guide-library button').count(), 7, 'Seven categories must remain reachable')
+        assert.equal(await page.locator('.guide-library button').count(), topics.length, 'Every catalog category must remain reachable')
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${lang}/${theme}/${width}: library overflow`)
         assert.ok(await page.locator('.guide-library img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), 'All category covers must load')
         if (lang === 'pl' && [393, 768, 1440].includes(width)) await page.screenshot({ path: `${output}/${theme}-${width}-library.png`, fullPage: true })
         await page.locator('.guide-feature').click()
         await page.locator('.guide-category h1').waitFor()
-        assert.equal(await page.locator('.guide-article-row').count(), 7)
+        assert.equal(await page.locator('.guide-article-row').count(), featuredArticles.length)
         await page.locator('.guide-article-row').last().click()
         await page.locator('.guide-article h1').waitFor()
         await settle()
@@ -75,7 +81,7 @@ try {
         const heading = await page.locator('.guide-article h1').boundingBox()
         const header = await page.locator('.app-header').boundingBox()
         assert.ok(heading.y - (header.y + header.height) < 160, 'Article heading has excessive blank space above it')
-        assert.ok(await page.locator('article ol li').count() === 4)
+        assert.equal(await page.locator('article ol li').count(), guides[featuredArticles.at(-1)[0]].steps.length)
         assert.ok(await page.locator('article a[target="_blank"]').count() > 0)
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${lang}/${theme}/${width}: article overflow`)
         if (lang === 'pl' && [393, 1440].includes(width)) {
