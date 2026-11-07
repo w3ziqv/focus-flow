@@ -43,6 +43,13 @@ def request(method, path, data=None):
 def script(js):
     return request('POST', '/execute/sync', {'script': js, 'args': []})
 
+def close_dialog():
+    script("document.querySelector('[role=\"dialog\"] button[aria-label=\"Close\"]').click()")
+    for _ in range(50):
+        if script('return !document.querySelector("[role=dialog]")'): return
+        time.sleep(.1)
+    raise AssertionError('Native dialog did not close')
+
 def invoke(command, args=None, expected=True):
     result = request('POST', '/execute/async', {
         'script': 'const done=arguments[arguments.length-1];window.__TAURI_INTERNALS__.invoke(arguments[0],arguments[1]).then(value=>done({ok:true,value})).catch(error=>done({ok:false,error:String(error)}))',
@@ -67,7 +74,40 @@ try:
     if retained_task:
         snapshot = invoke('load_data')
         assert retained_task in snapshot['values'].get('ff2_session', ''), 'Installer lost the previous version\'s saved task'
+        assert json.loads(snapshot['values'].get('ff2_lang', 'null')) == 'en', 'Installer lost the explicitly selected fixture language'
+        for _ in range(50):
+            if script('return document.documentElement.lang') == 'en': break
+            time.sleep(.1)
+        else: raise AssertionError('The retained English locale was not applied')
         print('PASS: installer retained the previous version\'s saved task')
+        print('PASS: installer retained the explicitly selected English locale')
+    else:
+        # The legacy exporter defaults to Polish until a language is saved.
+        # Select this fixture's English locale through the UI before backups.
+        titles = []
+        for code in ('en', 'pl', 'es', 'zh'):
+            source = Path(f'src/lib/locales/{code}.ts').read_text(encoding='utf-8')
+            titles.append(json.loads(source[source.index('{'):source.rindex('}') + 1])['settings.language'])
+        language_entry = 'button=>' + json.dumps(titles) + '.some(title=>button.textContent.trim().startsWith(title))'
+        script('document.querySelector(\'nav[aria-label="Focus Flow"] button[aria-label]\').click()')
+        for _ in range(100):
+            if script('return Array.from(document.querySelectorAll("[role=dialog] button")).some(' + language_entry + ')'): break
+            time.sleep(.1)
+        else: raise AssertionError('Native language settings entry did not load')
+        script('Array.from(document.querySelectorAll("[role=dialog] button")).find(' + language_entry + ').click()')
+        english_option = 'button=>["English","Angielski"].includes(button.textContent.trim())'
+        for _ in range(100):
+            if script('return Array.from(document.querySelectorAll("[role=dialog] button")).some(' + english_option + ')'): break
+            time.sleep(.1)
+        else: raise AssertionError('The English language option did not load')
+        script('Array.from(document.querySelectorAll("[role=dialog] button")).find(' + english_option + ').click()')
+        for _ in range(100):
+            value = invoke('load_data')['values'].get('ff2_lang')
+            if value and json.loads(value) == 'en' and script('return document.documentElement.lang') == 'en': break
+            time.sleep(.1)
+        else: raise AssertionError('The fixture language was not persisted through the UI')
+        close_dialog()
+        print('PASS: English fixture locale selected and persisted through the application UI')
     cloud = invoke('cloud_status')
     assert isinstance(cloud['configured'], bool) and isinstance(cloud['persistent'], bool), cloud
     expected_project = os.environ.get('FOCUS_FLOW_EXPECT_CLOUD_PROJECT')
@@ -231,6 +271,7 @@ try:
         else: raise AssertionError('Native JSON export did not finish writing the selected file')
         assert script('return window.__migrationDialogSelections') == 1, 'Save picker interception did not run'
         assert backup['version'] == 2 and isinstance(backup['data']['sessions'], list), 'Native export schema changed'
+        assert backup['data']['lang'] == 'en', 'Native export lost the explicitly selected fixture language'
         original_focus = backup['data']['settings']['focus']
         for expected_focus in [original_focus % 120 + 1, original_focus]:
             backup['data']['settings']['focus'] = expected_focus
@@ -246,12 +287,8 @@ try:
     finally:
         script('window.fetch=window.__migrationFetch;delete window.__migrationFetch;'
                'window.removeEventListener("focus-flow:persistence",window.__migrationExportListener);'
-               'delete window.__migrationExportListener;'
-               "document.querySelector('[role=\"dialog\"] button[aria-label=\"Close\"]').click()")
-        for _ in range(50):
-            if script('return !document.querySelector("[role=dialog]")'): break
-            time.sleep(.1)
-        else: raise AssertionError('Native backup dialog did not close')
+               'delete window.__migrationExportListener;')
+        close_dialog()
         backup_path.unlink(missing_ok=True)
     main = request('GET', '/window')
     invoke('toggle_mini')

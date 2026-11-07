@@ -28,6 +28,13 @@ toolchain migration evidence directory. PR checks cover the complete release
 candidate; the [checks page](https://github.com/w3ziqv/focus-flow/pull/30/checks)
 records the exact checked head.
 
+PR acceptance also exercises the retained Windows installer and synthetic
+upgrade/backup rollback with an offline candidate. The protected production
+scenario runs separately before publication. The native fixture explicitly
+selects English through the UI and asserts that the saved locale survives
+restart, upgrade and rollback; this avoids the old exporter's unsaved-language
+fallback to Polish.
+
 ## Production release checks
 
 The GitHub release entry records the final source commit, main CI/Security runs,
