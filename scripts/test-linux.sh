@@ -47,7 +47,7 @@ native_smoke() {
     --load="module-null-sink sink_name=focus_flow_ci" > "$FOCUS_FLOW_DRIVER_LOG.pulse.log" 2>&1 &
   pulse_pid=$!
   driver_pid=""
-  trap "kill ${driver_pid:-} $pulse_pid 2>/dev/null || true" EXIT
+  trap "kill ${driver_pid:-} $pulse_pid 2>/dev/null || true; wait ${driver_pid:-} $pulse_pid 2>/dev/null || true" EXIT
   for attempt in {1..100}; do
     [[ -S "$XDG_RUNTIME_DIR/pulse/native" ]] && break
     sleep .1
@@ -67,7 +67,7 @@ native_smoke() {
     env "${driver_env[@]}" tauri-driver --native-driver /usr/bin/WebKitWebDriver > "$FOCUS_FLOW_DRIVER_LOG" 2>&1 &
   fi
   driver_pid=$!
-  trap "kill $driver_pid $pulse_pid 2>/dev/null || true" EXIT
+  trap "kill $driver_pid $pulse_pid 2>/dev/null || true; wait $driver_pid $pulse_pid 2>/dev/null || true" EXIT
   for attempt in {1..100}; do
     if curl -fsS http://127.0.0.1:4444/status >/dev/null; then break; fi
     sleep .1
@@ -83,7 +83,8 @@ export FOCUS_FLOW_DRIVER_LOG="${RUNNER_TEMP:-/tmp}/tauri-driver-linux.log"
 # tauri-driver HTTP proxy intermittently closes a live screenshot connection;
 # the direct driver still executes every UI/IPC/media assertion below.
 export FOCUS_FLOW_DIRECT_WEBKIT_DRIVER=1
-native_smoke
+FOCUS_FLOW_RETENTION_TASK='TEST retained across native restart' native_smoke
+FOCUS_FLOW_EXPECT_RETAINED_TASK='TEST retained across native restart' native_smoke
 
 # Exercise the portable package too. The installed .deb uses host GStreamer,
 # which previously hid the AppImage's missing media plugins on minimal systems.

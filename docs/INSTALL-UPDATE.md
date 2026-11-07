@@ -1,8 +1,9 @@
 # Installation, updates and rollback
 
-Use the installer and metadata from the same published release. Version 3.1.2
-updates the guides, settings and interface motion. Download its installers from
-[the 3.1.2 release](https://github.com/w3ziqv/focus-flow/releases/tag/v3.1.2). Production builds
+Use the installer and metadata from the same published release. Version 3.1.3
+updates the toolchain and dependencies while retaining the interface and stored
+data. Download its installers from
+[the 3.1.3 release](https://github.com/w3ziqv/focus-flow/releases/tag/v3.1.3). Production builds
 connect to the production cloud; earlier alpha.2 installers use a separate test
 project. **Installers are unsigned**: Windows may show SmartScreen, and macOS is
 not notarized and remains experimental. SHA-256 verifies file integrity, not

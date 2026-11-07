@@ -191,6 +191,59 @@ try:
             if initial: invoke('plugin:autostart|enable')
         print('PASS: native autostart enable/query/disable')
     print('PASS: native binary sound file round trip, file scope denial, notification permission IPC')
+
+    # Keep the real serializer, filesystem IPC and import path. Only the OS save
+    # picker is redirected to a file inside this disposable profile's scope.
+    data_root = Path(os.environ['APPDATA'] if os.name == 'nt' else os.environ['XDG_DATA_HOME'])
+    backup_path = data_root / 'ink.focusflow.desktop' / 'sounds' / 'migration-smoke-backup.json'
+    script('window.__migrationFetch = window.fetch;window.__migrationDialogSelections = 0;'
+           'window.__migrationExportError = null;'
+           'window.__migrationExportListener = event => {window.__migrationExportError = String(event.detail)};'
+           'window.addEventListener("focus-flow:persistence", window.__migrationExportListener);'
+           'window.fetch = (input, options) => {'
+           'const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;'
+           'if (decodeURIComponent(new URL(url, location.href).pathname) === "/plugin:dialog|save") {'
+           'window.__migrationDialogSelections++;'
+           'return Promise.resolve(new Response(JSON.stringify(' + json.dumps(str(backup_path)) + '),'
+           '{headers:{"Content-Type":"application/json","Tauri-Response":"ok"}}));}'
+           'return window.__migrationFetch.call(window, input, options);};'
+           "document.querySelector('button[title=\"Export backup\"]').click()")
+    try:
+        for _ in range(100):
+            if script('return Array.from(document.querySelectorAll("button")).some(button=>button.textContent.trim()==="Full JSON Backup")'): break
+            time.sleep(.1)
+        else: raise AssertionError('Native backup export UI did not load')
+        script('Array.from(document.querySelectorAll("button")).find(button=>button.textContent.trim()==="Full JSON Backup").click()')
+        for _ in range(100):
+            try:
+                backup = json.loads(backup_path.read_text(encoding='utf-8'))
+                break
+            except (FileNotFoundError, PermissionError, json.JSONDecodeError):
+                error = script('return window.__migrationExportError')
+                assert error is None, f'Native JSON export failed: {error}'
+                time.sleep(.1)
+        else: raise AssertionError('Native JSON export did not finish writing the selected file')
+        assert script('return window.__migrationDialogSelections') == 1, 'Save picker interception did not run'
+        assert backup['version'] == 2 and isinstance(backup['data']['sessions'], list), 'Native export schema changed'
+        original_focus = backup['data']['settings']['focus']
+        for expected_focus in [original_focus % 120 + 1, original_focus]:
+            backup['data']['settings']['focus'] = expected_focus
+            script("const input=document.querySelector('[data-testid=\"backup-file-input\"]');"
+                   'const transfer=new DataTransfer();transfer.items.add(new File([' + json.dumps(json.dumps(backup)) + '],"native-backup.json",{type:"application/json"}));'
+                   'input.files=transfer.files;input.dispatchEvent(new Event("change",{bubbles:true}))')
+            for _ in range(100):
+                stored = invoke('load_data')['values'].get('ff2_settings')
+                if stored and json.loads(stored)['focus'] == expected_focus: break
+                time.sleep(.1)
+            else: raise AssertionError('Native JSON import did not persist the expected setting')
+        print('PASS: native JSON file export, import and restoration through the application UI')
+    finally:
+        script('window.fetch=window.__migrationFetch;delete window.__migrationFetch;'
+               'window.removeEventListener("focus-flow:persistence",window.__migrationExportListener);'
+               'delete window.__migrationExportListener;'
+               'document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))')
+        backup_path.unlink(missing_ok=True)
+        time.sleep(.4)
     main = request('GET', '/window')
     invoke('toggle_mini')
     time.sleep(1)

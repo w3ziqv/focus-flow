@@ -31,5 +31,6 @@
         }
       ]
     }
-  ]
+  ],
+  "installCommand": "npm install --global npm@12.2.2 && node --version && npm --version && npm ci"
 }

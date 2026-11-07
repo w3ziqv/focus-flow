@@ -13,7 +13,7 @@ an account; Google synchronization is optional.
 - Task names, small checklists, keyboard controls and five visual themes.
 - Rain, ocean recordings, generated noise, timer chimes and optional narration.
 - Session history, statistics and exports to JSON, CSV, Markdown, iCalendar and PNG.
-- Polish, English, Spanish and Simplified Chinese, including 27 practical guides
+- Polish, English, Spanish and Simplified Chinese, including 48 practical guides
   with research references and clearly stated limits.
 - Installable PWA with offline access. Desktop includes a tray, floating timer,
   system-browser Google login and local audio recordings.
@@ -39,8 +39,9 @@ automatically to production.
 
 ## Development
 
-Requires Node.js 24 and npm. Desktop builds also require Rust and Tauri's native
-system dependencies. Firebase configuration is optional; see `.env.example`.
+Requires Node.js 26.13.0 and npm 12.2.2. Desktop builds use the pinned Rust 1.99.1
+toolchain and require Tauri's native system dependencies. Firebase configuration
+is optional; see `.env.example`.
 
 ```sh
 npm ci
@@ -59,8 +60,9 @@ For desktop development use `npm run desktop:dev`; create installers with
 cloud configuration must be provided through the protected release environment.
 Never commit server credentials or private user data.
 
-The guide, settings and motion update is documented in
-[the 3.1.2 release notes](docs/RELEASE-3.1.2.md). Earlier interface refinements are
+The toolchain and dependency update is documented in
+[the 3.1.3 release notes](docs/RELEASE-3.1.3.md). The guide, settings and motion
+update is recorded in [3.1.2](docs/RELEASE-3.1.2.md). Earlier interface refinements are
 recorded in [3.1.1](docs/RELEASE-3.1.1.md), and the preceding security update in
 [3.1](docs/RELEASE-3.1.md).
 

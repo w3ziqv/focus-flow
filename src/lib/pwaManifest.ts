@@ -1,6 +1,6 @@
-import { translate } from './translations'
-import type { Lang } from '../domain/language'
-import { LANGUAGE_META } from '../domain/language'
+import { translate } from './translations.ts'
+import type { Lang } from '../domain/language.ts'
+import { LANGUAGE_META } from '../domain/language.ts'
 import type { ManifestOptions } from 'vite-plugin-pwa'
 
 const copy: Record<Lang, { desktop: string; mobile: string; start: string; short: string; action: string }> = {

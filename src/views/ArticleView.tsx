@@ -28,7 +28,7 @@ export function ArticleView({ topicId, articleId, onBack }: ArticleViewProps): R
   return (
     <article className="guide-article" style={accentStyle(topic.accent)}>
       <div className="guide-return">
-        <button type="button" onClick={onBack} aria-label={t('topic.back')} className="guide-back">
+        <button type="button" onClick={onBack} aria-label={`${t('topic.back')}: ${topic.copy[lang].title}`} className="guide-back">
           <ArrowLeft size={18} aria-hidden="true" /><span>{topic.copy[lang].title}</span>
         </button>
         <span className="guide-reading-time">{t('topic.read', { n: readMinutes(article, lang) })}</span>

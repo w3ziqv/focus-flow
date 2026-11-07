@@ -63,8 +63,27 @@ try {
   $env:FOCUS_FLOW_BINARY = $application
   $env:FOCUS_FLOW_TEST_AUTOSTART = '1'
   if (-not $env:FOCUS_FLOW_SCREENSHOT) { $env:FOCUS_FLOW_SCREENSHOT = Join-Path $env:RUNNER_TEMP 'focus-flow-windows.png' }
-  python scripts/test-native.py
-  if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed native smoke' }
+  if (-not $env:FOCUS_FLOW_RETENTION_TASK -and -not $env:FOCUS_FLOW_EXPECT_RETAINED_TASK) {
+    try {
+      $env:FOCUS_FLOW_RETENTION_TASK = 'TEST retained across native restart'
+      python scripts/test-native.py
+      if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed initial native smoke' }
+      for ($attempt = 0; $attempt -lt 100; $attempt++) {
+        if (-not (Get-Process -Name focus-flow -ErrorAction SilentlyContinue)) { break }
+        Start-Sleep -Milliseconds 100
+      }
+      if (Get-Process -Name focus-flow -ErrorAction SilentlyContinue) { throw 'Application did not exit before the retention restart' }
+      Remove-Item Env:FOCUS_FLOW_RETENTION_TASK
+      $env:FOCUS_FLOW_EXPECT_RETAINED_TASK = 'TEST retained across native restart'
+      python scripts/test-native.py
+      if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app lost data across native restart' }
+    } finally {
+      Remove-Item Env:FOCUS_FLOW_RETENTION_TASK,Env:FOCUS_FLOW_EXPECT_RETAINED_TASK -ErrorAction SilentlyContinue
+    }
+  } else {
+    python scripts/test-native.py
+    if ($LASTEXITCODE -ne 0) { throw 'Installed Windows app failed native smoke' }
+  }
 } finally {
   Get-Process -Name focus-flow,msedgewebview2 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,Responding,Path | Format-Table
   Stop-Process -Id $driver.Id -ErrorAction SilentlyContinue

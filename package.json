@@ -2,17 +2,18 @@
   "name": "focus-flow",
   "description": "A quiet Pomodoro focus timer with ambient sound, stats, and a warm editorial interface.",
   "private": true,
-  "version": "3.1.2",
+  "version": "3.1.3",
   "type": "module",
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=26.13.0 <27",
+    "npm": ">=12.2.2 <13"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "typecheck:node": "npx --package=typescript@5.8 tsc --noEmit",
+    "typecheck:node": "npm run typecheck",
     "lint": "eslint .",
     "design:tokens": "node scripts/design-tokens.mjs",
     "design:check": "node scripts/design-tokens.mjs --check",
@@ -40,50 +41,56 @@
     "test:security": "vitest run src/lib/security.test.ts src/lib/security_stress.test.ts src/lib/import_atomicity.test.ts src/lib/export_security.test.ts src/lib/desktop/peer_transfer.test.ts",
     "test:stress": "node scripts/test-security-browser.mjs",
     "test:guides": "node scripts/test-guides-interface.mjs",
-    "test:motion": "node scripts/test-motion.mjs"
+    "test:motion": "node scripts/test-motion.mjs",
+    "test:toolchain": "node --test scripts/test-toolchain.mjs",
+    "test:dependency-migration": "node scripts/test-dependency-migration.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/fraunces": "^5.2.5",
-    "@fontsource-variable/instrument-sans": "^5.2.5",
-    "@tauri-apps/api": "^2.12.1",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@tauri-apps/api": "^2.12.4",
     "@tauri-apps/plugin-autostart": "^2.7.0",
-    "@tauri-apps/plugin-dialog": "^2.8.1",
-    "@tauri-apps/plugin-fs": "^2.6.0",
-    "@tauri-apps/plugin-notification": "^2.5.1",
-    "firebase": "^12.19.0",
-    "lucide-react": "^0.539.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "@tauri-apps/plugin-dialog": "^2.8.4",
+    "@tauri-apps/plugin-fs": "^2.7.1",
+    "@tauri-apps/plugin-notification": "^2.8.0",
+    "firebase": "^13.2.0",
+    "lucide-react": "^1.70.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@firebase/rules-unit-testing": "^5.0.0",
-    "@tailwindcss/vite": "^4.1.11",
-    "@tauri-apps/cli": "^2.12.1",
-    "@testing-library/dom": "^10.4.1",
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@tauri-apps/cli": "^2.12.4",
+    "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^26.4.0",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "axe-core": "^4.13.0",
-    "eslint": "^10.9.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@typescript/native": "npm:typescript@~7.0.2",
+    "@vitejs/plugin-react": "^6.2.1",
+    "axe-core": "^4.14.0",
+    "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.5",
-    "globals": "^17.11.0",
-    "jsdom": "^30.0.1",
-    "playwright-core": "^1.62.1",
-    "tailwindcss": "^4.1.11",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.68.0",
-    "vite": "^7.0.0",
-    "vite-plugin-pwa": "^1.0.1",
-    "vitest": "^4.1.12"
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
+    "jsdom": "^31.0.0",
+    "playwright-core": "^1.65.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.6",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.0"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "@firebase/util": false,
+    "protobufjs": false,
+    "fsevents": false
   },
+  "packageManager": "npm@12.2.2",
   "overrides": {
-    "@grpc/grpc-js": "^1.13.6"
+    "@grpc/grpc-js": "^1.14.7"
   }
 }

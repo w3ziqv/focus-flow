@@ -12,19 +12,23 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: npm
+      - name: Select npm and record runtime
+        run: npm install --global npm@12.2.2 && node --version && npm --version
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run design:check
       - run: npm run test:ui-boundaries
+      - run: npm run test:toolchain
       - run: npm run typecheck
+      - run: npm run typecheck:node
       - run: node --test scripts/test-desktop-cloud-config.mjs
       - run: npm run test:run
       - run: npm run build
@@ -34,13 +38,15 @@ jobs:
   responsive:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: npm
+      - name: Select npm and record runtime
+        run: npm install --global npm@12.2.2 && node --version && npm --version
       - run: npm ci
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:responsive
@@ -50,3 +56,36 @@ jobs:
       - run: npm run test:motion
       - run: npm run build
       - run: npm run test:stress
+
+  dependency-migration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Select npm and record runtime
+        run: npm install --global npm@12.2.2 && node --version && npm --version
+      - run: npm ci
+      - run: npx playwright-core install --with-deps chromium
+      - name: Build the published reference in an isolated checkout
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/focus-flow-reference" refs/tags/v3.1.2
+          cd "$RUNNER_TEMP/focus-flow-reference"
+          npm ci
+          npm run build
+      - run: npm run build
+      - name: Verify the service-worker update and retained data
+        env:
+          FOCUS_FLOW_REFERENCE_DIST: ${{ runner.temp }}/focus-flow-reference/dist
+        run: npm run test:dependency-migration
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: dependency-migration-pwa
+          path: test-artifacts/toolchain-migration/pwa
+          if-no-files-found: warn

@@ -1,9 +1,9 @@
-import type { Lang } from '../domain/language'
-import { LANGUAGE_CODES, localeFor } from '../domain/language'
-import { pl } from './locales/pl'
-import { en } from './locales/en'
-import { es } from './locales/es'
-import { zh } from './locales/zh'
+import type { Lang } from '../domain/language.ts'
+import { LANGUAGE_CODES, localeFor } from '../domain/language.ts'
+import { pl } from './locales/pl.ts'
+import { en } from './locales/en.ts'
+import { es } from './locales/es.ts'
+import { zh } from './locales/zh.ts'
 
 export type TranslationKey = keyof typeof pl
 export const dict: Record<Lang, Record<TranslationKey, string>> = { pl, en, es, zh }

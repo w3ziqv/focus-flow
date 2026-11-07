@@ -1,99 +1,49 @@
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
-const store = new Map<string, string>()
+class MemoryStorage implements Storage {
+  private readonly store = new Map<string, string>()
 
-class MemoryStorage {
   getItem(key: string): string | null {
-    return store.get(key) ?? null
+    return this.store.get(String(key)) ?? null
   }
   setItem(key: string, value: string): void {
-    store.set(key, String(value))
+    this.store.set(String(key), String(value))
   }
   removeItem(key: string): void {
-    store.delete(key)
+    this.store.delete(String(key))
   }
   clear(): void {
-    store.clear()
+    this.store.clear()
   }
   get length(): number {
-    return store.size
+    return this.store.size
   }
   key(index: number): string | null {
-    return Array.from(store.keys())[index] ?? null
+    return Array.from(this.store.keys())[index] ?? null
   }
 }
 
-// Ensure Storage constructor exists with methods on prototype
-const StorageClass = typeof Storage !== 'undefined' ? Storage : (MemoryStorage as unknown as typeof Storage)
-if (typeof Storage === 'undefined') {
-  globalThis.Storage = StorageClass
-} else {
-  // Sync methods to Storage.prototype so prototype spies work
-  if (!Storage.prototype.getItem) Storage.prototype.getItem = MemoryStorage.prototype.getItem
-  if (!Storage.prototype.setItem) Storage.prototype.setItem = MemoryStorage.prototype.setItem
-  if (!Storage.prototype.removeItem) Storage.prototype.removeItem = MemoryStorage.prototype.removeItem
-  if (!Storage.prototype.clear) Storage.prototype.clear = MemoryStorage.prototype.clear
+// Node and jsdom can expose different Storage constructors. Use one test
+// implementation so quota spies cover both stores without sharing their data.
+for (const target of new Set([globalThis, window])) {
+  Object.defineProperty(target, 'Storage', { value: MemoryStorage, writable: true, configurable: true })
+}
+for (const name of ['localStorage', 'sessionStorage'] as const) {
+  const instance = new MemoryStorage()
+  for (const target of new Set([globalThis, window])) {
+    Object.defineProperty(target, name, { value: instance, writable: true, configurable: true })
+  }
 }
 
-const memoryStorageInstance = Object.create(Storage.prototype) as Storage
-Object.defineProperties(memoryStorageInstance, {
-  getItem: { value: (key: string) => Storage.prototype.getItem.call(memoryStorageInstance, key), writable: true, configurable: true },
-  setItem: { value: (key: string, val: string) => Storage.prototype.setItem.call(memoryStorageInstance, key, val), writable: true, configurable: true },
-  removeItem: { value: (key: string) => Storage.prototype.removeItem.call(memoryStorageInstance, key), writable: true, configurable: true },
-  clear: { value: () => Storage.prototype.clear.call(memoryStorageInstance), writable: true, configurable: true },
-})
-
-// Actually, in MemoryStorage:
-Storage.prototype.getItem = function (key: string) {
-  return store.get(key) ?? null
-}
-Storage.prototype.setItem = function (key: string, value: string) {
-  store.set(key, String(value))
-}
-Storage.prototype.removeItem = function (key: string) {
-  store.delete(key)
-}
-Storage.prototype.clear = function () {
-  store.clear()
-}
-Object.defineProperty(Storage.prototype, 'length', {
-  get() {
-    return store.size
-  },
+Object.defineProperty(navigator, 'language', {
+  value: 'pl-PL',
   configurable: true,
-})
-Storage.prototype.key = function (index: number) {
-  return Array.from(store.keys())[index] ?? null
-}
-
-const instance = Object.create(Storage.prototype) as Storage
-
-Object.defineProperty(globalThis, 'localStorage', {
-  value: instance,
   writable: true,
-  configurable: true,
 })
-
-if (typeof window !== 'undefined') {
-  Object.defineProperty(window, 'localStorage', {
-    value: instance,
-    writable: true,
-    configurable: true,
-  })
-}
-
-if (typeof navigator !== 'undefined') {
-  Object.defineProperty(navigator, 'language', {
-    value: 'pl-PL',
-    configurable: true,
-    writable: true,
-  })
-}
 
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  sessionStorage.clear()
 })
-
-
