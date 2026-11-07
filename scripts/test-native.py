@@ -196,6 +196,13 @@ try:
     # picker is redirected to a file inside this disposable profile's scope.
     data_root = Path(os.environ['APPDATA'] if os.name == 'nt' else os.environ['XDG_DATA_HOME'])
     backup_path = data_root / 'ink.focusflow.desktop' / 'sounds' / 'migration-smoke-backup.json'
+    # The retained alpha installer exposes backups through Data settings.
+    script('document.querySelector("button[aria-label=App]").click()')
+    for _ in range(100):
+        if script('return Array.from(document.querySelectorAll("button")).some(button=>button.textContent.trim().startsWith("Data"))'): break
+        time.sleep(.1)
+    else: raise AssertionError('Native data settings entry did not load')
+    script('Array.from(document.querySelectorAll("button")).find(button=>button.textContent.trim().startsWith("Data")).click()')
     script('window.__migrationFetch = window.fetch;window.__migrationDialogSelections = 0;'
            'window.__migrationExportError = null;'
            'window.__migrationExportListener = event => {window.__migrationExportError = String(event.detail)};'
@@ -206,8 +213,7 @@ try:
            'window.__migrationDialogSelections++;'
            'return Promise.resolve(new Response(JSON.stringify(' + json.dumps(str(backup_path)) + '),'
            '{headers:{"Content-Type":"application/json","Tauri-Response":"ok"}}));}'
-           'return window.__migrationFetch.call(window, input, options);};'
-           "document.querySelector('button[title=\"Export backup\"]').click()")
+           'return window.__migrationFetch.call(window, input, options);};')
     try:
         for _ in range(100):
             if script('return Array.from(document.querySelectorAll("button")).some(button=>button.textContent.trim()==="Full JSON Backup")'): break
