@@ -5,14 +5,15 @@
   "version": "3.1.2",
   "type": "module",
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=26.13.0 <27",
+    "npm": ">=12.2.2 <13"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "typecheck:node": "npx --package=typescript@5.8 tsc --noEmit",
+    "typecheck:node": "npm run typecheck",
     "lint": "eslint .",
     "design:tokens": "node scripts/design-tokens.mjs",
     "design:check": "node scripts/design-tokens.mjs --check",
@@ -40,7 +41,8 @@
     "test:security": "vitest run src/lib/security.test.ts src/lib/security_stress.test.ts src/lib/import_atomicity.test.ts src/lib/export_security.test.ts src/lib/desktop/peer_transfer.test.ts",
     "test:stress": "node scripts/test-security-browser.mjs",
     "test:guides": "node scripts/test-guides-interface.mjs",
-    "test:motion": "node scripts/test-motion.mjs"
+    "test:motion": "node scripts/test-motion.mjs",
+    "test:toolchain": "node --test scripts/test-toolchain.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.2.5",
@@ -62,28 +64,32 @@
     "@tauri-apps/cli": "^2.12.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@typescript/native": "npm:typescript@~7.0.2",
     "@vitejs/plugin-react": "^4.6.0",
     "axe-core": "^4.13.0",
-    "eslint": "^10.9.1",
+    "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.5",
-    "globals": "^17.11.0",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
     "jsdom": "^30.0.1",
     "playwright-core": "^1.62.1",
     "tailwindcss": "^4.1.11",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.68.0",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "typescript-eslint": "^8.72.1",
     "vite": "^7.0.0",
     "vite-plugin-pwa": "^1.0.1",
     "vitest": "^4.1.12"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "esbuild@0.28.2": true,
+    "@firebase/util": false,
+    "protobufjs": false
   },
   "overrides": {
     "@grpc/grpc-js": "^1.13.6"
-  }
+  },
+  "packageManager": "npm@12.2.2"
 }
