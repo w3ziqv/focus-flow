@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pl" data-theme="paper">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <title>Focus Flow — projekt 3.1</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">Przejdź do aplikacji</a>
+  <div class="review-bar" aria-label="Narzędzia przeglądania projektu">
+    <span><strong>Focus Flow</strong> <span class="muted">/ Projekt 3.1 · dane przykładowe</span></span>
+    <div class="review-controls">
+      <button id="catalog-toggle" aria-expanded="false" aria-controls="catalog">Wszystkie ekrany <span id="screen-count"></span></button>
+      <select id="review-theme" aria-label="Motyw projektu"></select>
+      <button id="device-toggle" aria-pressed="false">Widok telefonu</button>
+    </div>
+  </div>
+  <aside id="catalog" hidden aria-label="Mapa interfejsów"></aside>
+  <div class="viewport" id="viewport"><div id="app"></div></div>
+  <div id="toast" role="status" class="toast" hidden></div>
+</body>
+</html>
