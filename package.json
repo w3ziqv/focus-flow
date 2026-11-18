@@ -54,7 +54,7 @@
     "@tauri-apps/plugin-fs": "^2.7.1",
     "@tauri-apps/plugin-notification": "^2.8.0",
     "firebase": "^13.2.0",
-    "lucide-react": "^1.70.0",
+    "lucide-react": "^1.73.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
